@@ -2,6 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<!-- AdSense: 下記のscriptタグをAdSenseのコードに差し替える -->
+<!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXX" crossorigin="anonymous"></script> -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>SES魔界サバイバル</title>
 <style>
@@ -40,7 +42,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 /* SCREENS */
 #screens{flex:1;overflow:hidden;position:relative;}
 .screen{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;}
-.screen.active{display:flex !important;} /* 強制的にflex表示にするよう最適化 */
+.screen.active{display:flex;}
 
 /* SCROLL + CMDS */
 .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;}
@@ -277,6 +279,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 <body>
 <div id="app">
 
+<!-- HEADER -->
 <div id="header">
   <div class="hdr-left">
     <div class="hdr-lv" id="hdr-lv">役職を選んで出勤せよ</div>
@@ -298,6 +301,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 
 <div id="screens">
 
+<!-- TITLE -->
 <div id="title-screen" class="screen active">
   <div class="scroll">
     <div class="title-logo" style="padding:14px 0 10px;">
@@ -313,6 +317,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
   </div>
 </div>
 
+<!-- HOME -->
 <div id="home-screen" class="screen">
   <div class="scroll">
     <div style="text-align:center;padding:12px 0 8px;">
@@ -331,6 +336,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
   </div>
 </div>
 
+<!-- STREET -->
 <div id="street-screen" class="screen">
   <div class="scroll">
     <div style="font-size:17px;font-weight:900;padding:4px 0 10px;">街に繰り出す</div>
@@ -342,23 +348,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
   <div class="cmds"><button class="btn btn-secondary" onclick="goHome()">← 自宅に帰る</button></div>
 </div>
 
+<!-- SHOP -->
 <div id="shop-screen" class="screen">
   <div class="scroll" id="shop-scroll"></div>
   <div class="cmds" id="shop-cmds"></div>
 </div>
 
+<!-- OFFICE / SCENE / BATTLE -->
 <div id="office-screen" class="screen">
+  <!-- 画像エリア（ボタンオーバーレイ込み） -->
   <div id="novel-img-area" style="flex:1;min-height:0;position:relative;background:var(--bg);overflow:visible;">
+    <!-- フェーズ表示（画像エリア左上のみ） -->
     <div id="enemy-dmg-label" style="display:none;position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);font-size:44px;font-weight:900;color:#ff4444;opacity:0;pointer-events:none;z-index:10;text-shadow:0 2px 12px #ff0000;"></div>
     <div id="novel-floor-label" style="position:absolute;top:10px;left:12px;font-size:16px;font-weight:700;color:var(--orange);background:rgba(0,0,0,0.72);padding:5px 12px;border-radius:6px;z-index:3;letter-spacing:0.5px;"></div>
+    <!-- 背景プレースホルダー -->
     <div id="novel-img-placeholder" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:52px;opacity:0.10;">🏢</div>
+    <!-- 敵名（戦闘中のみ） -->
     <div id="enemy-name-label" style="display:none;position:absolute;top:36px;left:10px;right:10px;text-align:center;font-size:15px;font-weight:900;color:#f0f0f0;padding:5px 10px;border-radius:8px;background:rgba(0,0,0,0.72);z-index:3;transition:color 0.4s;"></div>
+    <!-- ボタンオーバーレイ（画像右側） -->
     <div id="office-cmds" style="position:absolute;top:0;right:0;bottom:0;width:140px;display:flex;flex-direction:column;gap:7px;z-index:4;justify-content:center;overflow-y:auto;padding:10px 8px;background:rgba(7,9,18,0.7);"></div>
   </div>
+  <!-- メッセージボックス（固定・スタイル統一） -->
   <div style="flex-shrink:0;background:#0d1120;border-top:1px solid #1e2d45;">
     <div id="office-scroll" style="height:160px;padding:12px 14px;overflow-y:hidden;font-size:15px;line-height:1.8;color:#e8eaf0;white-space:pre-wrap;"></div>
   </div>
 </div>
+<!-- GAMEOVER -->
 <div id="go-screen" class="screen">
   <div class="scroll">
     <div style="text-align:center;padding:20px 0 12px;">
@@ -372,10 +387,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
   <div class="cmds"><button class="btn btn-danger" onclick="backToTitle()">次の周回へ（タイトルへ戻る）</button></div>
 </div>
 
-</div><div id="stat-drawer" onclick="closeDrawerOutside(event)">
+</div><!-- #screens -->
+
+<!-- STAT DRAWER -->
+<div id="stat-drawer" onclick="closeDrawerOutside(event)">
   <div class="drawer-inner" id="drawer-inner">
     <div class="drawer-handle"></div>
     <div class="drawer-scroll">
+      <!-- EXP / レベル -->
       <div class="sec" style="margin-top:0;">📈 レベル・経験値</div>
       <div class="exp-bar-wrap">
         <div class="exp-bar-row">
@@ -385,6 +404,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
         <div class="exp-bar-bg"><div class="exp-bar-fill" id="drawer-exp-fill" style="width:0%"></div></div>
         <div style="font-size:11px;color:var(--orange);margin-top:3px;" id="drawer-nextlv-text">次のLvまで: 30</div>
       </div>
+      <!-- 未割振りポイント -->
       <div id="drawer-points-row" style="display:none;background:rgba(224,120,32,0.12);border:1px solid var(--orange);border-radius:8px;padding:8px 10px;margin-bottom:10px;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span style="font-size:12px;font-weight:700;color:var(--orange);">⚡ 未割振りポイント</span>
@@ -392,8 +412,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
         </div>
         <div style="font-size:11px;color:var(--sub);margin-top:3px;">各ステータスの＋ボタンで割り振れます</div>
       </div>
+      <!-- ステータス -->
       <div class="sec">📊 ステータス</div>
       <div class="stat-grid-full" id="drawer-stats"></div>
+      <!-- 手荷物 -->
       <div class="sec">💼 手荷物（死亡ロスト）</div>
       <div class="drawer-inv-scroll" id="drawer-items"></div>
       <button class="btn btn-secondary" style="margin-top:10px;flex-shrink:0;" onclick="closeDrawer()">閉じる</button>
@@ -401,6 +423,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
   </div>
 </div>
 
+<!-- DICE MODAL -->
 <div id="dice-modal">
   <div style="font-size:17px;font-weight:900;margin-bottom:10px;text-align:center;">⚀ 不公平な能力値の決定</div>
   <div style="font-size:11px;color:var(--sub);margin-bottom:12px;text-align:center;">人生はダイスで決まる。文句は言えない。</div>
@@ -410,6 +433,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
   <button class="btn btn-secondary" id="reroll-btn" style="width:100%;" onclick="rerollDice()">振り直す（残り<span id="reroll-left">2</span>回）</button>
 </div>
 
+<!-- TOAST -->
 <div id="toast"></div>
 </div>
 
@@ -417,288 +441,303 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 // ============================================================
 // MASTER DATA
 // ============================================================
-
-// ------------------------------------------------------------
-// JOBS (職業マスタ)
-// ------------------------------------------------------------
-const JOBS = [
-  {
-    id: "intern", name: "新入社員", cost: 0, hp: 60, pay: 5, badge: "b-cyan",
-    diceAtk: "2d4+2", diceDef: "2d4+2", diceMnt: "2d4+2", diceLck: "2d4+2", diceStm: "2d4+2", diceFcs: "2d4+2",
-    normalName: "全力平謝り", skillName: "ロジハラ耐え", skillCost: 30, skillDesc: "メンタル+25回復",
-    desc: "右も左もわからない魔界の最下級奴隷。"
-  },
-  {
-    id: "staff", name: "平社員", cost: 20, hp: 75, pay: 15, badge: "b-cyan",
-    diceAtk: "2d4+3", diceDef: "2d4+3", diceMnt: "2d4+3", diceLck: "2d4+3", diceStm: "2d4+3", diceFcs: "2d4+3",
-    normalName: "一般論ディベート", skillName: "エビデンスアタック", skillCost: 40, skillDesc: "敵に35固定ダメージ",
-    desc: "多少の理不尽には耐えられる一般兵。"
-  },
-  {
-    id: "leader", name: "リーダー", cost: 50, hp: 90, pay: 25, badge: "b-gold",
-    diceAtk: "2d5+4", diceDef: "2d5+3", diceMnt: "2d4+4", diceLck: "2d4+4", diceStm: "2d5+3", diceFcs: "2d5+3",
-    normalName: "進捗管理キック", skillName: "サビ残命令", skillCost: 50, skillDesc: "敵45ダメージ＋SP+15",
-    desc: "後輩の愚痴という精神攻撃をさばく中間層。"
-  },
-  {
-    id: "manager", name: "マネージャー", cost: 100, hp: 105, pay: 30, badge: "b-gold",
-    diceAtk: "2d5+5", diceDef: "2d5+4", diceMnt: "2d5+4", diceLck: "2d5+3", diceStm: "2d5+4", diceFcs: "2d5+4",
-    normalName: "KPI圧迫面談", skillName: "予算削減命令", skillCost: 45, skillDesc: "敵50ダメージ＋次ターン+30%",
-    desc: "数字に追われ部下にも追われる管理職の亡霊。"
-  },
-  {
-    id: "bucho", name: "部長", cost: 150, hp: 130, pay: 38, badge: "b-purple",
-    diceAtk: "2d6+4", diceDef: "2d6+3", diceMnt: "2d6+4", diceLck: "2d5+5", diceStm: "2d6+3", diceFcs: "2d6+3",
-    normalName: "役員報告プレッシャー", skillName: "部署丸ごと粛清", skillCost: 55, skillDesc: "敵HP30%減＋SP全回収",
-    desc: "会議と報告書の間で魂を売り続けた生き残り。"
-  },
-  {
-    id: "exec", name: "執行役員", cost: 200, hp: 160, pay: 44, badge: "b-purple",
-    diceAtk: "2d6+5", diceDef: "2d6+5", diceMnt: "2d6+5", diceLck: "2d6+4", diceStm: "2d6+4", diceFcs: "2d6+5",
-    normalName: "株主への説明責任", skillName: "緊急役員会議召集", skillCost: 55, skillDesc: "敵60ダメージ＋SP+20",
-    desc: "取締役一歩手前。責任だけが増え続ける哀れな存在。"
-  },
-  {
-    id: "ceo", name: "代表取締役", cost: 300, hp: 200, pay: 50, badge: "b-red",
-    diceAtk: "3d6+4", diceDef: "3d6+3", diceMnt: "3d6+4", diceLck: "3d6+3", diceStm: "3d6+3", diceFcs: "3d6+4",
-    normalName: "経営理念の唱和", skillName: "不採算部門カット", skillCost: 60, skillDesc: "敵HPを半分にする",
-    desc: "全責任の呪いを背負う魔界の支配者。"
-  },
-  {
-    id: "cleaner", name: "清掃員", cost: 500, hp: 300, pay: 5, badge: "b-red",
-    diceAtk: "2d4+116", diceDef: "2d4+8", diceMnt: "2d4+8", diceLck: "2d4+8", diceStm: "2d4+8", diceFcs: "2d4+8",
-    normalName: "濡れモップ掛け", skillName: "強制ゴミ廃棄", skillCost: 20, skillDesc: "敵に120の絶大ダメージ",
-    desc: "【最強】給与は最低。しかし全ての理不尽を無言で消し去る。"
-  }
+const JOBS=[
+  {id:"intern",  name:"新入社員",    cost:0,  hp:60, pay:5,  badge:"b-cyan",
+   diceAtk:"2d4+2",diceDef:"2d4+2",diceMnt:"2d4+2",diceLck:"2d4+2",diceStm:"2d4+2",diceFcs:"2d4+2",
+   normalName:"全力平謝り",     skillName:"ロジハラ耐え",      skillCost:30,skillDesc:"メンタル+25回復",desc:"右も左もわからない魔界の最下級奴隷。"},
+  {id:"staff",   name:"平社員",      cost:20, hp:75, pay:15, badge:"b-cyan",
+   diceAtk:"2d4+3",diceDef:"2d4+3",diceMnt:"2d4+3",diceLck:"2d4+3",diceStm:"2d4+3",diceFcs:"2d4+3",
+   normalName:"一般論ディベート",skillName:"エビデンスアタック",skillCost:40,skillDesc:"敵に35固定ダメージ",desc:"多少の理不尽には耐えられる一般兵。"},
+  {id:"leader",  name:"リーダー",    cost:50, hp:90, pay:25, badge:"b-gold",
+   diceAtk:"2d5+4",diceDef:"2d5+3",diceMnt:"2d4+4",diceLck:"2d4+4",diceStm:"2d5+3",diceFcs:"2d5+3",
+   normalName:"進捗管理キック",  skillName:"サビ残命令",        skillCost:50,skillDesc:"敵45ダメージ＋SP+15",desc:"後輩の愚痴という精神攻撃をさばく中間層。"},
+  {id:"manager", name:"マネージャー",cost:100,hp:105,pay:30, badge:"b-gold",
+   diceAtk:"2d5+5",diceDef:"2d5+4",diceMnt:"2d5+4",diceLck:"2d5+3",diceStm:"2d5+4",diceFcs:"2d5+4",
+   normalName:"KPI圧迫面談",   skillName:"予算削減命令",      skillCost:45,skillDesc:"敵50ダメージ＋次ターン+30%",desc:"数字に追われ部下にも追われる管理職の亡霊。"},
+  {id:"bucho",   name:"部長",        cost:150,hp:130,pay:38, badge:"b-purple",
+   diceAtk:"2d6+4",diceDef:"2d6+3",diceMnt:"2d6+4",diceLck:"2d5+5",diceStm:"2d6+3",diceFcs:"2d6+3",
+   normalName:"役員報告プレッシャー",skillName:"部署丸ごと粛清",skillCost:55,skillDesc:"敵HP30%減＋SP全回収",desc:"会議と報告書の間で魂を売り続けた生き残り。"},
+  {id:"exec",    name:"執行役員",    cost:200,hp:160,pay:44, badge:"b-purple",
+   diceAtk:"2d6+5",diceDef:"2d6+5",diceMnt:"2d6+5",diceLck:"2d6+4",diceStm:"2d6+4",diceFcs:"2d6+5",
+   normalName:"株主への説明責任",skillName:"緊急役員会議召集",  skillCost:55,skillDesc:"敵60ダメージ＋SP+20",desc:"取締役一歩手前。責任だけが増え続ける哀れな存在。"},
+  {id:"ceo",     name:"代表取締役",  cost:300,hp:200,pay:50, badge:"b-red",
+   diceAtk:"3d6+4",diceDef:"3d6+3",diceMnt:"3d6+4",diceLck:"3d6+3",diceStm:"3d6+3",diceFcs:"3d6+4",
+   normalName:"経営理念の唱和",  skillName:"不採算部門カット",  skillCost:60,skillDesc:"敵HPを半分にする",desc:"全責任の呪いを背負う魔界の支配者。"},
+  {id:"cleaner", name:"清掃員",      cost:500,hp:300,pay:5,  badge:"b-red",
+   diceAtk:"2d4+116",diceDef:"2d4+8",diceMnt:"2d4+8",diceLck:"2d4+8",diceStm:"2d4+8",diceFcs:"2d4+8",
+   normalName:"濡れモップ掛け",  skillName:"強制ゴミ廃棄",     skillCost:20,skillDesc:"敵に120の絶大ダメージ",desc:"【最強】給与は最低。しかし全ての理不尽を無言で消し去る。"}
 ];
 
-// ------------------------------------------------------------
-// ITEMS (アイテム統合マスタ)
-// ------------------------------------------------------------
-// すべてのアイテムの基本性能をここに一元化します。
-const ITEMS = {
-  // --- 消耗品 ---
-  caffeine:     { id: "caffeine", name: "カフェイン錠剤", type: "use", heal: 10, desc: "HP+10" },
-  energy:       { id: "energy", name: "コンビニのエナジードリンク", type: "sp", spVal: 20, desc: "SP+20" },
-  stomachrx:    { id: "stomachrx", name: "胃腸薬（粉末）", type: "use", heal: 40, desc: "HP+40" },
-  sp_drink:     { id: "sp_drink", name: "パートナー企業の応援メール", type: "sp", spVal: 50, desc: "SP+50" },
-  steak:        { id: "steak", name: "エリクサー（退職代行の連絡先）", type: "use", heal: 999, desc: "HP・SP全回復" },
-  contractcopy: { id: "contractcopy", name: "契約書のコピー", type: "use", heal: 20, desc: "交渉資料（HP+20）" },
-
-  // --- 装備品（武器・防具・宝箱専用） ---
-  recruit:    { id: "recruit", name: "量産型リクルートスーツ", type: "equip", atk:0, def:2, mnt:0, lck:0, stm:0, fcs:0, desc: "DEF+2" },
-  cooling:    { id: "cooling", name: "冷却シート【お徳用】", type: "equip", atk:0, def:9, mnt:3, lck:0, stm:0, fcs:0, desc: "DEF+9 MNT+3" },
-  fakecv:     { id: "fakecv", name: "偽造経歴書の束", type: "equip", atk:18, def:0, mnt:0, lck:0, stm:0, fcs:3, desc: "ATK+18 FCS+3" },
-  pipe:       { id: "pipe", name: "錆びた鉄パイプ", type: "equip", atk:10, def:0, mnt:0, lck:0, stm:0, fcs:0, desc: "ATK+10" },
-  redpaper:   { id: "redpaper", name: "差し押さえの赤紙", type: "equip", atk:25, def:0, mnt:0, lck:4, stm:0, fcs:0, desc: "ATK+25 LCK+4" },
-  roukitix:   { id: "roukitix", name: "労基の指導票", type: "equip", atk:0, def:16, mnt:8, lck:0, stm:0, fcs:0, desc: "DEF+16 MNT+8" },
-  rivalcard:  { id: "rivalcard", name: "ライバル会社の光り輝く名刺", type: "equip", atk:0, def:20, mnt:0, lck:12, stm:0, fcs:0, desc: "DEF+20 LCK+12" },
-  pen1:       { id: "pen1", name: "プレミアムボールペン", type: "equip", atk:1, def:0, mnt:0, lck:0, stm:0, fcs:0, desc: "ATK+1" },
-  pen3c:      { id: "pen3c", name: "重たい3色フリクションペン", type: "equip", atk:2, def:0, mnt:0, lck:0, stm:0, fcs:1, desc: "ATK+2 FCS+1" },
-  ruler:      { id: "ruler", name: "ステンレス製の定規（30cm）", type: "equip", atk:5, def:0, mnt:0, lck:0, stm:0, fcs:0, desc: "ATK+5" },
-  headset:    { id: "headset", name: "テレアポ用骨伝導ヘッドセット", type: "equip", atk:7, def:0, mnt:0, lck:0, stm:0, fcs:2, desc: "ATK+7 FCS+2" },
-  thinkpad:   { id: "thinkpad", name: "レノボ製堅牢ノートPC", type: "equip", atk:13, def:0, mnt:0, lck:0, stm:3, fcs:0, desc: "ATK+13 STM+3" },
-  resign:     { id: "resign", name: "最終決戦用「退職届」", type: "equip", atk:300, def:0, mnt:80, lck:0, stm:0, fcs:0, desc: "ATK+300 MNT+80" },
-  mask:       { id: "mask", name: "薄っぺらい紙のマスク", type: "equip", atk:0, def:1, mnt:1, lck:0, stm:0, fcs:0, desc: "DEF+1 MNT+1" },
-  glasses:    { id: "glasses", name: "ブルーライトカットメガネ", type: "equip", atk:0, def:4, mnt:0, lck:0, stm:0, fcs:1, desc: "DEF+4 FCS+1" },
-  meishi:     { id: "meishi", name: "名刺入れ（合皮製）", type: "equip", atk:0, def:6, mnt:1, lck:0, stm:0, fcs:0, desc: "DEF+6 LCK+1" },
-  earphone:   { id: "earphone", name: "防音ノイキャンイヤホン", type: "equip", atk:0, def:12, mnt:5, lck:0, stm:0, fcs:0, desc: "DEF+12 MNT+5" },
-  ironface:   { id: "ironface", name: "グループ会長の鉄面皮", type: "equip", atk:0, def:25, mnt:15, lck:0, stm:0, fcs:0, desc: "DEF+25 MNT+15" },
-  barrier:    { id: "barrier", name: "魔界サバイバーの概念結界", type: "equip", atk:0, def:35, mnt:50, lck:0, stm:0, fcs:0, desc: "DEF+35 MNT+50" }
-};
-
-// ------------------------------------------------------------
-// SHOP & TREASURE REFERENCES (各ショップ・宝箱の配置定義)
-// ------------------------------------------------------------
-// マスタを参照する形にすることで、価格調整や性能変更がマスタ一か所で済みます。
-
+// ============================================================
+// ITEMS (v6 仕様)
+// ============================================================
 // 宝箱アイテムのマスタ（フロアタイプ"treasure"で自動付与）
-const TREASURE_ITEMS = {
-  "4-4":  ITEMS.caffeine,
-  "5-3":  ITEMS.recruit,
-  "8-4":  ITEMS.cooling,
-  "9-3":  ITEMS.fakecv,
-  "10-4": ITEMS.pipe,
-  "11-3": ITEMS.contractcopy,
-  "12-5": ITEMS.redpaper,
-  "1-4":  ITEMS.roukitix,
-  "2-3":  ITEMS.rivalcard
+const TREASURE_ITEMS={
+  "4-4": {id:"caffeine",  name:"カフェイン錠剤",            type:"use",heal:10, desc:"HP+10"},
+  "5-3": {id:"recruit",   name:"量産型リクルートスーツ",     atk:0,def:2,mnt:0,lck:0,stm:0,fcs:0, type:"equip",desc:"DEF+2"},
+  "8-4": {id:"cooling",   name:"冷却シート【お徳用】",       atk:0,def:9,mnt:3,lck:0,stm:0,fcs:0, type:"equip",desc:"DEF+9 MNT+3"},
+  "9-3": {id:"fakecv",    name:"偽造経歴書の束",             atk:18,def:0,mnt:0,lck:0,stm:0,fcs:3, type:"equip",desc:"ATK+18 FCS+3"},
+  "10-4":{id:"pipe",      name:"錆びた鉄パイプ",             atk:10,def:0,mnt:0,lck:0,stm:0,fcs:0, type:"equip",desc:"ATK+10"},
+  "11-3":{id:"contractcopy",name:"契約書のコピー",           type:"use",heal:20, desc:"交渉資料（HP+20）"},
+  "12-5":{id:"redpaper",  name:"差し押さえの赤紙",           atk:25,def:0,mnt:0,lck:4,stm:0,fcs:0, type:"equip",desc:"ATK+25 LCK+4"},
+  "1-4": {id:"roukitix",  name:"労基の指導票",               atk:0,def:16,mnt:8,lck:0,stm:0,fcs:0, type:"equip",desc:"DEF+16 MNT+8"},
+  "2-3": {id:"rivalcard", name:"ライバル会社の光り輝く名刺", atk:0,def:20,mnt:0,lck:12,stm:0,fcs:0,type:"equip",desc:"DEF+20 LCK+12"},
 };
 
-// セレクトショップ（武器・装備）※マスタにcostを付与して展開
-const SELECT_SHOP = [
-  { ...ITEMS.pen1,     cost: 3 },
-  { ...ITEMS.pen3c,    cost: 6 },
-  { ...ITEMS.ruler,    cost: 10 },
-  { ...ITEMS.headset,  cost: 18 },
-  { ...ITEMS.thinkpad, cost: 35 },
-  { ...ITEMS.resign,   cost: 999 },
-  { ...ITEMS.mask,     cost: 3 },
-  { ...ITEMS.glasses,  cost: 8 },
-  { ...ITEMS.meishi,   cost: 12 },
-  { ...ITEMS.earphone, cost: 22 },
-  { ...ITEMS.ironface, cost: 80 },
-  { ...ITEMS.barrier,  cost: 150 }
+// セレクトショップ（武器・装備）
+const SELECT_SHOP=[
+  {id:"pen1",     name:"プレミアムボールペン",         cost:3,  atk:1, def:0,  mnt:0, lck:0, stm:0, fcs:0, type:"equip",desc:"ATK+1"},
+  {id:"pen3c",    name:"重たい3色フリクションペン",    cost:6,  atk:2, def:0,  mnt:0, lck:0, stm:0, fcs:1, type:"equip",desc:"ATK+2 FCS+1"},
+  {id:"ruler",    name:"ステンレス製の定規（30cm）",   cost:10, atk:5, def:0,  mnt:0, lck:0, stm:0, fcs:0, type:"equip",desc:"ATK+5"},
+  {id:"headset",  name:"テレアポ用骨伝導ヘッドセット", cost:18, atk:7, def:0,  mnt:0, lck:0, stm:0, fcs:2, type:"equip",desc:"ATK+7 FCS+2"},
+  {id:"thinkpad", name:"レノボ製堅牢ノートPC",         cost:35, atk:13,def:0,  mnt:0, lck:0, stm:3, fcs:0, type:"equip",desc:"ATK+13 STM+3"},
+  {id:"resign",   name:"最終決戦用「退職届」",          cost:999,atk:300,def:0, mnt:80,lck:0, stm:0, fcs:0, type:"equip",desc:"ATK+300 MNT+80"},
+  {id:"mask",     name:"薄っぺらい紙のマスク",          cost:3,  atk:0, def:1,  mnt:1, lck:0, stm:0, fcs:0, type:"equip",desc:"DEF+1 MNT+1"},
+  {id:"glasses",  name:"ブルーライトカットメガネ",      cost:8,  atk:0, def:4,  mnt:0, lck:0, stm:0, fcs:1, type:"equip",desc:"DEF+4 FCS+1"},
+  {id:"meishi",   name:"名刺入れ（合皮製）",            cost:12, atk:0, def:6,  mnt:0, lck:1, stm:0, fcs:0, type:"equip",desc:"DEF+6 LCK+1"},
+  {id:"earphone", name:"防音ノイキャンイヤホン",        cost:22, atk:0, def:12, mnt:5, lck:0, stm:0, fcs:0, type:"equip",desc:"DEF+12 MNT+5"},
+  {id:"ironface", name:"グループ会長の鉄面皮",          cost:80, atk:0, def:25, mnt:15,lck:0, stm:0, fcs:0, type:"equip",desc:"DEF+25 MNT+15"},
+  {id:"barrier",  name:"魔界サバイバーの概念結界",      cost:150,atk:0, def:35, mnt:50,lck:0, stm:0, fcs:0, type:"equip",desc:"DEF+35 MNT+50"},
 ];
 
-// 消耗品ショップ
-const FOOD_SHOP = [
-  { ...ITEMS.caffeine,  cost: 3 },
-  { ...ITEMS.energy,    cost: 5 },
-  { ...ITEMS.stomachrx, cost: 8 },
-  { ...ITEMS.sp_drink,  cost: 12 },
-  { ...ITEMS.steak,     cost: 50 }
+// 消耗品（v6仕様 5種）
+const FOOD_SHOP=[
+  {id:"caffeine",  name:"カフェイン錠剤",           cost:3,  type:"use",heal:10, desc:"HP+10"},
+  {id:"energy",    name:"コンビニのエナジードリンク", cost:5,  type:"sp", spVal:20,desc:"SP+20"},
+  {id:"stomachrx", name:"胃腸薬（粉末）",            cost:8,  type:"use",heal:40, desc:"HP+40"},
+  {id:"sp_drink",  name:"パートナー企業の応援メール", cost:12, type:"sp", spVal:50,desc:"SP+50"},
+  {id:"steak",     name:"エリクサー（退職代行の連絡先）",cost:50,type:"use",heal:999,desc:"HP・SP全回復"},
 ];
 
-
-// ------------------------------------------------------------
-// FLOOR DATA (月ごとのフロア情報 ＆ フレーバー完全統合版)
-// ------------------------------------------------------------
-// 散らばっていた「フロア構成」と「各フェーズの文章(Atmos)」をガッチャンコしました。
-
-const MONTH_FLOORS = {
-  4: [
-    { phase: 1, type: "normal", icon: "🚃", name: "通勤電車", atmos: "春の朝。満員電車に押し込まれながらも、これからの社会人生活への希望に満ち溢れている。" },
-    { phase: 2, type: "enemy",  icon: "⚠️", name: "エントランス", enemyKey: "multi", warn: "入口付近に怪しいスーツ姿の男がいる。マルチ勧誘員のようだ。", atmos: "ガラス張りのエントランス。まだ新品の社員証がキラリと光る。" },
-    { phase: 3, type: "normal", icon: "🔲", name: "エレベーター", atmos: "ガタンゴトン。エレベーターの中に静寂が漂う。" },
-    { phase: 4, type: "treasure", icon: "📦", name: "廊下", treasureKey: "4-4", atmos: "長い廊下。コピー機の音だけが響く。" },
-    { phase: 5, type: "enemy",  icon: "⚠️", name: "執務室入口", enemyKey: "otsubone", warn: "扉の前に仁王立ちする人影。お局様が目を光らせている。", atmos: "執務室の扉の前。中からすでに怒声が聞こえる気がする。" },
-    { phase: 6, type: "normal", icon: "💻", name: "デスク", atmos: "自分のデスク。なぜか既に積まれた資料が視界を塞ぐ。" },
-    { phase: 7, type: "boss",   icon: "💀", name: "ミーティングルーム", atmos: "ミーティングルーム。上司が待ち構えている。" }
+// ============================================================
+// FLOOR DATA
+// ============================================================
+const MONTH_FLOORS={
+  4:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"enemy",   icon:"⚠️",name:"エントランス",   enemyKey:"multi",    warn:"入口付近に怪しいスーツ姿の男がいる。マルチ勧誘員のようだ。"},
+    {phase:3,type:"normal",  icon:"🔲",name:"エレベーター"},
+    {phase:4,type:"treasure",icon:"📦",name:"廊下",            treasureKey:"4-4"},
+    {phase:5,type:"enemy",   icon:"⚠️",name:"執務室入口",     enemyKey:"otsubone", warn:"扉の前に仁王立ちする人影。お局様が目を光らせている。"},
+    {phase:6,type:"normal",  icon:"💻",name:"デスク"},
+    {phase:7,type:"boss",    icon:"💀",name:"ミーティングルーム"},
   ],
-  5: [
-    { phase: 1, type: "normal", icon: "🚃", name: "通勤電車", atmos: "ゴールデンウィーク明け。休んだはずなのに体が重い。" },
-    { phase: 2, type: "normal", icon: "🚉", name: "渋川駅（乗換）", atmos: "今日は会社に寄らず、顧客へ直行。渋川駅の自販機で缶コーヒーを買い、心を落ち着かせる。" },
-    { phase: 3, type: "treasure", icon: "📦", name: "取引先ビルの受付", treasureKey: "5-3", atmos: "タッチパネル式の受付機。なぜかこれだけで汗が出る。" },
-    { phase: 4, type: "normal", icon: "🛋️", name: "アポ先の応接室", atmos: "商談前の静寂。経歴書を眺めて胃が痛くなる。" },
-    { phase: 5, type: "enemy",  icon: "💼", name: "商談テーブル", enemyKey: "engineer_mori", warn: "面談開始。経歴が盛られていることに気づいている。", atmos: "スキルを少し盛られたエンジニアとの面談。" },
-    { phase: 6, type: "normal", icon: "🚕", name: "帰り道（タクシー内）", atmos: "「見送ります」という無慈悲なフィードバック電話が届く。" },
-    { phase: 7, type: "boss",   icon: "💀", name: "自社オフィス", atmos: "「直行直帰？で、成約確度は何％だ？」" }
+  5:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"normal",  icon:"🚉",name:"渋川駅（乗換）"},
+    {phase:3,type:"treasure",icon:"📦",name:"取引先ビルの受付", treasureKey:"5-3"},
+    {phase:4,type:"normal",  icon:"🛋️",name:"アポ先の応接室"},
+    {phase:5,type:"enemy",   icon:"💼",name:"商談テーブル",    enemyKey:"engineer_mori",warn:"面談開始。経歴が盛られていることに気づいている。"},
+    {phase:6,type:"normal",  icon:"🚕",name:"帰り道（タクシー内）"},
+    {phase:7,type:"boss",    icon:"💀",name:"自社オフィス"},
   ],
-  6: [
-    { phase: 1, type: "normal", icon: "🚃", name: "通勤電車（繁忙期）", atmos: "電車内で立ったままパソコンを開き、タイピングしている同僚を見かける。" },
-    { phase: 2, type: "enemy",  icon: "😈", name: "自社執務室", enemyKey: "tebayako", warn: "松本が怪しい動きをしている。", atmos: "今日も誰かが誰かを叱っている。電話の声が途切れない。" },
-    { phase: 3, type: "normal", icon: "🔲", name: "深夜のエレベーター", atmos: "誰も喋らない。階数表示の数字だけが虚しく変わる。" },
-    { phase: 4, type: "normal", icon: "💻", name: "デスクの山", atmos: "画面を開くと30件の緊急マークメール。" },
-    { phase: 5, type: "enemy",  icon: "📞", name: "オンライン面接室", enemyKey: "client_trouble", warn: "顧客からの着電。明らかに怒っている。", atmos: "取引先は笑顔の一つもない。お見送りの空気。" },
-    { phase: 6, type: "normal", icon: "🚶", name: "終電間際の廊下", atmos: "蛍光灯のジーという音が不気味に響く。" },
-    { phase: 7, type: "boss",   icon: "💀", name: "大会議室", atmos: "そろそろ時間だ。" }
+  6:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車（繁忙期）"},
+    {phase:2,type:"enemy",   icon:"😈",name:"自社執務室",        enemyKey:"tebayako",warn:"松本が怪しい動きをしている。"},
+    {phase:3,type:"normal",  icon:"🔲",name:"深夜のエレベーター"},
+    {phase:4,type:"normal",  icon:"💻",name:"デスクの山"},
+    {phase:5,type:"enemy",   icon:"📞",name:"オンライン面接室",  enemyKey:"client_trouble",warn:"顧客からの着電。明らかに怒っている。"},
+    {phase:6,type:"normal",  icon:"🚶",name:"終電間際の廊下"},
+    {phase:7,type:"boss",    icon:"💀",name:"大会議室"},
   ],
-  7: [
-    { phase: 1, type: "normal", icon: "🚃", name: "通勤電車", atmos: "梅雨が明けた。参画人材の情報漏洩のため、今日は謝罪のために客先直行だ。" },
-    { phase: 2, type: "normal", icon: "🍡", name: "老舗の和菓子屋", atmos: "謝罪用に高級羊羹を自腹で買い出しさせられる。" },
-    { phase: 3, type: "normal", icon: "🚕", name: "謝罪へのタクシー内", atmos: "上司から「一言一句メールで実況しろ」とクソ通知が連打される。" },
-    { phase: 4, type: "normal", icon: "🏢", name: "取引先のロビー", atmos: "やらかしのせいで不審者扱いされ、中に入らせてもらえない。" },
-    { phase: 5, type: "enemy",  icon: "🔥", name: "取引先の応接室", enemyKey: "cio_angry", warn: "激怒するCIO・橋本さんが待ち構えている。", atmos: "激怒するCTO・橋本さんが待ち構えている。" },
-    { phase: 6, type: "normal", icon: "🚶", name: "帰り道", atmos: "泥沼の帰り道。重い足取り。" },
-    { phase: 7, type: "boss",   icon: "💀", name: "社長室前", atmos: "「お前のせいで大口顧客に泥が塗られた」" }
+  7:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"normal",  icon:"🍡",name:"老舗の和菓子屋"},
+    {phase:3,type:"normal",  icon:"🚕",name:"謝罪へのタクシー内"},
+    {phase:4,type:"normal",  icon:"🏢",name:"取引先のロビー"},
+    {phase:5,type:"enemy",   icon:"🔥",name:"取引先の応接室",   enemyKey:"cio_angry",warn:"激怒するCIO・橋本さんが待ち構えている。"},
+    {phase:6,type:"normal",  icon:"🚶",name:"帰り道"},
+    {phase:7,type:"boss",    icon:"💀",name:"社長室前"},
   ],
-  8: [
-    { phase: 1, type: "normal", icon: "🚃", name: "通勤電車（ガラガラ）", atmos: "お盆の電車は驚くほど空いている。他人が休んでいる事実に胸が締め付けられる。" },
-    { phase: 2, type: "normal", icon: "☀️", name: "猛暑の路上", atmos: "アスファルトから蜃気楼が立ち上る。汗が目に入って痛い。" },
-    { phase: 3, type: "enemy",  icon: "😎", name: "IT業界名刺交換会", enemyKey: "rival_sales", warn: "競合他社の営業・川崎が笑顔で近づいてくる。", atmos: "ギラギラした熱気の中、腹の探り合いが始まる。" },
-    { phase: 4, type: "treasure", icon: "📦", name: "蝉時雨の公園", treasureKey: "8-4", atmos: "凄まじい蝉の鳴き声。現実逃避のためにベンチに座る。" },
-    { phase: 5, type: "normal", icon: "🍺", name: "高級居酒屋（顧客会食）", atmos: "笑顔を貼り付け、ビールを注ぎ続けるだけのマシーンと化す。" },
-    { phase: 6, type: "normal", icon: "🏢", name: "深夜の無人オフィス", atmos: "静まり返ったオフィス。誰もいない。エアコンの微かな動作音だけ。" },
-    { phase: 7, type: "boss",   icon: "💀", name: "暗い会議室", atmos: "「俺は今ハワイからビデオ通話してるから」" }
+  8:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車（ガラガラ）"},
+    {phase:2,type:"normal",  icon:"☀️",name:"猛暑の路上"},
+    {phase:3,type:"enemy",   icon:"😎",name:"IT業界名刺交換会",  enemyKey:"rival_sales",warn:"競合他社の営業・川崎が笑顔で近づいてくる。"},
+    {phase:4,type:"treasure",icon:"📦",name:"蝉時雨の公園",       treasureKey:"8-4"},
+    {phase:5,type:"normal",  icon:"🍺",name:"高級居酒屋（顧客会食）"},
+    {phase:6,type:"normal",  icon:"🏢",name:"深夜の無人オフィス"},
+    {phase:7,type:"boss",    icon:"💀",name:"暗い会議室"},
   ],
-  9: [
-    { phase: 1, type: "normal", icon: "🚃", name: "通勤電車", atmos: "秋の気配。中吊り広告の文字を見ても、もう頭が意味を理解しない。" },
-    { phase: 2, type: "normal", icon: "🏢", name: "自社オフィスのエントランス", atmos: "出社直後、クライアントから「山田さんが現場に来ていない」と緊急着電。" },
-    { phase: 3, type: "treasure", icon: "📦", name: "失踪現場への移動", treasureKey: "9-3", atmos: "山田さんの自宅へ向かう電車内。SNSの裏垢を血眼でスクロールする。" },
-    { phase: 4, type: "normal", icon: "🏚️", name: "不気味なアパートの階段", atmos: "郵便受けには督促状が溢れている。ゴミの臭いが鼻を突く。" },
-    { phase: 5, type: "enemy",  icon: "🏃", name: "山田さんの部屋の前", enemyKey: "yamada", warn: "ドアの向こうに気配がある。", atmos: "「もう無理です！現場の空気が最悪で、コード書けません！」" },
-    { phase: 6, type: "normal", icon: "🌆", name: "夕暮れの住宅街", atmos: "説得したと思った瞬間、山田さんが全力で逃走した。" },
-    { phase: 7, type: "boss",   icon: "💀", name: "駅前の交番", atmos: "「前の男が『ストーカーに追われてる』って駆け込んできた。身分証出して」" }
+  9:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"normal",  icon:"🏢",name:"自社オフィスのエントランス"},
+    {phase:3,type:"treasure",icon:"📦",name:"失踪現場への移動",  treasureKey:"9-3"},
+    {phase:4,type:"normal",  icon:"🏚️",name:"不気味なアパートの階段"},
+    {phase:5,type:"enemy",   icon:"🏃",name:"山田さんの部屋の前", enemyKey:"yamada",warn:"ドアの向こうに気配がある。"},
+    {phase:6,type:"normal",  icon:"🌆",name:"夕暮れの住宅街"},
+    {phase:7,type:"boss",    icon:"💀",name:"駅前の交番"},
   ],
-  10: [
-    { phase: 1, type: "normal", icon: "🚃", name: "通勤電車", atmos: "どんよりとした秋の空。心の中を見透かされているような陰鬱さ。" },
-    { phase: 2, type: "normal", icon: "🏘️", name: "常駐先への移動", atmos: "「今月分の給与を今すぐ払え。払わないとPCは返さない」と人質宣言。" },
-    { phase: 3, type: "normal", icon: "🚪", name: "本人の自宅前", atmos: "チャイムを鳴らし、ドアを叩くが、中に気配はあるのに反応がない。" },
-    { phase: 4, type: "treasure", icon: "📦", name: "アパートの共有スペース", treasureKey: "10-4", atmos: "階段からタバコを咥えた、明らかにカタギではない男が近づいてくる。" },
-    { phase: 5, type: "enemy",  icon: "💢", name: "不気味な通路", enemyKey: "yakuza", warn: "明らかにカタギではない男が近づいてくる。", atmos: "「あいつ探してんの？家賃滞納して夜逃げ寸前だよ」" },
-    { phase: 6, type: "normal", icon: "🏢", name: "顧客のオフィスロビー", atmos: "顧客に呼び出され、ロビーのソファーで冷や汗をかきながら待つ。" },
-    { phase: 7, type: "boss",   icon: "💀", name: "顧客の応接室", atmos: "「PCの中に機密情報が入ってるんだよ！今すぐ損害賠償請求だからな！」" }
+  10:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"normal",  icon:"🏘️",name:"常駐先への移動"},
+    {phase:3,type:"normal",  icon:"🚪",name:"本人の自宅前"},
+    {phase:4,type:"treasure",icon:"📦",name:"アパートの共有スペース",treasureKey:"10-4"},
+    {phase:5,type:"enemy",   icon:"💢",name:"不気味な通路",       enemyKey:"yakuza",warn:"明らかにカタギではない男が近づいてくる。"},
+    {phase:6,type:"normal",  icon:"🏢",name:"顧客のオフィスロビー"},
+    {phase:7,type:"boss",    icon:"💀",name:"顧客の応接室"},
   ],
-  11: [
-    { phase: 1, type: "normal", icon: "🚃", name: "通勤電車", atmos: "どんよりとした曇り空。世界全体から色彩が消え去ったようだ。" },
-    { phase: 2, type: "normal", icon: "💻", name: "自社のデスク", atmos: "「基本契約書の見直しをしたい」という不穏な購買部からのメール。" },
-    { phase: 3, type: "treasure", icon: "📦", name: "法務部への相談", treasureKey: "11-3", atmos: "「損害賠償の上限を『なし』に変更する」という悪魔の条項が発覚。" },
-    { phase: 4, type: "normal", icon: "📞", name: "クライアントとの電話", atmos: "「この条件を呑まないと入場もナシね」と冷たくあしらわれる。" },
-    { phase: 5, type: "enemy",  icon: "⚖️", name: "交渉のテーブル", enemyKey: "legal_cold", warn: "クライアントの冷徹な法務担当が待っている。", atmos: "「リスク取れないならビジネスやめたらどうですか？」" },
-    { phase: 6, type: "normal", icon: "🚶", name: "暗転の廊下", atmos: "交渉決裂。内定していた契約枠がすべて白紙になり、目の前が暗い。" },
-    { phase: 7, type: "boss",   icon: "💀", name: "自社の会議室", atmos: "「なんで基本契約の文言ごときで案件潰してんの？」" }
+  11:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"normal",  icon:"💻",name:"自社のデスク"},
+    {phase:3,type:"treasure",icon:"📦",name:"法務部への相談",    treasureKey:"11-3"},
+    {phase:4,type:"normal",  icon:"📞",name:"クライアントとの電話"},
+    {phase:5,type:"enemy",   icon:"⚖️",name:"交渉のテーブル",   enemyKey:"legal_cold",warn:"クライアントの冷徹な法務担当が待っている。"},
+    {phase:6,type:"normal",  icon:"🚶",name:"暗転の廊下"},
+    {phase:7,type:"boss",    icon:"💀",name:"自社の会議室"},
   ],
-  12: [
-    { phase: 1, type: "normal", icon: "🚃", name: "通勤電車", atmos: "年末。稼働中のエンジニアから「システムにログインできません」とLINE。" },
-    { phase: 2, type: "normal", icon: "🏃", name: "常駐先ビルへの直行", atmos: "全担当者に電話をかけるが、「使われておりません」の音声。" },
-    { phase: 3, type: "normal", icon: "🏢", name: "常駐先オフィスの前", atmos: "扉には「破産手続き開始のお知らせ」の非情な紙。" },
-    { phase: 4, type: "enemy",  icon: "😱", name: "パニックのロビー", enemyKey: "other_agent", warn: "他社エージェントも阿鼻叫喚の状態だった。", atmos: "他社のエージェントも阿鼻叫喚の状態だった。" },
-    { phase: 5, type: "treasure", icon: "📦", name: "弁護士事務所", treasureKey: "12-5", atmos: "数百万円の売掛金が焦げ付いた。差し押さえの準備を急ぐ。" },
-    { phase: 6, type: "normal", icon: "🏛️", name: "裁判所の廊下", atmos: "年をまたいで裁判へ。自分の名前が呼ばれるのを待つ。" },
-    { phase: 7, type: "boss",   icon: "💀", name: "法廷", atmos: "「会社に資産は残っていません。1円もありません」" }
+  12:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"normal",  icon:"🏃",name:"常駐先ビルへの直行"},
+    {phase:3,type:"normal",  icon:"🏢",name:"常駐先オフィスの前"},
+    {phase:4,type:"enemy",   icon:"😱",name:"パニックのロビー",  enemyKey:"other_agent",warn:"他社エージェントも阿鼻叫喚の状態だった。"},
+    {phase:5,type:"treasure",icon:"📦",name:"弁護士事務所",      treasureKey:"12-5"},
+    {phase:6,type:"normal",  icon:"🏛️",name:"裁判所の廊下"},
+    {phase:7,type:"boss",    icon:"💀",name:"法廷"},
   ],
-  1: [
-    { phase: 1, type: "normal", icon: "🚃", name: "通勤電車", atmos: "新年早々、エンジニアから涙声で着電。「現場のリーダーに毎日人格否定されている」" },
-    { phase: 2, type: "normal", icon: "🏢", name: "常駐先の会議室", atmos: "クライアントに状況を伝えると「代わりの人間をすぐタダで補充しろ」と逆上される。" },
-    { phase: 3, type: "enemy",  icon: "👹", name: "調整デスク", enemyKey: "pawahara_leader", warn: "パワハラ現場リーダーとの対峙。", atmos: "「うちの指導は普通だよ。本人のメンタルが弱いだけでしょ？」" },
-    { phase: 4, type: "treasure", icon: "📦", name: "自社への帰り道", treasureKey: "1-4", atmos: "スマホに「労働基準監督署」からの着電。心臓が跳ね上がる。" },
-    { phase: 5, type: "normal", icon: "🏛️", name: "労基の待合室", atmos: "「偽装請負の疑いがある」と是正勧告一歩手前の呼び出し。" },
-    { phase: 6, type: "normal", icon: "🚨", name: "取調室のような部屋", atmos: "一歩間違えれば業務停止処分になるグレーゾーン。" },
-    { phase: 7, type: "boss",   icon: "💀", name: "労基の面談室", atmos: "「御社の契約、準委任なのにクライアントが直接指示を出していますね」" }
+  1:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"normal",  icon:"🏢",name:"常駐先の会議室"},
+    {phase:3,type:"enemy",   icon:"👹",name:"調整デスク",        enemyKey:"pawahara_leader",warn:"パワハラ現場リーダーとの対峙。"},
+    {phase:4,type:"treasure",icon:"📦",name:"自社への帰り道",    treasureKey:"1-4"},
+    {phase:5,type:"normal",  icon:"🏛️",name:"労基の待合室"},
+    {phase:6,type:"normal",  icon:"🚨",name:"取調室のような部屋"},
+    {phase:7,type:"boss",    icon:"💀",name:"労基の面談室"},
   ],
-  2: [
-    { phase: 1, type: "normal", icon: "🚃", name: "通勤電車", atmos: "凍えるような2月の朝。スマホで競合他社のHPを見つめ、手が震える。" },
-    { phase: 2, type: "enemy",  icon: "😈", name: "自社エントランス", enemyKey: "scout_rival", warn: "ライバル企業のスカウトマンが自社周辺をうろついている。", atmos: "ライバル企業のスカウトマンが、堂々と自社の周りをうろついている。" },
-    { phase: 3, type: "treasure", icon: "📦", name: "エレベーター", treasureKey: "2-3", atmos: "誰もが「引き抜き」の噂に怯え、互いを疑う暗い空気。" },
-    { phase: 4, type: "normal", icon: "🚶", name: "廊下", atmos: "「あいつも辞めるらしいぞ」という囁き声が四方から聞こえる。" },
-    { phase: 5, type: "enemy",  icon: "🎩", name: "緊迫の会議室", enemyKey: "consultant_scout", warn: "引き抜きの首謀者（元コンサル）との対峙。", atmos: "元コンサルのスカウト担当との対峙。" },
-    { phase: 6, type: "normal", icon: "💻", name: "デスク", atmos: "抜かれた売上の穴埋め資料の作成。数字をどう弄っても目標に届かない。" },
-    { phase: 7, type: "boss",   icon: "💀", name: "役員会議室", atmos: "【コンサル上がり引き抜き大明神】が待ち受けている。" }
+  2:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"enemy",   icon:"😈",name:"自社エントランス",  enemyKey:"scout_rival",warn:"ライバル企業のスカウトマンが自社周辺をうろついている。"},
+    {phase:3,type:"treasure",icon:"📦",name:"エレベーター",      treasureKey:"2-3"},
+    {phase:4,type:"normal",  icon:"🚶",name:"廊下"},
+    {phase:5,type:"enemy",   icon:"🎩",name:"緊迫の会議室",     enemyKey:"consultant_scout",warn:"引き抜きの首謀者（元コンサル）との対峙。"},
+    {phase:6,type:"normal",  icon:"💻",name:"デスク"},
+    {phase:7,type:"boss",    icon:"💀",name:"役員会議室"},
   ],
-  3: [
-    { phase: 1, type: "normal", icon: "🌸", name: "通勤電車（最後かもしれない）", atmos: "一年前、同じ桜の季節にこの電車に乗った。あの頃の自分に何を伝えるか。" },
-    { phase: 2, type: "enemy",  icon: "😊", name: "エントランス", enemyKey: "naitei_group", warn: "内定者見学ツアーが来ている。去年の自分と同じ顔をしている。", atmos: "新入社員の内定者見学ツアーが来ている。去年の自分と同じ顔をしている。" },
-    { phase: 3, type: "normal", icon: "🔲", name: "エレベーター", atmos: "エレベーターに常務と2人きり。「1年どうだった」と聞かれる。" },
-    { phase: 4, type: "normal", icon: "🚶", name: "廊下", atmos: "同僚が「本当に、もう無理しないでね」と言う。" },
-    { phase: 5, type: "enemy",  icon: "⚠️", name: "執務室入口", enemyKey: "otsubone", warn: "お局様が最後の戦いを待っている。", atmos: "「来期の配属先、またあそこだから。文句言わずに契約書巻いてね」" },
-    { phase: 6, type: "normal", icon: "💻", name: "デスク（最後かもしれない）", atmos: "1年間のものをシュレッダーにかける。デスクが少しだけ綺麗になった。" },
-    { phase: 7, type: "boss",   icon: "👑", name: "代表取締役室", atmos: "【最終ボス】全ての答えがここにある。" }
-  ]
+  3:[
+    {phase:1,type:"normal",  icon:"🌸",name:"通勤電車（最後かもしれない）"},
+    {phase:2,type:"enemy",   icon:"😊",name:"エントランス",     enemyKey:"naitei_group",warn:"内定者見学ツアーが来ている。去年の自分と同じ顔をしている。"},
+    {phase:3,type:"normal",  icon:"🔲",name:"エレベーター"},
+    {phase:4,type:"normal",  icon:"🚶",name:"廊下"},
+    {phase:5,type:"enemy",   icon:"⚠️",name:"執務室入口",      enemyKey:"otsubone",warn:"お局様が最後の戦いを待っている。"},
+    {phase:6,type:"normal",  icon:"💻",name:"デスク（最後かもしれない）"},
+    {phase:7,type:"boss",    icon:"👑",name:"代表取締役室"},
+  ],
 };
-
-// 指定月のフロア一覧を取得するヘルパ
-function getMonthFloors(month) {
-  if (MONTH_FLOORS[month]) return MONTH_FLOORS[month];
-  // デフォルト（例外フォールバック）
-  return [
-    { phase: 1, type: "normal", icon: "🚃", name: "通勤電車", atmos: "いつもと変わらない憂鬱な朝の通勤風景。" },
-    { phase: 2, type: "enemy",  icon: "⚠️", name: "エントランス", enemyKey: "multi", warn: "入口に例の男。", atmos: "いつものオフィスエントランス。" },
-    { phase: 3, type: "normal", icon: "🔲", name: "エレベーター", atmos: "沈黙のエレベーター。" },
-    { phase: 4, type: "normal", icon: "🚶", name: "廊下", atmos: "静かな廊下。" },
-    { phase: 5, type: "enemy",  icon: "📞", name: "客先訪問先", enemyKey: "client_trouble", warn: "訪問先でクレームが待っている。", atmos: "緊張の走る訪問先。" },
-    { phase: 6, type: "normal", icon: "💻", name: "デスク", atmos: "自分のデスク。" },
-    { phase: 7, type: "boss",   icon: "💀", name: "ミーティングルーム", atmos: "運命のミーティングルーム。" }
+function getMonthFloors(month){
+  // 月は4〜3（4〜12、1〜3）を処理
+  if(MONTH_FLOORS[month]) return MONTH_FLOORS[month];
+  return[
+    {phase:1,type:"normal",icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"enemy", icon:"⚠️",name:"エントランス",enemyKey:"multi",warn:"入口に例の男。"},
+    {phase:3,type:"normal",icon:"🔲",name:"エレベーター"},
+    {phase:4,type:"normal",icon:"🚶",name:"廊下"},
+    {phase:5,type:"enemy", icon:"📞",name:"客先訪問先",enemyKey:"client_trouble",warn:"訪問先でクレームが待っている。"},
+    {phase:6,type:"normal",icon:"💻",name:"デスク"},
+    {phase:7,type:"boss",  icon:"💀",name:"ミーティングルーム"},
   ];
 }
 
-// 統合されたデータ構造からスマートにフレーバーテキストを抽出する関数に生まれ変わりました
-function getFloorAtmos(month, phase) {
-  const floors = getMonthFloors(month);
-  const floor = floors.find(f => f.phase === phase) || floors[0];
-  
-  // 月の経過による会社崩壊寸前度の演出ロジックを継承
-  const decay = Math.min(1, (((month >= 1 && month <= 3) ? month + 12 : month) - 4) / 8);
-  const pre = decay < 0.3 ? "" : decay < 0.7 ? "【疲弊】" : "【崩壊寸前】";
-  
-  return pre + (floor.atmos || "");
+function getFloorAtmos(month,phase){
+  const ATMOS={
+    4:["春の朝。満員電車に押し込まれながらも、これからの社会人生活への希望に満ち溢れている。",
+       "ガラス張りのエントランス。まだ新品の社員証がキラリと光る。",
+       "ガタンゴトン。エレベーターの中に静寂が漂う。",
+       "長い廊下。コピー機の音だけが響く。",
+       "執務室の扉の前。中からすでに怒声が聞こえる気がする。",
+       "自分のデスク。なぜか既に積まれた資料が視界を塞ぐ。",
+       "ミーティングルーム。上司が待ち構えている。"],
+    5:["ゴールデンウィーク明け。休んだはずなのに体が重い。",
+       "今日は会社に寄らず、顧客へ直行。渋川駅の自販機で缶コーヒーを買い、心を落ち着かせる。",
+       "タッチパネル式の受付機。なぜかこれだけで汗が出る。",
+       "商談前の静寂。経歴書を眺めて胃が痛くなる。",
+       "スキルを少し盛られたエンジニアとの面談。",
+       "「見送ります」という無慈悲なフィードバック電話が届く。",
+       "「直行直帰？で、成約確度は何％だ？」"],
+    6:["電車内で立ったままパソコンを開き、タイピングしている同僚を見かける。",
+       "今日も誰かが誰かを叱っている。電話の声が途切れない。",
+       "誰も喋らない。階数表示の数字だけが虚しく変わる。",
+       "画面を開くと30件の緊急マークメール。",
+       "取引先は笑顔の一つもない。お見送りの空気。",
+       "蛍光灯のジーという音が不気味に響く。",
+       "そろそろ時間だ。"],
+    7:["梅雨が明けた。参画人材の情報漏洩のため、今日は謝罪のために客先直行だ。",
+       "謝罪用に高級羊羹を自腹で買い出しさせられる。",
+       "上司から「一言一句メールで実況しろ」とクソ通知が連打される。",
+       "やらかしのせいで不審者扱いされ、中に入らせてもらえない。",
+       "激怒するCTO・橋本さんが待ち構えている。",
+       "泥沼の帰り道。重い足取り。",
+       "「お前のせいで大口顧客に泥が塗られた」"],
+    8:["お盆の電車は驚くほど空いている。他人が休んでいる事実に胸が締め付けられる。",
+       "アスファルトから蜃気楼が立ち上る。汗が目に入って痛い。",
+       "ギラギラした熱気の中、腹の探り合いが始まる。",
+       "凄まじい蝉の鳴き声。現実逃避のためにベンチに座る。",
+       "笑顔を貼り付け、ビールを注ぎ続けるだけのマシーンと化す。",
+       "静まり返ったオフィス。誰もいない。エアコンの微かな動作音だけ。",
+       "「俺は今ハワイからビデオ通話してるから」"],
+    9:["秋の気配。中吊り広告の文字を見ても、もう頭が意味を理解しない。",
+       "出社直後、クライアントから「山田さんが現場に来ていない」と緊急着電。",
+       "山田さんの自宅へ向かう電車内。SNSの裏垢を血眼でスクロールする。",
+       "郵便受けには督促状が溢れている。ゴミの臭いが鼻を突く。",
+       "「もう無理です！現場の空気が最悪で、コード書けません！」",
+       "説得したと思った瞬間、山田さんが全力で逃走した。",
+       "「前の男が『ストーカーに追われてる』って駆け込んできた。身分証出して」"],
+    10:["どんよりとした秋の空。心の中を見透かされているような陰鬱さ。",
+        "「今月分の給与を今すぐ払え。払わないとPCは返さない」と人質宣言。",
+        "チャイムを鳴らし、ドアを叩くが、中に気配はあるのに反応がない。",
+        "階段からタバコを咥えた、明らかにカタギではない男が近づいてくる。",
+        "「あいつ探してんの？家賃滞納して夜逃げ寸前だよ」",
+        "顧客に呼び出され、ロビーのソファーで冷や汗をかきながら待つ。",
+        "「PCの中に機密情報が入ってるんだよ！今すぐ損害賠償請求だからな！」"],
+    11:["どんよりとした曇り空。世界全体から色彩が消え去ったようだ。",
+        "「基本契約書の見直しをしたい」という不穏な購買部からのメール。",
+        "「損害賠償の上限を『なし』に変更する」という悪魔の条項が発覚。",
+        "「この条件を呑まないと入場もナシね」と冷たくあしらわれる。",
+        "「リスク取れないならビジネスやめたらどうですか？」",
+        "交渉決裂。内定していた契約枠がすべて白紙になり、目の前が暗い。",
+        "「なんで基本契約の文言ごときで案件潰してんの？」"],
+    12:["年末。稼働中のエンジニアから「システムにログインできません」とLINE。",
+        "全担当者に電話をかけるが、「使われておりません」の音声。",
+        "扉には「破産手続き開始のお知らせ」の非情な紙。",
+        "他社のエージェントも阿鼻叫喚の状態だった。",
+        "数百万円の売掛金が焦げ付いた。差し押さえの準備を急ぐ。",
+        "年をまたいで裁判へ。自分の名前が呼ばれるのを待つ。",
+        "「会社に資産は残っていません。1円もありません」"],
+    1: ["新年早々、エンジニアから涙声で着電。「現場のリーダーに毎日人格否定されている」",
+        "クライアントに状況を伝えると「代わりの人間をすぐタダで補充しろ」と逆上される。",
+        "「うちの指導は普通だよ。本人のメンタルが弱いだけでしょ？」",
+        "スマホに「労働基準監督署」からの着電。心臓が跳ね上がる。",
+        "「偽装請負の疑いがある」と是正勧告一歩手前の呼び出し。",
+        "一歩間違えれば業務停止処分になるグレーゾーン。",
+        "「御社の契約、準委任なのにクライアントが直接指示を出していますね」"],
+    2: ["凍えるような2月の朝。スマホで競合他社のHPを見つめ、手が震える。",
+        "ライバル企業のスカウトマンが、堂々と自社の周りをうろついている。",
+        "誰もが「引き抜き」の噂に怯え、互いを疑う暗い空気。",
+        "「あいつも辞めるらしいぞ」という囁き声が四方から聞こえる。",
+        "元コンサルのスカウト担当との対峙。",
+        "抜かれた売上の穴埋め資料の作成。数字をどう弄っても目標に届かない。",
+        "【コンサル上がり引き抜き大明神】が待ち受けている。"],
+    3: ["一年前、同じ桜の季節にこの電車に乗った。あの頃の自分に何を伝えるか。",
+        "新入社員の内定者見学ツアーが来ている。去年の自分と同じ顔をしている。",
+        "エレベーターに常務と2人きり。「1年どうだった」と聞かれる。",
+        "同僚が「本当に、もう無理しないでね」と言う。",
+        "「来期の配属先、またあそこだから。文句言わずに契約書巻いてね」",
+        "1年間のものをシュレッダーにかける。デスクが少しだけ綺麗になった。",
+        "【最終ボス】全ての答えがここにある。"],
+  };
+  const arr=ATMOS[month]||ATMOS[4];
+  const decay=Math.min(1,(((month>=1&&month<=3)?month+12:month)-4)/8);
+  const pre=decay<0.3?"":decay<0.7?"【疲弊】":"【崩壊寸前】";
+  return pre+(arr[phase-1]||arr[0]);
 }
 
-// ------------------------------------------------------------
-// INTROSPECTION & GAME DATA
-// ------------------------------------------------------------
-// （ここから下は、お送りいただいた元のコードと全く同じロジックを綺麗に配置しています）
+// ============================================================
+// SCENE EVENTS（会話進行型）
+// ============================================================
+// sceneはステップ配列。各ステップ: {type:"narr"|"dialog"|"choice"|"effect", ...}
+// choiceは choices:[{label, steps:[...]}]
+// effectはゲーム効果だけ
 
+
+// 物思いにふける：月ごとにアンロックされる敵
 function getIntrospectionEnemies(month){
   const all=[
     {month:4, name:"初月の残業幻影",         hp:120, maxHp:120, atk:20, expReward:150},
@@ -714,6 +753,7 @@ function getIntrospectionEnemies(month){
     {month:2, name:"決算前夜の悪夢",         hp:2000,maxHp:2000,atk:100,expReward:2000},
     {month:3, name:"一年の後悔の結晶",       hp:8000,maxHp:8000,atk:150,expReward:5000},
   ];
+  // 月の順序：4〜12、1〜3
   const order=[4,5,6,7,8,9,10,11,12,1,2,3];
   const curIdx=order.indexOf(month);
   return all.filter(e=>{
@@ -722,19 +762,23 @@ function getIntrospectionEnemies(month){
   });
 }
 
+// シーンのダメージ値を月に応じて取得（v6仕様）
 function getMonthDmg(month){
   const dmgMap={4:10,5:12,6:14,7:16,8:18,9:20,10:22,11:24,12:25,1:26,2:28,3:10};
   return dmgMap[month]||10;
 }
 
+// chikan/kijin は月依存ダメージ（テーブルからstartSceneを呼ぶ際に渡す）
 function startSceneWithMonth(key, afterFn, ctx, month){
+  // 月ごとにダメージ値を動的に上書きしたSCENESを使う
   const def=SCENES[key];
   if(!def){if(afterFn)afterFn();return;}
   const dmg=getMonthDmg(month||P.month||4);
+  // ディープコピーしてダメージ値を置換
   const patched=JSON.parse(JSON.stringify(def));
   function patchSteps(steps){
     steps.forEach(s=>{
-      if(s.t==="e"&&s.damage===99){s.damage=dmg;}
+      if(s.t==="e"&&s.damage===99){s.damage=dmg;} // 99はプレースホルダー
       if(s.ok) patchSteps(s.ok);
       if(s.ng) patchSteps(s.ng);
       if(s.choices) s.choices.forEach(c=>patchSteps(c.steps||[]));
@@ -752,7 +796,6 @@ function startSceneWithMonth(key, afterFn, ctx, month){
   showScreen("office-screen");
   runSceneStep();
 }
-
 
 // フロアイベントテーブル（月×フェーズ対応・v6仕様完全版）
 function buildEventTable(month,phase){
@@ -1647,10 +1690,18 @@ function goHome(){
   cmds.innerHTML=renderSideBtns([
     {label:"オフィスへ向かう",fn:"goToOffice()"},
     {label:"街に繰り出す",fn:"goToStreet()"},
+    {label:"仮眠を取る",fn:"takeNap()"},
     {label:"上司の誘いで出かける",fn:"showAdOffer()"},
     {label:"クローゼット",fn:"showCloset()"},
     {label:"物思いにふける",fn:"showIntrospection()"}
   ]);
+}
+
+function takeNap(){
+  P.hp=P.maxHp;
+  updateHeader("home");
+  toast("仮眠を取った。メンタルが完全に回復した。");
+  goHome();
 }
 
 // ============================================================
