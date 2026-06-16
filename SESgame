@@ -1,0 +1,3944 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<!-- AdSense: 下記のscriptタグをAdSenseのコードに差し替える -->
+<!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXX" crossorigin="anonymous"></script> -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>SES魔界サバイバル</title>
+<style>
+:root{
+  --bg:#07090f;--bg2:#0d1120;--card:#111827;--border:#1e2d45;
+  --text:#e8eaf0;--sub:#6b7a99;
+  --red:#e03030;--orange:#e07820;--yellow:#d4a820;
+  --green:#18a060;--blue:#2060d8;--purple:#7040d0;--cyan:#1890b0;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI",sans-serif;
+  background:#000;color:var(--text);display:flex;justify-content:center;align-items:stretch;height:100vh;width:100vw;overflow:hidden;margin:0;font-size:16px;}
+#app{width:100%;max-width:390px;height:100%;max-height:844px;background:var(--bg);
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 0 60px rgba(0,0,0,0.95);position:relative;}
+#app.busy{background:#120808;box-shadow:inset 0 0 50px rgba(220,48,48,0.3),0 0 60px rgba(0,0,0,0.95);border-color:#3a1010;}
+#app.lategame{background:#0a0a16;border-color:#2a1a40;}
+
+/* HEADER */
+#header{flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:10px;z-index:10;}
+.hdr-left{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;}
+.hdr-phase{font-size:12px;font-weight:700;color:var(--orange);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hdr-lv{font-size:12px;color:var(--cyan);}
+.hdr-hp{display:flex;align-items:center;gap:5px;flex:1;}
+.hdr-hp-label{font-size:10px;color:var(--sub);flex-shrink:0;}
+.hdr-hp-wrap{flex:1;}
+.bar-bg{width:100%;height:8px;background:#1a2035;border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;transition:width 0.3s;}
+.hp-fill{background:linear-gradient(90deg,#e03030,#ff6060);}
+.hdr-hp-num{font-size:13px;color:var(--sub);flex-shrink:0;min-width:42px;text-align:right;}
+.hdr-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.hdr-coin{font-size:14px;font-weight:700;color:var(--yellow);}
+.hdr-stat-btn{width:30px;height:30px;border-radius:7px;background:#1c2a40;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;}
+.hdr-stat-btn:active{opacity:0.7;}
+
+/* SCREENS */
+#screens{flex:1;overflow:hidden;position:relative;}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;}
+.screen.active{display:flex;}
+
+/* SCROLL + CMDS */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;}
+.scroll::-webkit-scrollbar{width:3px;}
+.scroll::-webkit-scrollbar-thumb{background:#1e2d45;border-radius:2px;}
+.cmds{flex-shrink:0;padding:8px 12px;padding-bottom:calc(8px + env(safe-area-inset-bottom));background:var(--bg2);border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px;min-height:56px;}
+
+/* BUTTONS */
+.btn{border:none;border-radius:8px;padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:44px;width:100%;line-height:1.3;transition:opacity 0.1s,transform 0.1s;}
+.btn:active{opacity:0.8;transform:scale(0.98);}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-secondary{background:#1c2a40;color:var(--text);border:1px solid var(--border);}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-success{background:var(--green);color:#fff;}
+.btn-purple{background:var(--purple);color:#fff;}
+.btn-orange{background:var(--orange);color:#fff;}
+.btn-disabled{background:#111827!important;color:#2d3a50!important;cursor:not-allowed;border:1px solid #1a2235;}
+.btn-sub{font-size:10px;font-weight:400;opacity:0.75;margin-top:2px;}
+.btn-row{display:flex;gap:6px;}
+.btn-row .btn{flex:1;}
+
+/* PANELS */
+.panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--text);margin-bottom:10px;}
+.panel-warn{border-color:var(--red);background:rgba(224,48,48,0.06);}
+.panel-boss{border-color:#9b30e0;background:linear-gradient(135deg,#150d20,#200d10);}
+.panel-event{border-color:var(--orange);background:rgba(224,120,32,0.06);}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px;margin-bottom:7px;}
+.card.selected{border-color:var(--orange);box-shadow:0 0 8px rgba(224,120,32,0.3);}
+.card.locked{opacity:0.5;}
+.card-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.card-title{font-size:13px;font-weight:700;margin-bottom:3px;}
+.card-desc{font-size:11px;color:var(--sub);margin-bottom:4px;line-height:1.5;}
+
+/* BADGE */
+.badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;margin-left:4px;}
+.b-red{background:rgba(224,48,48,0.2);color:var(--red);border:1px solid rgba(224,48,48,0.3);}
+.b-gold{background:rgba(212,168,32,0.2);color:var(--yellow);border:1px solid rgba(212,168,32,0.3);}
+.b-cyan{background:rgba(24,144,176,0.2);color:var(--cyan);border:1px solid rgba(24,144,176,0.3);}
+.b-green{background:rgba(24,160,96,0.2);color:var(--green);border:1px solid rgba(24,160,96,0.3);}
+.b-purple{background:rgba(112,64,208,0.2);color:#a070f0;border:1px solid rgba(112,64,208,0.3);}
+
+.sec{font-size:10px;font-weight:700;color:var(--sub);letter-spacing:1px;margin:10px 0 7px;border-bottom:1px solid var(--border);padding-bottom:4px;}
+
+/* ITEM ROW */
+.irow{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:5px;gap:6px;}
+.irow-info{flex:1;font-size:11px;min-width:0;}
+.irow-name{font-weight:700;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.irow-desc{font-size:10px;color:var(--sub);}
+.ibtn{background:var(--blue);color:#fff;border:none;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;}
+.ibtn:active{opacity:0.8;}
+.ibtn.warn{background:var(--orange);}
+.ibtn.dis{background:#1c2a40;color:var(--sub);cursor:not-allowed;}
+
+/* CLOSET 2-col */
+.closet-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.closet-col-title{font-size:11px;font-weight:700;color:var(--sub);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.closet-item{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:7px;padding:7px 8px;margin-bottom:5px;}
+.closet-item-name{font-size:11px;font-weight:700;margin-bottom:4px;line-height:1.3;}
+.closet-move-btn{width:100%;background:#1c2a40;border:1px solid var(--border);border-radius:5px;padding:4px;font-size:10px;font-weight:700;cursor:pointer;color:var(--text);}
+.closet-move-btn:active{opacity:0.8;}
+.closet-move-btn.warn{background:rgba(224,120,32,0.2);border-color:var(--orange);color:var(--orange);}
+
+/* ENEMY */
+.enemy-card{background:linear-gradient(135deg,#150d20,#200d10);border:1px solid #3a1a35;border-radius:10px;padding:12px;margin-bottom:10px;}
+.enemy-name{font-size:14px;font-weight:900;color:#ff6080;margin-bottom:7px;}
+.ehp-bar{background:#2a1020;border-radius:4px;height:8px;overflow:hidden;margin-bottom:5px;}
+.ehp-fill{height:100%;background:linear-gradient(90deg,#c02040,#e05060);border-radius:4px;transition:width 0.3s;}
+
+/* BATTLE HP */
+.battle-hp-banner{display:flex;gap:8px;margin-bottom:10px;}
+.bhp-box{flex:1;background:var(--card);border-radius:8px;padding:8px 10px;text-align:center;}
+.bhp-box.mine{border:1px solid var(--red);}
+.bhp-box.foe{border:1px solid #3a1a35;}
+.bhp-label{font-size:10px;color:var(--sub);margin-bottom:3px;}
+.bhp-val{font-size:15px;font-weight:900;}
+.bhp-val.mine{color:#ff6060;}
+.bhp-val.foe{color:#ff6080;}
+.bhp-bar-bg{height:4px;background:#1a2035;border-radius:2px;margin-top:4px;overflow:hidden;}
+.bhp-bar-fill{height:100%;border-radius:2px;}
+.bhp-mine-fill{background:linear-gradient(90deg,#e03030,#ff6060);}
+.bhp-foe-fill{background:linear-gradient(90deg,#c02040,#e05060);}
+
+/* NOVEL LAYOUT */
+.novel-image-area{
+  flex:1;min-height:0;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.novel-image-placeholder{
+  font-size:48px;opacity:0.15;
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+}
+.novel-bottom{
+  flex-shrink:0;
+  background:rgba(7,9,15,0.92);
+  border-top:1px solid var(--border);
+  padding:0;
+  min-height:140px;
+}
+.novel-textbox{
+  padding:12px 14px 8px;
+  min-height:80px;max-height:140px;
+  overflow-y:auto;
+  font-size:15px;line-height:1.8;color:var(--text);
+  white-space:pre-wrap;
+}
+.novel-speaker{
+  font-size:10px;font-weight:700;color:var(--orange);
+  display:block;margin-bottom:4px;letter-spacing:0.5px;
+}
+.novel-choices{
+  padding:6px 10px 6px;
+  display:flex;flex-direction:column;gap:5px;
+}
+.novel-choice-btn{
+  background:rgba(28,42,64,0.9);border:1px solid var(--border);
+  border-radius:7px;padding:9px 12px;
+  font-size:12px;font-weight:700;color:var(--text);
+  cursor:pointer;text-align:left;
+  transition:background 0.1s;
+}
+.novel-choice-btn:active{background:rgba(32,96,216,0.3);border-color:var(--blue);}
+.novel-advance-btn{
+  margin:0 10px 8px;width:calc(100% - 20px);
+  background:transparent;border:1px solid #1e2d45;
+  border-radius:7px;padding:8px;
+  font-size:12px;color:var(--sub);cursor:pointer;text-align:center;
+}
+.novel-advance-btn:active{background:rgba(255,255,255,0.04);}
+/* フロア名ラベル（画像エリア上部） */
+.novel-floor-label{
+  position:absolute;top:10px;left:12px;
+  font-size:11px;font-weight:700;color:var(--orange);
+  background:rgba(0,0,0,0.6);padding:3px 8px;border-radius:4px;
+  letter-spacing:0.5px;
+}
+/* 探索/帰宅ボタンエリア */
+.novel-action-btns{
+  padding:0 10px 8px;display:flex;gap:6px;
+}
+.novel-action-btns .btn{flex:1;min-height:40px;font-size:12px;}
+
+/* BATTLE UI */
+.battle-enemy-block{background:linear-gradient(135deg,#150d20,#200d10);border:1px solid #3a1a35;border-radius:10px;padding:14px 16px;margin-bottom:10px;}
+.battle-enemy-name{font-size:16px;font-weight:900;color:#ff6080;margin-bottom:10px;}
+.battle-enemy-hpbar-bg{background:#2a1020;border-radius:4px;height:10px;overflow:hidden;margin-bottom:6px;}
+.battle-enemy-hpbar-fill{height:100%;background:linear-gradient(90deg,#c02040,#e05060);border-radius:4px;transition:width 0.35s;}
+.battle-enemy-hpnum{font-size:11px;color:var(--sub);text-align:right;}
+.battle-result{font-size:13px;line-height:1.7;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;white-space:pre-wrap;margin-bottom:4px;animation:fadeIn 0.2s;}
+
+/* EVENT SCENE (会話型) */
+.scene-box{background:var(--card);border:1px solid var(--orange);border-radius:10px;padding:12px;margin-bottom:10px;}
+.scene-speaker{font-size:10px;color:var(--orange);font-weight:700;margin-bottom:4px;}
+.scene-text{font-size:13px;line-height:1.7;white-space:pre-wrap;}
+.scene-narr{font-size:12px;color:var(--sub);line-height:1.6;white-space:pre-wrap;margin-bottom:8px;font-style:italic;}
+
+/* TITLE */
+.title-logo h1{font-size:24px;font-weight:900;letter-spacing:2px;background:linear-gradient(135deg,#e03030,#d4a820,#e07820);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;}
+.title-logo p{font-size:11px;color:var(--red);font-weight:700;letter-spacing:1px;text-align:center;margin-top:3px;}
+.eval-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 14px;text-align:center;font-size:13px;margin-bottom:12px;}
+.eval-box span{color:var(--orange);font-size:18px;font-weight:900;}
+
+/* GAMEOVER */
+#go-screen{background:#0a0000;}
+.go-title{font-size:22px;font-weight:900;text-align:center;margin-bottom:10px;letter-spacing:2px;}
+
+/* STREET */
+.street-card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:13px;margin-bottom:9px;cursor:pointer;}
+.street-card:active{opacity:0.85;}
+.street-card-title{font-size:14px;font-weight:700;margin-bottom:3px;}
+.street-card-desc{font-size:11px;color:var(--sub);line-height:1.5;}
+
+/* STAT DRAWER */
+#stat-drawer{position:absolute;top:0;left:0;right:0;bottom:0;z-index:50;display:none;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,0.7);}
+#stat-drawer.open{display:flex;}
+.drawer-inner{background:var(--bg2);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom));max-height:92vh;display:flex;flex-direction:column;overflow:hidden;}
+.drawer-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 12px;flex-shrink:0;}
+.drawer-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.drawer-scroll::-webkit-scrollbar{width:3px;}
+.drawer-scroll::-webkit-scrollbar-thumb{background:#1e2d45;border-radius:2px;}
+.stat-grid-full{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px;}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px;text-align:center;position:relative;}
+.stat-box-name{font-size:10px;color:var(--sub);margin-bottom:2px;}
+.stat-box-val{font-size:20px;font-weight:900;}
+.dv-low{color:var(--red);}
+.dv-mid{color:var(--yellow);}
+.dv-high{color:var(--green);}
+/* ポイント振り分けボタン */
+.stat-alloc-btn{display:flex;gap:4px;margin-top:5px;justify-content:center;}
+.stat-alloc-btn button{border:none;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;cursor:pointer;line-height:1.4;}
+.stat-alloc-btn .plus{background:var(--blue);color:#fff;}
+.stat-alloc-btn .minus{background:#2a2a40;color:var(--sub);}
+.stat-alloc-btn button:active{opacity:0.7;}
+/* 手荷物スクロールエリア */
+.drawer-inv-scroll{max-height:180px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.drawer-inv-scroll::-webkit-scrollbar{width:3px;}
+.drawer-inv-scroll::-webkit-scrollbar-thumb{background:#1e2d45;border-radius:2px;}
+/* EXPバー */
+.exp-bar-wrap{margin-bottom:10px;}
+.exp-bar-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.exp-bar-bg{width:100%;height:7px;background:#1a2035;border-radius:3px;overflow:hidden;}
+.exp-bar-fill{height:100%;background:linear-gradient(90deg,#2060d8,#40a0ff);border-radius:3px;transition:width 0.3s;}
+
+/* DICE MODAL */
+#dice-modal{position:absolute;inset:0;background:rgba(0,0,0,0.88);z-index:100;display:none;flex-direction:column;justify-content:center;align-items:center;padding:20px;}
+#dice-modal.active{display:flex;}
+.dice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;margin-bottom:14px;}
+.dice-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;}
+.dice-item-name{font-size:10px;color:var(--sub);margin-bottom:2px;}
+.dice-item-val{font-size:24px;font-weight:900;}
+.dice-item-desc{font-size:9px;color:var(--sub);margin-top:2px;}
+
+/* TOAST */
+#office-cmds button:active{opacity:0.65;transform:scale(0.97);transition:opacity 0.1s,transform 0.1s;}
+
+#toast{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(14,22,40,0.96);border:1px solid var(--border);border-radius:8px;padding:9px 15px;font-size:12px;text-align:center;pointer-events:none;opacity:0;transition:opacity 0.25s;z-index:200;max-width:310px;line-height:1.5;white-space:pre-wrap;}
+#toast.show{opacity:1;}
+/* SCENE UI */
+.scene-title{font-size:12px;font-weight:700;color:var(--orange);margin-bottom:10px;letter-spacing:0.5px;}
+.scene-narr-past{font-size:12px;color:#3a4a65;line-height:1.6;margin-bottom:6px;padding-left:4px;white-space:pre-wrap;}
+.scene-dialog-past{font-size:11px;color:#2e3a52;line-height:1.5;margin-bottom:6px;padding:5px 8px;border-left:2px solid #1e2d45;}
+.scene-sp-past{font-size:9px;color:#2a3a50;display:block;margin-bottom:1px;}
+.scene-narr-cur{font-size:13px;color:var(--text);line-height:1.75;margin-bottom:10px;white-space:pre-wrap;animation:fadeIn 0.3s;}
+.scene-dialog-cur{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;animation:fadeIn 0.3s;}
+.scene-sp-cur{font-size:10px;font-weight:700;color:var(--orange);margin-bottom:6px;}
+.scene-tx-cur{font-size:15px;line-height:1.8;white-space:pre-wrap;}
+.scene-choice-header{font-size:11px;color:var(--sub);text-align:center;margin-bottom:4px;padding-top:4px;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- HEADER -->
+<div id="header">
+  <div class="hdr-left">
+    <div class="hdr-lv" id="hdr-lv">役職を選んで出勤せよ</div>
+  </div>
+  <div class="hdr-hp">
+    <div class="hdr-hp-label" style="font-size:10px;color:var(--sub);flex-shrink:0;">精神力</div>
+    <div class="hdr-hp-wrap"><div class="bar-bg"><div class="bar-fill hp-fill" id="hp-fill" style="width:100%"></div></div></div>
+    <div id="hp-flash" style="font-size:13px;font-weight:900;opacity:0;transition:opacity 0.4s;min-width:30px;text-align:right;pointer-events:none;"></div>
+    <div class="hdr-hp-num" id="hp-num">—</div>
+  </div>
+  <div class="hdr-right">
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px;">
+      <div style="font-size:9px;color:var(--sub);">所持金</div>
+      <div class="hdr-coin" id="hdr-coin">—万</div>
+    </div>
+    <button class="hdr-stat-btn" onclick="toggleDrawer()" style="font-size:18px;font-weight:700;letter-spacing:-1px;">···</button>
+  </div>
+</div>
+
+<div id="screens">
+
+<!-- TITLE -->
+<div id="title-screen" class="screen active">
+  <div class="scroll">
+    <div class="title-logo" style="padding:14px 0 10px;">
+      <h1>SES魔界サバイバル</h1>
+      <p>〜 評価の時期が来た 〜</p>
+    </div>
+    <div class="eval-box">社内評価カード: <span id="eval-count">0</span> 枚</div>
+    <div class="sec">役職解放・選択</div>
+    <div id="job-list"></div>
+  </div>
+  <div class="cmds">
+    <button class="btn btn-primary" onclick="startRun()">配属先（魔界オフィス）へ出勤する</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="home-screen" class="screen">
+  <div class="scroll">
+    <div style="text-align:center;padding:12px 0 8px;">
+      <div style="font-size:30px;margin-bottom:5px;">🏡</div>
+      <div style="font-size:17px;font-weight:900;color:var(--green);">自宅</div>
+    </div>
+    <div class="panel" id="home-panel"></div>
+  </div>
+  <div class="cmds">
+    <button class="btn btn-primary" onclick="goToOffice()">オフィス（魔界）に向かう</button>
+    <button class="btn btn-orange" onclick="goToStreet()">街に繰り出す</button>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="showCloset()">クローゼット</button>
+      <button class="btn btn-secondary" onclick="showIntrospection()">物思いにふける</button>
+    </div>
+  </div>
+</div>
+
+<!-- STREET -->
+<div id="street-screen" class="screen">
+  <div class="scroll">
+    <div style="font-size:17px;font-weight:900;padding:4px 0 10px;">街に繰り出す</div>
+    <div class="panel">平日夜の街。疲れた顔をしたサラリーマンたちが行き交う。</div>
+    <div class="street-card" onclick="showSelectShop()"><div class="street-card-title">セレクトショップ</div><div class="street-card-desc">防具・装備を売るマニアックな店。魔界を生き抜くための武具が揃う。</div></div>
+    <div class="street-card" onclick="showFoodShop()"><div class="street-card-title">飲食店</div><div class="street-card-desc">疲れた体を癒す回復アイテム。深夜ラーメンから高級鉄板焼きまで。</div></div>
+    <div class="street-card" onclick="doStreetExplore()"><div class="street-card-title">街を探索する</div><div class="street-card-desc">ふらふら歩いていると何かに遭遇するかも。選択を誤ると裏ボスが……</div></div>
+  </div>
+  <div class="cmds"><button class="btn btn-secondary" onclick="goHome()">← 自宅に帰る</button></div>
+</div>
+
+<!-- SHOP -->
+<div id="shop-screen" class="screen">
+  <div class="scroll" id="shop-scroll"></div>
+  <div class="cmds" id="shop-cmds"></div>
+</div>
+
+<!-- OFFICE / SCENE / BATTLE -->
+<div id="office-screen" class="screen">
+  <!-- 画像エリア（ボタンオーバーレイ込み） -->
+  <div id="novel-img-area" style="flex:1;min-height:0;position:relative;background:var(--bg);overflow:visible;">
+    <!-- フェーズ表示（画像エリア左上のみ） -->
+    <div id="enemy-dmg-label" style="display:none;position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);font-size:44px;font-weight:900;color:#ff4444;opacity:0;pointer-events:none;z-index:10;text-shadow:0 2px 12px #ff0000;"></div>
+    <div id="novel-floor-label" style="position:absolute;top:10px;left:12px;font-size:16px;font-weight:700;color:var(--orange);background:rgba(0,0,0,0.72);padding:5px 12px;border-radius:6px;z-index:3;letter-spacing:0.5px;"></div>
+    <!-- 背景プレースホルダー -->
+    <div id="novel-img-placeholder" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:52px;opacity:0.10;">🏢</div>
+    <!-- 敵名（戦闘中のみ） -->
+    <div id="enemy-name-label" style="display:none;position:absolute;top:36px;left:10px;right:10px;text-align:center;font-size:15px;font-weight:900;color:#f0f0f0;padding:5px 10px;border-radius:8px;background:rgba(0,0,0,0.72);z-index:3;transition:color 0.4s;"></div>
+    <!-- ボタンオーバーレイ（画像右側） -->
+    <div id="office-cmds" style="position:absolute;top:0;right:0;bottom:0;width:140px;display:flex;flex-direction:column;gap:7px;z-index:4;justify-content:center;overflow-y:auto;padding:10px 8px;background:rgba(7,9,18,0.7);"></div>
+  </div>
+  <!-- メッセージボックス（固定・スタイル統一） -->
+  <div style="flex-shrink:0;background:#0d1120;border-top:1px solid #1e2d45;">
+    <div id="office-scroll" style="height:160px;padding:12px 14px;overflow-y:hidden;font-size:15px;line-height:1.8;color:#e8eaf0;white-space:pre-wrap;"></div>
+  </div>
+</div>
+<!-- GAMEOVER -->
+<div id="go-screen" class="screen">
+  <div class="scroll">
+    <div style="text-align:center;padding:20px 0 12px;">
+      <div style="font-size:44px;margin-bottom:7px;">💀</div>
+      <div class="go-title" id="go-title" style="color:var(--red);">評価の時期が来た</div>
+    </div>
+    <div class="panel" id="go-panel"></div>
+    <div class="sec">引き継ぎ資産（クローゼット）</div>
+    <div id="go-closet"></div>
+  </div>
+  <div class="cmds"><button class="btn btn-danger" onclick="backToTitle()">次の周回へ（タイトルへ戻る）</button></div>
+</div>
+
+</div><!-- #screens -->
+
+<!-- STAT DRAWER -->
+<div id="stat-drawer" onclick="closeDrawerOutside(event)">
+  <div class="drawer-inner" id="drawer-inner">
+    <div class="drawer-handle"></div>
+    <div class="drawer-scroll">
+      <!-- EXP / レベル -->
+      <div class="sec" style="margin-top:0;">📈 レベル・経験値</div>
+      <div class="exp-bar-wrap">
+        <div class="exp-bar-row">
+          <span style="font-size:12px;font-weight:700;color:var(--cyan);" id="drawer-lv-text">Lv.1</span>
+          <span style="font-size:11px;color:var(--sub);" id="drawer-exp-text">EXP 0 / 30</span>
+        </div>
+        <div class="exp-bar-bg"><div class="exp-bar-fill" id="drawer-exp-fill" style="width:0%"></div></div>
+        <div style="font-size:11px;color:var(--orange);margin-top:3px;" id="drawer-nextlv-text">次のLvまで: 30</div>
+      </div>
+      <!-- 未割振りポイント -->
+      <div id="drawer-points-row" style="display:none;background:rgba(224,120,32,0.12);border:1px solid var(--orange);border-radius:8px;padding:8px 10px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;font-weight:700;color:var(--orange);">⚡ 未割振りポイント</span>
+          <span style="font-size:18px;font-weight:900;color:var(--orange);" id="drawer-points-num">0</span>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:3px;">各ステータスの＋ボタンで割り振れます</div>
+      </div>
+      <!-- ステータス -->
+      <div class="sec">📊 ステータス</div>
+      <div class="stat-grid-full" id="drawer-stats"></div>
+      <!-- 手荷物 -->
+      <div class="sec">💼 手荷物（死亡ロスト）</div>
+      <div class="drawer-inv-scroll" id="drawer-items"></div>
+      <button class="btn btn-secondary" style="margin-top:10px;flex-shrink:0;" onclick="closeDrawer()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- DICE MODAL -->
+<div id="dice-modal">
+  <div style="font-size:17px;font-weight:900;margin-bottom:10px;text-align:center;">⚀ 不公平な能力値の決定</div>
+  <div style="font-size:11px;color:var(--sub);margin-bottom:12px;text-align:center;">人生はダイスで決まる。文句は言えない。</div>
+  <div class="dice-grid" id="dice-grid"></div>
+  <div style="font-size:11px;color:var(--sub);text-align:center;margin-bottom:12px;" id="dice-flavor"></div>
+  <button class="btn btn-primary" style="width:100%;margin-bottom:8px;" onclick="confirmDice()">この能力値で出勤する</button>
+  <button class="btn btn-secondary" id="reroll-btn" style="width:100%;" onclick="rerollDice()">振り直す（残り<span id="reroll-left">2</span>回）</button>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+</div>
+
+<script>
+// ============================================================
+// MASTER DATA
+// ============================================================
+const JOBS=[
+  {id:"intern",  name:"新入社員",    cost:0,  hp:60, pay:5,  badge:"b-cyan",
+   diceAtk:"2d4+2",diceDef:"2d4+2",diceMnt:"2d4+2",diceLck:"2d4+2",diceStm:"2d4+2",diceFcs:"2d4+2",
+   normalName:"全力平謝り",     skillName:"ロジハラ耐え",      skillCost:30,skillDesc:"メンタル+25回復",desc:"右も左もわからない魔界の最下級奴隷。"},
+  {id:"staff",   name:"平社員",      cost:20, hp:75, pay:15, badge:"b-cyan",
+   diceAtk:"2d4+3",diceDef:"2d4+3",diceMnt:"2d4+3",diceLck:"2d4+3",diceStm:"2d4+3",diceFcs:"2d4+3",
+   normalName:"一般論ディベート",skillName:"エビデンスアタック",skillCost:40,skillDesc:"敵に35固定ダメージ",desc:"多少の理不尽には耐えられる一般兵。"},
+  {id:"leader",  name:"リーダー",    cost:50, hp:90, pay:25, badge:"b-gold",
+   diceAtk:"2d5+4",diceDef:"2d5+3",diceMnt:"2d4+4",diceLck:"2d4+4",diceStm:"2d5+3",diceFcs:"2d5+3",
+   normalName:"進捗管理キック",  skillName:"サビ残命令",        skillCost:50,skillDesc:"敵45ダメージ＋SP+15",desc:"後輩の愚痴という精神攻撃をさばく中間層。"},
+  {id:"manager", name:"マネージャー",cost:100,hp:105,pay:30, badge:"b-gold",
+   diceAtk:"2d5+5",diceDef:"2d5+4",diceMnt:"2d5+4",diceLck:"2d5+3",diceStm:"2d5+4",diceFcs:"2d5+4",
+   normalName:"KPI圧迫面談",   skillName:"予算削減命令",      skillCost:45,skillDesc:"敵50ダメージ＋次ターン+30%",desc:"数字に追われ部下にも追われる管理職の亡霊。"},
+  {id:"bucho",   name:"部長",        cost:150,hp:130,pay:38, badge:"b-purple",
+   diceAtk:"2d6+4",diceDef:"2d6+3",diceMnt:"2d6+4",diceLck:"2d5+5",diceStm:"2d6+3",diceFcs:"2d6+3",
+   normalName:"役員報告プレッシャー",skillName:"部署丸ごと粛清",skillCost:55,skillDesc:"敵HP30%減＋SP全回収",desc:"会議と報告書の間で魂を売り続けた生き残り。"},
+  {id:"exec",    name:"執行役員",    cost:200,hp:160,pay:44, badge:"b-purple",
+   diceAtk:"2d6+5",diceDef:"2d6+5",diceMnt:"2d6+5",diceLck:"2d6+4",diceStm:"2d6+4",diceFcs:"2d6+5",
+   normalName:"株主への説明責任",skillName:"緊急役員会議召集",  skillCost:55,skillDesc:"敵60ダメージ＋SP+20",desc:"取締役一歩手前。責任だけが増え続ける哀れな存在。"},
+  {id:"ceo",     name:"代表取締役",  cost:300,hp:200,pay:50, badge:"b-red",
+   diceAtk:"3d6+4",diceDef:"3d6+3",diceMnt:"3d6+4",diceLck:"3d6+3",diceStm:"3d6+3",diceFcs:"3d6+4",
+   normalName:"経営理念の唱和",  skillName:"不採算部門カット",  skillCost:60,skillDesc:"敵HPを半分にする",desc:"全責任の呪いを背負う魔界の支配者。"},
+  {id:"cleaner", name:"清掃員",      cost:500,hp:300,pay:5,  badge:"b-red",
+   diceAtk:"2d4+116",diceDef:"2d4+8",diceMnt:"2d4+8",diceLck:"2d4+8",diceStm:"2d4+8",diceFcs:"2d4+8",
+   normalName:"濡れモップ掛け",  skillName:"強制ゴミ廃棄",     skillCost:20,skillDesc:"敵に120の絶大ダメージ",desc:"【最強】給与は最低。しかし全ての理不尽を無言で消し去る。"}
+];
+
+// ============================================================
+// ITEMS (v6 仕様)
+// ============================================================
+// 宝箱アイテムのマスタ（フロアタイプ"treasure"で自動付与）
+const TREASURE_ITEMS={
+  "4-4": {id:"caffeine",  name:"カフェイン錠剤",            type:"use",heal:10, desc:"HP+10"},
+  "5-3": {id:"recruit",   name:"量産型リクルートスーツ",     atk:0,def:2,mnt:0,lck:0,stm:0,fcs:0, type:"equip",desc:"DEF+2"},
+  "8-4": {id:"cooling",   name:"冷却シート【お徳用】",       atk:0,def:9,mnt:3,lck:0,stm:0,fcs:0, type:"equip",desc:"DEF+9 MNT+3"},
+  "9-3": {id:"fakecv",    name:"偽造経歴書の束",             atk:18,def:0,mnt:0,lck:0,stm:0,fcs:3, type:"equip",desc:"ATK+18 FCS+3"},
+  "10-4":{id:"pipe",      name:"錆びた鉄パイプ",             atk:10,def:0,mnt:0,lck:0,stm:0,fcs:0, type:"equip",desc:"ATK+10"},
+  "11-3":{id:"contractcopy",name:"契約書のコピー",           type:"use",heal:20, desc:"交渉資料（HP+20）"},
+  "12-5":{id:"redpaper",  name:"差し押さえの赤紙",           atk:25,def:0,mnt:0,lck:4,stm:0,fcs:0, type:"equip",desc:"ATK+25 LCK+4"},
+  "1-4": {id:"roukitix",  name:"労基の指導票",               atk:0,def:16,mnt:8,lck:0,stm:0,fcs:0, type:"equip",desc:"DEF+16 MNT+8"},
+  "2-3": {id:"rivalcard", name:"ライバル会社の光り輝く名刺", atk:0,def:20,mnt:0,lck:12,stm:0,fcs:0,type:"equip",desc:"DEF+20 LCK+12"},
+};
+
+// セレクトショップ（武器・装備）
+const SELECT_SHOP=[
+  {id:"pen1",     name:"プレミアムボールペン",         cost:3,  atk:1, def:0,  mnt:0, lck:0, stm:0, fcs:0, type:"equip",desc:"ATK+1"},
+  {id:"pen3c",    name:"重たい3色フリクションペン",    cost:6,  atk:2, def:0,  mnt:0, lck:0, stm:0, fcs:1, type:"equip",desc:"ATK+2 FCS+1"},
+  {id:"ruler",    name:"ステンレス製の定規（30cm）",   cost:10, atk:5, def:0,  mnt:0, lck:0, stm:0, fcs:0, type:"equip",desc:"ATK+5"},
+  {id:"headset",  name:"テレアポ用骨伝導ヘッドセット", cost:18, atk:7, def:0,  mnt:0, lck:0, stm:0, fcs:2, type:"equip",desc:"ATK+7 FCS+2"},
+  {id:"thinkpad", name:"レノボ製堅牢ノートPC",         cost:35, atk:13,def:0,  mnt:0, lck:0, stm:3, fcs:0, type:"equip",desc:"ATK+13 STM+3"},
+  {id:"resign",   name:"最終決戦用「退職届」",          cost:999,atk:300,def:0, mnt:80,lck:0, stm:0, fcs:0, type:"equip",desc:"ATK+300 MNT+80"},
+  {id:"mask",     name:"薄っぺらい紙のマスク",          cost:3,  atk:0, def:1,  mnt:1, lck:0, stm:0, fcs:0, type:"equip",desc:"DEF+1 MNT+1"},
+  {id:"glasses",  name:"ブルーライトカットメガネ",      cost:8,  atk:0, def:4,  mnt:0, lck:0, stm:0, fcs:1, type:"equip",desc:"DEF+4 FCS+1"},
+  {id:"meishi",   name:"名刺入れ（合皮製）",            cost:12, atk:0, def:6,  mnt:0, lck:1, stm:0, fcs:0, type:"equip",desc:"DEF+6 LCK+1"},
+  {id:"earphone", name:"防音ノイキャンイヤホン",        cost:22, atk:0, def:12, mnt:5, lck:0, stm:0, fcs:0, type:"equip",desc:"DEF+12 MNT+5"},
+  {id:"ironface", name:"グループ会長の鉄面皮",          cost:80, atk:0, def:25, mnt:15,lck:0, stm:0, fcs:0, type:"equip",desc:"DEF+25 MNT+15"},
+  {id:"barrier",  name:"魔界サバイバーの概念結界",      cost:150,atk:0, def:35, mnt:50,lck:0, stm:0, fcs:0, type:"equip",desc:"DEF+35 MNT+50"},
+];
+
+// 消耗品（v6仕様 5種）
+const FOOD_SHOP=[
+  {id:"caffeine",  name:"カフェイン錠剤",           cost:3,  type:"use",heal:10, desc:"HP+10"},
+  {id:"energy",    name:"コンビニのエナジードリンク", cost:5,  type:"sp", spVal:20,desc:"SP+20"},
+  {id:"stomachrx", name:"胃腸薬（粉末）",            cost:8,  type:"use",heal:40, desc:"HP+40"},
+  {id:"sp_drink",  name:"パートナー企業の応援メール", cost:12, type:"sp", spVal:50,desc:"SP+50"},
+  {id:"steak",     name:"エリクサー（退職代行の連絡先）",cost:50,type:"use",heal:999,desc:"HP・SP全回復"},
+];
+
+// ============================================================
+// FLOOR DATA
+// ============================================================
+const MONTH_FLOORS={
+  4:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"enemy",   icon:"⚠️",name:"エントランス",   enemyKey:"multi",    warn:"入口付近に怪しいスーツ姿の男がいる。マルチ勧誘員のようだ。"},
+    {phase:3,type:"normal",  icon:"🔲",name:"エレベーター"},
+    {phase:4,type:"treasure",icon:"📦",name:"廊下",            treasureKey:"4-4"},
+    {phase:5,type:"enemy",   icon:"⚠️",name:"執務室入口",     enemyKey:"otsubone", warn:"扉の前に仁王立ちする人影。お局様が目を光らせている。"},
+    {phase:6,type:"normal",  icon:"💻",name:"デスク"},
+    {phase:7,type:"boss",    icon:"💀",name:"ミーティングルーム"},
+  ],
+  5:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"normal",  icon:"🚉",name:"渋川駅（乗換）"},
+    {phase:3,type:"treasure",icon:"📦",name:"取引先ビルの受付", treasureKey:"5-3"},
+    {phase:4,type:"normal",  icon:"🛋️",name:"アポ先の応接室"},
+    {phase:5,type:"enemy",   icon:"💼",name:"商談テーブル",    enemyKey:"engineer_mori",warn:"面談開始。経歴が盛られていることに気づいている。"},
+    {phase:6,type:"normal",  icon:"🚕",name:"帰り道（タクシー内）"},
+    {phase:7,type:"boss",    icon:"💀",name:"自社オフィス"},
+  ],
+  6:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車（繁忙期）"},
+    {phase:2,type:"enemy",   icon:"😈",name:"自社執務室",        enemyKey:"tebayako",warn:"松本が怪しい動きをしている。"},
+    {phase:3,type:"normal",  icon:"🔲",name:"深夜のエレベーター"},
+    {phase:4,type:"normal",  icon:"💻",name:"デスクの山"},
+    {phase:5,type:"enemy",   icon:"📞",name:"オンライン面接室",  enemyKey:"client_trouble",warn:"顧客からの着電。明らかに怒っている。"},
+    {phase:6,type:"normal",  icon:"🚶",name:"終電間際の廊下"},
+    {phase:7,type:"boss",    icon:"💀",name:"大会議室"},
+  ],
+  7:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"normal",  icon:"🍡",name:"老舗の和菓子屋"},
+    {phase:3,type:"normal",  icon:"🚕",name:"謝罪へのタクシー内"},
+    {phase:4,type:"normal",  icon:"🏢",name:"取引先のロビー"},
+    {phase:5,type:"enemy",   icon:"🔥",name:"取引先の応接室",   enemyKey:"cio_angry",warn:"激怒するCIO・橋本さんが待ち構えている。"},
+    {phase:6,type:"normal",  icon:"🚶",name:"帰り道"},
+    {phase:7,type:"boss",    icon:"💀",name:"社長室前"},
+  ],
+  8:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車（ガラガラ）"},
+    {phase:2,type:"normal",  icon:"☀️",name:"猛暑の路上"},
+    {phase:3,type:"enemy",   icon:"😎",name:"IT業界名刺交換会",  enemyKey:"rival_sales",warn:"競合他社の営業・川崎が笑顔で近づいてくる。"},
+    {phase:4,type:"treasure",icon:"📦",name:"蝉時雨の公園",       treasureKey:"8-4"},
+    {phase:5,type:"normal",  icon:"🍺",name:"高級居酒屋（顧客会食）"},
+    {phase:6,type:"normal",  icon:"🏢",name:"深夜の無人オフィス"},
+    {phase:7,type:"boss",    icon:"💀",name:"暗い会議室"},
+  ],
+  9:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"normal",  icon:"🏢",name:"自社オフィスのエントランス"},
+    {phase:3,type:"treasure",icon:"📦",name:"失踪現場への移動",  treasureKey:"9-3"},
+    {phase:4,type:"normal",  icon:"🏚️",name:"不気味なアパートの階段"},
+    {phase:5,type:"enemy",   icon:"🏃",name:"山田さんの部屋の前", enemyKey:"yamada",warn:"ドアの向こうに気配がある。"},
+    {phase:6,type:"normal",  icon:"🌆",name:"夕暮れの住宅街"},
+    {phase:7,type:"boss",    icon:"💀",name:"駅前の交番"},
+  ],
+  10:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"normal",  icon:"🏘️",name:"常駐先への移動"},
+    {phase:3,type:"normal",  icon:"🚪",name:"本人の自宅前"},
+    {phase:4,type:"treasure",icon:"📦",name:"アパートの共有スペース",treasureKey:"10-4"},
+    {phase:5,type:"enemy",   icon:"💢",name:"不気味な通路",       enemyKey:"yakuza",warn:"明らかにカタギではない男が近づいてくる。"},
+    {phase:6,type:"normal",  icon:"🏢",name:"顧客のオフィスロビー"},
+    {phase:7,type:"boss",    icon:"💀",name:"顧客の応接室"},
+  ],
+  11:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"normal",  icon:"💻",name:"自社のデスク"},
+    {phase:3,type:"treasure",icon:"📦",name:"法務部への相談",    treasureKey:"11-3"},
+    {phase:4,type:"normal",  icon:"📞",name:"クライアントとの電話"},
+    {phase:5,type:"enemy",   icon:"⚖️",name:"交渉のテーブル",   enemyKey:"legal_cold",warn:"クライアントの冷徹な法務担当が待っている。"},
+    {phase:6,type:"normal",  icon:"🚶",name:"暗転の廊下"},
+    {phase:7,type:"boss",    icon:"💀",name:"自社の会議室"},
+  ],
+  12:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"normal",  icon:"🏃",name:"常駐先ビルへの直行"},
+    {phase:3,type:"normal",  icon:"🏢",name:"常駐先オフィスの前"},
+    {phase:4,type:"enemy",   icon:"😱",name:"パニックのロビー",  enemyKey:"other_agent",warn:"他社エージェントも阿鼻叫喚の状態だった。"},
+    {phase:5,type:"treasure",icon:"📦",name:"弁護士事務所",      treasureKey:"12-5"},
+    {phase:6,type:"normal",  icon:"🏛️",name:"裁判所の廊下"},
+    {phase:7,type:"boss",    icon:"💀",name:"法廷"},
+  ],
+  1:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"normal",  icon:"🏢",name:"常駐先の会議室"},
+    {phase:3,type:"enemy",   icon:"👹",name:"調整デスク",        enemyKey:"pawahara_leader",warn:"パワハラ現場リーダーとの対峙。"},
+    {phase:4,type:"treasure",icon:"📦",name:"自社への帰り道",    treasureKey:"1-4"},
+    {phase:5,type:"normal",  icon:"🏛️",name:"労基の待合室"},
+    {phase:6,type:"normal",  icon:"🚨",name:"取調室のような部屋"},
+    {phase:7,type:"boss",    icon:"💀",name:"労基の面談室"},
+  ],
+  2:[
+    {phase:1,type:"normal",  icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"enemy",   icon:"😈",name:"自社エントランス",  enemyKey:"scout_rival",warn:"ライバル企業のスカウトマンが自社周辺をうろついている。"},
+    {phase:3,type:"treasure",icon:"📦",name:"エレベーター",      treasureKey:"2-3"},
+    {phase:4,type:"normal",  icon:"🚶",name:"廊下"},
+    {phase:5,type:"enemy",   icon:"🎩",name:"緊迫の会議室",     enemyKey:"consultant_scout",warn:"引き抜きの首謀者（元コンサル）との対峙。"},
+    {phase:6,type:"normal",  icon:"💻",name:"デスク"},
+    {phase:7,type:"boss",    icon:"💀",name:"役員会議室"},
+  ],
+  3:[
+    {phase:1,type:"normal",  icon:"🌸",name:"通勤電車（最後かもしれない）"},
+    {phase:2,type:"enemy",   icon:"😊",name:"エントランス",     enemyKey:"naitei_group",warn:"内定者見学ツアーが来ている。去年の自分と同じ顔をしている。"},
+    {phase:3,type:"normal",  icon:"🔲",name:"エレベーター"},
+    {phase:4,type:"normal",  icon:"🚶",name:"廊下"},
+    {phase:5,type:"enemy",   icon:"⚠️",name:"執務室入口",      enemyKey:"otsubone",warn:"お局様が最後の戦いを待っている。"},
+    {phase:6,type:"normal",  icon:"💻",name:"デスク（最後かもしれない）"},
+    {phase:7,type:"boss",    icon:"👑",name:"代表取締役室"},
+  ],
+};
+function getMonthFloors(month){
+  // 月は4〜3（4〜12、1〜3）を処理
+  if(MONTH_FLOORS[month]) return MONTH_FLOORS[month];
+  return[
+    {phase:1,type:"normal",icon:"🚃",name:"通勤電車"},
+    {phase:2,type:"enemy", icon:"⚠️",name:"エントランス",enemyKey:"multi",warn:"入口に例の男。"},
+    {phase:3,type:"normal",icon:"🔲",name:"エレベーター"},
+    {phase:4,type:"normal",icon:"🚶",name:"廊下"},
+    {phase:5,type:"enemy", icon:"📞",name:"客先訪問先",enemyKey:"client_trouble",warn:"訪問先でクレームが待っている。"},
+    {phase:6,type:"normal",icon:"💻",name:"デスク"},
+    {phase:7,type:"boss",  icon:"💀",name:"ミーティングルーム"},
+  ];
+}
+
+function getFloorAtmos(month,phase){
+  const ATMOS={
+    4:["春の朝。満員電車に押し込まれながらも、これからの社会人生活への希望に満ち溢れている。",
+       "ガラス張りのエントランス。まだ新品の社員証がキラリと光る。",
+       "ガタンゴトン。エレベーターの中に静寂が漂う。",
+       "長い廊下。コピー機の音だけが響く。",
+       "執務室の扉の前。中からすでに怒声が聞こえる気がする。",
+       "自分のデスク。なぜか既に積まれた資料が視界を塞ぐ。",
+       "ミーティングルーム。上司が待ち構えている。"],
+    5:["ゴールデンウィーク明け。休んだはずなのに体が重い。",
+       "今日は会社に寄らず、顧客へ直行。渋川駅の自販機で缶コーヒーを買い、心を落ち着かせる。",
+       "タッチパネル式の受付機。なぜかこれだけで汗が出る。",
+       "商談前の静寂。経歴書を眺めて胃が痛くなる。",
+       "スキルを少し盛られたエンジニアとの面談。",
+       "「見送ります」という無慈悲なフィードバック電話が届く。",
+       "「直行直帰？で、成約確度は何％だ？」"],
+    6:["電車内で立ったままパソコンを開き、タイピングしている同僚を見かける。",
+       "今日も誰かが誰かを叱っている。電話の声が途切れない。",
+       "誰も喋らない。階数表示の数字だけが虚しく変わる。",
+       "画面を開くと30件の緊急マークメール。",
+       "取引先は笑顔の一つもない。お見送りの空気。",
+       "蛍光灯のジーという音が不気味に響く。",
+       "そろそろ時間だ。"],
+    7:["梅雨が明けた。参画人材の情報漏洩のため、今日は謝罪のために客先直行だ。",
+       "謝罪用に高級羊羹を自腹で買い出しさせられる。",
+       "上司から「一言一句メールで実況しろ」とクソ通知が連打される。",
+       "やらかしのせいで不審者扱いされ、中に入らせてもらえない。",
+       "激怒するCTO・橋本さんが待ち構えている。",
+       "泥沼の帰り道。重い足取り。",
+       "「お前のせいで大口顧客に泥が塗られた」"],
+    8:["お盆の電車は驚くほど空いている。他人が休んでいる事実に胸が締め付けられる。",
+       "アスファルトから蜃気楼が立ち上る。汗が目に入って痛い。",
+       "ギラギラした熱気の中、腹の探り合いが始まる。",
+       "凄まじい蝉の鳴き声。現実逃避のためにベンチに座る。",
+       "笑顔を貼り付け、ビールを注ぎ続けるだけのマシーンと化す。",
+       "静まり返ったオフィス。誰もいない。エアコンの微かな動作音だけ。",
+       "「俺は今ハワイからビデオ通話してるから」"],
+    9:["秋の気配。中吊り広告の文字を見ても、もう頭が意味を理解しない。",
+       "出社直後、クライアントから「山田さんが現場に来ていない」と緊急着電。",
+       "山田さんの自宅へ向かう電車内。SNSの裏垢を血眼でスクロールする。",
+       "郵便受けには督促状が溢れている。ゴミの臭いが鼻を突く。",
+       "「もう無理です！現場の空気が最悪で、コード書けません！」",
+       "説得したと思った瞬間、山田さんが全力で逃走した。",
+       "「前の男が『ストーカーに追われてる』って駆け込んできた。身分証出して」"],
+    10:["どんよりとした秋の空。心の中を見透かされているような陰鬱さ。",
+        "「今月分の給与を今すぐ払え。払わないとPCは返さない」と人質宣言。",
+        "チャイムを鳴らし、ドアを叩くが、中に気配はあるのに反応がない。",
+        "階段からタバコを咥えた、明らかにカタギではない男が近づいてくる。",
+        "「あいつ探してんの？家賃滞納して夜逃げ寸前だよ」",
+        "顧客に呼び出され、ロビーのソファーで冷や汗をかきながら待つ。",
+        "「PCの中に機密情報が入ってるんだよ！今すぐ損害賠償請求だからな！」"],
+    11:["どんよりとした曇り空。世界全体から色彩が消え去ったようだ。",
+        "「基本契約書の見直しをしたい」という不穏な購買部からのメール。",
+        "「損害賠償の上限を『なし』に変更する」という悪魔の条項が発覚。",
+        "「この条件を呑まないと入場もナシね」と冷たくあしらわれる。",
+        "「リスク取れないならビジネスやめたらどうですか？」",
+        "交渉決裂。内定していた契約枠がすべて白紙になり、目の前が暗い。",
+        "「なんで基本契約の文言ごときで案件潰してんの？」"],
+    12:["年末。稼働中のエンジニアから「システムにログインできません」とLINE。",
+        "全担当者に電話をかけるが、「使われておりません」の音声。",
+        "扉には「破産手続き開始のお知らせ」の非情な紙。",
+        "他社のエージェントも阿鼻叫喚の状態だった。",
+        "数百万円の売掛金が焦げ付いた。差し押さえの準備を急ぐ。",
+        "年をまたいで裁判へ。自分の名前が呼ばれるのを待つ。",
+        "「会社に資産は残っていません。1円もありません」"],
+    1: ["新年早々、エンジニアから涙声で着電。「現場のリーダーに毎日人格否定されている」",
+        "クライアントに状況を伝えると「代わりの人間をすぐタダで補充しろ」と逆上される。",
+        "「うちの指導は普通だよ。本人のメンタルが弱いだけでしょ？」",
+        "スマホに「労働基準監督署」からの着電。心臓が跳ね上がる。",
+        "「偽装請負の疑いがある」と是正勧告一歩手前の呼び出し。",
+        "一歩間違えれば業務停止処分になるグレーゾーン。",
+        "「御社の契約、準委任なのにクライアントが直接指示を出していますね」"],
+    2: ["凍えるような2月の朝。スマホで競合他社のHPを見つめ、手が震える。",
+        "ライバル企業のスカウトマンが、堂々と自社の周りをうろついている。",
+        "誰もが「引き抜き」の噂に怯え、互いを疑う暗い空気。",
+        "「あいつも辞めるらしいぞ」という囁き声が四方から聞こえる。",
+        "元コンサルのスカウト担当との対峙。",
+        "抜かれた売上の穴埋め資料の作成。数字をどう弄っても目標に届かない。",
+        "【コンサル上がり引き抜き大明神】が待ち受けている。"],
+    3: ["一年前、同じ桜の季節にこの電車に乗った。あの頃の自分に何を伝えるか。",
+        "新入社員の内定者見学ツアーが来ている。去年の自分と同じ顔をしている。",
+        "エレベーターに常務と2人きり。「1年どうだった」と聞かれる。",
+        "同僚が「本当に、もう無理しないでね」と言う。",
+        "「来期の配属先、またあそこだから。文句言わずに契約書巻いてね」",
+        "1年間のものをシュレッダーにかける。デスクが少しだけ綺麗になった。",
+        "【最終ボス】全ての答えがここにある。"],
+  };
+  const arr=ATMOS[month]||ATMOS[4];
+  const decay=Math.min(1,(((month>=1&&month<=3)?month+12:month)-4)/8);
+  const pre=decay<0.3?"":decay<0.7?"【疲弊】":"【崩壊寸前】";
+  return pre+(arr[phase-1]||arr[0]);
+}
+
+// ============================================================
+// SCENE EVENTS（会話進行型）
+// ============================================================
+// sceneはステップ配列。各ステップ: {type:"narr"|"dialog"|"choice"|"effect", ...}
+// choiceは choices:[{label, steps:[...]}]
+// effectはゲーム効果だけ
+
+
+// 物思いにふける：月ごとにアンロックされる敵
+function getIntrospectionEnemies(month){
+  const all=[
+    {month:4, name:"初月の残業幻影",         hp:120, maxHp:120, atk:20, expReward:150},
+    {month:5, name:"理不尽な納期の怨念",     hp:160, maxHp:160, atk:25, expReward:200},
+    {month:6, name:"繁忙期メール爆弾の亡霊", hp:200, maxHp:200, atk:30, expReward:300},
+    {month:7, name:"役員報告失敗の記憶",     hp:400, maxHp:400, atk:40, expReward:400},
+    {month:8, name:"お盆返上の呪い",         hp:550, maxHp:550, atk:48, expReward:500},
+    {month:9, name:"予算未達の悪夢",         hp:1000,maxHp:1000,atk:35, expReward:600},
+    {month:10,name:"人事評価Dの烙印",        hp:750, maxHp:750, atk:55, expReward:700},
+    {month:11,name:"期末の亡霊",             hp:700, maxHp:700, atk:58, expReward:800},
+    {month:12,name:"年末締切の亡者",         hp:800, maxHp:800, atk:70, expReward:900},
+    {month:1, name:"新年計画の呪縛",         hp:1000,maxHp:1000,atk:78, expReward:1000},
+    {month:2, name:"決算前夜の悪夢",         hp:2000,maxHp:2000,atk:100,expReward:2000},
+    {month:3, name:"一年の後悔の結晶",       hp:8000,maxHp:8000,atk:150,expReward:5000},
+  ];
+  // 月の順序：4〜12、1〜3
+  const order=[4,5,6,7,8,9,10,11,12,1,2,3];
+  const curIdx=order.indexOf(month);
+  return all.filter(e=>{
+    const eIdx=order.indexOf(e.month);
+    return eIdx>=0&&eIdx<=curIdx;
+  });
+}
+
+// シーンのダメージ値を月に応じて取得（v6仕様）
+function getMonthDmg(month){
+  const dmgMap={4:10,5:12,6:14,7:16,8:18,9:20,10:22,11:24,12:25,1:26,2:28,3:10};
+  return dmgMap[month]||10;
+}
+
+// chikan/kijin は月依存ダメージ（テーブルからstartSceneを呼ぶ際に渡す）
+function startSceneWithMonth(key, afterFn, ctx, month){
+  // 月ごとにダメージ値を動的に上書きしたSCENESを使う
+  const def=SCENES[key];
+  if(!def){if(afterFn)afterFn();return;}
+  const dmg=getMonthDmg(month||P.month||4);
+  // ディープコピーしてダメージ値を置換
+  const patched=JSON.parse(JSON.stringify(def));
+  function patchSteps(steps){
+    steps.forEach(s=>{
+      if(s.t==="e"&&s.damage===99){s.damage=dmg;} // 99はプレースホルダー
+      if(s.ok) patchSteps(s.ok);
+      if(s.ng) patchSteps(s.ng);
+      if(s.choices) s.choices.forEach(c=>patchSteps(c.steps||[]));
+    });
+  }
+  patchSteps(patched.steps);
+  sceneState={
+    steps:patched.steps,
+    idx:0,
+    after:afterFn,
+    title:patched.title,
+    ctx:ctx||"field",
+    history:[]
+  };
+  showScreen("office-screen");
+  runSceneStep();
+}
+
+// フロアイベントテーブル（月×フェーズ対応・v6仕様完全版）
+function buildEventTable(month,phase){
+  const m=month||4;
+
+  // --- phase1: 通勤電車（月ごとにフレーバーが変化）---
+  if(phase===1){
+    const trainFlavors={
+      4: [
+        {w:20,type:"flavor",text:"自社の中吊り広告があった。「世界一の開発力を貴社へ」。誇らしくて、自然とやる気が出る。"},
+        {w:20,type:"flavor",text:"目の前の人と目が合ってしまった。気まずい。でもこれも社会経験だ。"},
+        {w:10,type:"damage",val:10,text:"満員で身体が強く圧迫された。"},
+      ],
+      5: [
+        {w:20,type:"flavor",text:"吊革に絆創膏が張り付いている。なぜこんなところに。"},
+        {w:15,type:"flavor",text:"今日も4時間しか寝ていない。寝不足でフラフラする。"},
+        {w:15,type:"damage",val:12,text:"ドアに強く肩をぶつけた。"},
+      ],
+      6: [
+        {w:15,type:"flavor",text:"自分は社会のためになっているのだろうか。ふとそんな考えが頭をよぎる。"},
+        {w:15,type:"flavor",text:"電車内の冷房が冷たすぎる。体の芯まで冷える。"},
+        {w:20,type:"damage",val:14,text:"吊革を掴む手が滑って頭を打った。"},
+      ],
+      7: [
+        {w:25,type:"flavor",text:"自社広告「世界一の開発力をあなたへ」。今の自分には恥ずかしくて目を逸らした。"},
+        {w:10,type:"damage",val:16,text:"暑さで頭が強くクラクラした。"},
+      ],
+      8: [
+        {w:15,type:"flavor",text:"お盆。網棚に弁当が忘れられていた。誰かが帰れなかったのかもしれない。"},
+        {w:15,type:"damage",val:18,text:"クーラーの風が直撃して、お腹が痛くなった。"},
+      ],
+      9: [
+        {w:20,type:"flavor",text:"中吊り広告の文字を見ても、もう眉一つ動かない。ただのインクの染みにしか見えない。"},
+        {w:15,type:"damage",val:20,text:"思考停止して乗り過ごし、終点まで行ってしまった。"},
+      ],
+      10:[
+        {w:20,type:"flavor",text:"車内の暖房が妙に生温かい。吐き気が込み上げる。"},
+        {w:15,type:"damage",val:22,text:"吊革を掴む腕の筋肉が、疲労でピクピクと痙攣し出した。"},
+      ],
+      11:[
+        {w:20,type:"flavor",text:"周囲の乗客の話し声が、すべて意味を持たない雑音に聞こえる。"},
+        {w:15,type:"damage",val:24,text:"寒さで身体が強張り、首筋がピキッと激しく痛んだ。"},
+      ],
+      12:[
+        {w:20,type:"flavor",text:"クリスマスの華やかな街並みと、車内の陰鬱な空気のギャップが酷い。"},
+        {w:15,type:"damage",val:25,text:"胃の奥から酸っぱいものが急激に込み上げてきた。"},
+      ],
+      1: [
+        {w:20,type:"flavor",text:"新年のスーツが新しい若者たちの笑顔が、今の自分には眩しすぎて痛い。"},
+        {w:15,type:"damage",val:26,text:"年始早々の強烈な吐き気が襲ってきた。"},
+      ],
+      2: [
+        {w:20,type:"flavor",text:"凍えるような2月の朝。スマホで競合他社のHPを見つめ、手が震える。"},
+        {w:15,type:"damage",val:28,text:"寒さと裏切りのショックで身体の感覚が麻痺してきた。"},
+      ],
+      3: [
+        {w:20,type:"flavor",text:"自社の中吊り広告「世界一の開発力を貴社へ」。今はもう、何の感情も湧かない。ただのインクの染みだ。"},
+        {w:10,type:"damage",val:10,text:"眠れなかった。でもそれも慣れた。"},
+      ],
+    };
+    const extras=trainFlavors[m]||trainFlavors[4];
+    // 月ごとの電車シナリオ
+    const trainScenes=[];
+    if(m===3){
+      trainScenes.push({w:20,type:"scene",key:"naitei_voice"});
+      trainScenes.push({w:10,type:"scene",key:"kijin"});
+    } else if(m===8){
+      // 8月: 帰省できなかった電話 + 消える乗客（幻覚）
+      trainScenes.push({w:20,type:"scene",key:"kieru_passenger"});
+      trainScenes.push({w:15,type:"scene",key:"chikan"});
+    } else if(m===9){
+      trainScenes.push({w:20,type:"scene",key:"chikan"});
+      trainScenes.push({w:15,type:"scene",key:"kijin"});
+    } else if(m>=10&&m<=12){
+      trainScenes.push({w:15,type:"scene",key:"chikan"});
+      trainScenes.push({w:15,type:"scene",key:"kijin"});
+    } else if(m>=1&&m<=2){
+      trainScenes.push({w:20,type:"scene",key:"hp_shock_train"});
+      trainScenes.push({w:15,type:"scene",key:"kijin"});
+    } else {
+      trainScenes.push({w:15,type:"scene",key:"chikan"});
+      trainScenes.push({w:15,type:"scene",key:"kijin"});
+    }
+    return[
+      {w:20,type:"next"},
+      ...trainScenes,
+      ...extras,
+    ].filter(e=>e.w>0);
+  }
+
+  // --- phase2: 月ごとに全く異なる場所 ---
+  if(phase===2){
+    const p2={
+      4: [ // エントランス（敵フロア→フレーバーのみ）
+        {w:30,type:"flavor",text:"エントランスに入った瞬間、視線を感じた。"},
+        {w:30,type:"flavor",text:"受付の人が会釈した。今日はじめて誰かに認識された気がした。"},
+        {w:40,type:"flavor",text:"セキュリティゲートを通る。ビープ音が鳴った。何も持っていないのに。"},
+      ],
+      5: [ // 渋川駅
+        {w:30,type:"flavor",text:"初めての直行。スーツを着た他人の群れが全員強そうに見える。"},
+        {w:30,type:"flavor",text:"自販機でコーヒーを買った。外出中だけが唯一の自由な気がする。"},
+        {w:20,type:"scene",key:"route_confirm"},
+        {w:20,type:"damage",val:12,text:"乗り換えを間違えた。遠回りになった。焦りで汗をかいた。"},
+      ],
+      6: [ // 自社執務室（敵フロア）
+        {w:30,type:"flavor",text:"罵詈雑言が飛んでいる。自分のことではない……まだ。"},
+        {w:30,type:"flavor",text:"誰かの怒鳴り声がどこか遠くから聞こえてくる。"},
+        {w:40,type:"flavor",text:"書類の山が崩れた音がした。自分のデスクではない。"},
+      ],
+      7: [ // 老舗の和菓子屋
+        {w:40,type:"damage",val:0,isCoinLoss:true,coinLoss:5,text:"謝罪用に高級羊羹を自腹で購入。（所持金が減った）。"},
+        {w:30,type:"flavor",text:"美味しそうな季節の羊羹が、所狭しと並んでいる。いつか謝罪以外の目的で来たい。"},
+        {w:30,type:"scene",key:"receipt_name"},
+      ],
+      8: [ // 猛暑の路上
+        {w:30,type:"flavor",text:"汗がスーツに染み込んで重い。脱ぐことすら許されない業界の暗黙の束縛。"},
+        {w:30,type:"damage",val:18,text:"軽い熱中症の眩暈がした。世界が黄色く歪む。"},
+        {w:40,type:"scene",key:"boss_phone_road"},
+      ],
+      9: [ // 自社オフィスのエントランス
+        {w:40,type:"damage",val:10,text:"クライアントから緊急着電。「山田さんが今日来ていない。連絡もつかない」ショックで"},
+        {w:30,type:"flavor",text:"先週の定期面談では「大丈夫です」と言っていた。あの笑顔は嘘だったのか。"},
+        {w:30,type:"scene",key:"progress_call"},
+      ],
+      10:[ // 常駐先への移動
+        {w:40,type:"damage",val:15,text:"「給与を全額今すぐ払え。払わないとPCは返さない」と追撃の脅迫が届いた。"},
+        {w:30,type:"flavor",text:"紛失・横領になれば、こちらの営業生命が終わる。絶対に回収せねば。"},
+        {w:30,type:"scene",key:"client_urgent_call"},
+      ],
+      11:[ // 自社のデスク
+        {w:30,type:"damage",val:5,text:"「基本契約書の見直しをしたい」という不穏なメール。損害賠償上限が「なし（無限）」。"},
+        {w:30,type:"flavor",text:"自社の法務に相談しても「こんなの通せるわけない」と突っぱねられる。"},
+        {w:40,type:"scene",key:"boss_pressure"},
+      ],
+      12:[ // 常駐先ビルへの直行
+        {w:40,type:"damage",val:15,text:"全担当者に電話をかけるが、全て「現在使われておりません」の機械音声。事態が最悪だ。"},
+        {w:30,type:"flavor",text:"焦げ付く金額は数百万円。自分の営業成績が、一瞬で奈落に叩き落とされる。"},
+        {w:30,type:"scene",key:"taxi_panic"},
+      ],
+      1: [ // 常駐先の会議室
+        {w:40,type:"damage",val:15,text:"「代わりの人間をすぐタダで補充しろ！金額は全額御社が持て！」と顧客が逆上。"},
+        {w:30,type:"flavor",text:"パワハラを認めてもらえない。本人のメンタルのせいにされる不条理。"},
+        {w:30,type:"scene",key:"contract_defense"},
+      ],
+      2: [ // 自社エントランス（敵フロア）
+        {w:40,type:"flavor",text:"ライバル企業のスカウトマンが、堂々と自社の周りをうろついている。"},
+        {w:30,type:"flavor",text:"先月「家庭の事情で」と涙ながらに退職したエースが、競合他社のHPに「シニアコンサルタント」として掲載されていた。"},
+        {w:30,type:"scene",key:"hp_shock"},
+      ],
+      3: [ // エントランス（敵フロア）
+        {w:30,type:"flavor",text:"内定者たちが「ガラス張りで綺麗！」と目を輝かせている。1年前の自分の顔だ。"},
+        {w:30,type:"flavor",text:"プロの作り笑顔で「来月からよろしくね」と言い切った。本音を飲み込んだ。"},
+        {w:40,type:"flavor",text:"エントランスのガラスに自分の顔が映った。あの頃とは別人だ。"},
+      ],
+    };
+    return p2[m]||p2[4];
+  }
+
+  // --- phase3: エレベーター系（4月・3月）or 月固有場所 ---
+  if(phase===3){
+    const hasGift=P.gotSendolGift;
+    const p3={
+      4: [ // エレベーター
+        {w:20,type:"next",text:"何事もなく通過。"},
+        {w:hasGift?0:10,type:"sendol_gift"},
+        {w:hasGift?20:10,type:"flavor",text:"人が多い。降りたいフロアのボタンが押されているだろうか。"},
+        {w:20,type:"flavor",text:"エレベーターに同乗している人はみな死んだような顔をしている。"},
+        {w:15,type:"damage",val:10,text:"新たに人が入ってきた。重そうな男に足を踏まれた。"},
+        {w:15,type:"scene",key:"elevator_event"},
+      ].filter(e=>e.w>0),
+      5: [ // 取引先ビルの受付（宝箱フロア処理は別）
+        {w:30,type:"flavor",text:"ガラス張りの巨大なビル。自社の雑居ビルとは大違いだ。"},
+        {w:25,type:"flavor",text:"すれ違う人たちはみな爽やかな笑顔を浮かべている。"},
+        {w:25,type:"scene",key:"ai_reception"},
+        {w:20,type:"damage",val:12,text:"機械がエラーを起こした。後ろの人の視線が刺さる。"},
+      ],
+      6: [ // 深夜のエレベーター
+        {w:20,type:"next"},
+        {w:20,type:"flavor",text:"仲の悪い同僚が、仲間を連れて乗ってきた。コソコソと悪口を言われているようだ。"},
+        {w:20,type:"flavor",text:"到着階を押し間違えていた。"},
+        {w:20,type:"damage",val:14,text:"ドアに荷物を挟まれ、大切な資料が破れた。"},
+        {w:20,type:"scene",key:"vending_sigh"},
+      ],
+      7: [ // 謝罪へのタクシー内
+        {w:30,type:"flavor",text:"タクシーのメーターが上がるたびに胃が痛む。"},
+        {w:30,type:"scene",key:"boss_slack_demand"},
+        {w:20,type:"damage",val:16,text:"準備した謝罪の言葉が焦りで全部頭から飛んでしまった。"},
+        {w:20,type:"flavor",text:"どうやって謝ろうか。緊張で頭が回らない。"},
+      ],
+      8: [ // IT業界名刺交換会（敵フロア）
+        {w:40,type:"flavor",text:"ギラギラした熱気の中、腹の探り合いが始まる。"},
+        {w:30,type:"flavor",text:"名刺を交換するたびに「御社」という言葉が飛び交う。"},
+        {w:30,type:"flavor",text:"他社のブースを見ると、自社より圧倒的に揃っていて虚しい。"},
+      ],
+      9: [ // 失踪現場への移動（宝箱フロア）
+        {w:20,type:"next"},
+        {w:25,type:"flavor",text:"山田さんのSNSの裏垢を血眼でスクロールし続ける。"},
+        {w:20,type:"damage",val:20,text:"急激なストレスで胃がキリキリと激しく痛み出した。"},
+        {w:20,type:"scene",key:"yokoku_call"},
+        {w:15,type:"scene",key:"hebi_tsurикawa"},
+      ],
+      10:[ // 本人の自宅前
+        {w:40,type:"flavor",text:"チャイムを何度鳴らしても反応がない。でも中に気配はある。"},
+        {w:30,type:"flavor",text:"ドアに貼られたガムテープが虚しく剥がれかけている。"},
+        {w:30,type:"damage",val:22,text:"ドアの金属部分を強く叩きすぎて、拳を激しく痛めた。"},
+      ],
+      11:[ // 法務部への相談（宝箱フロア）
+        {w:40,type:"flavor",text:"「損害賠償上限なしは、何かあれば会社が潰れる条項だ」と法務。"},
+        {w:30,type:"flavor",text:"「このクライアントは逃がせない、お前が何とかしろ」と上司。"},
+        {w:10,type:"damage",val:24,text:"完全に板挟み。ストレスで奥歯がガチガチと激しく鳴る。"},
+        {w:20,type:"scene",key:"hanko_hallucination"},
+      ],
+      12:[ // 常駐先オフィスの前
+        {w:40,type:"damage",val:20,text:"扉には厳重にチェーン。弁護士名義の「破産手続き開始」の紙。目の前が暗くなる。"},
+        {w:30,type:"flavor",text:"エンジニアの給与は自社が立て替えなければならない。"},
+        {w:30,type:"flavor",text:"張り紙の文字が歪んで見える。現実を受け入れたくない。"},
+      ],
+      1: [ // 調整デスク（敵フロア）
+        {w:40,type:"flavor",text:"「本人のメンタルが弱いだけ」という言葉が頭から離れない。"},
+        {w:30,type:"flavor",text:"現場リーダーは自分の指導のどこが問題なのか、微塵も理解していない。"},
+        {w:30,type:"flavor",text:"板挟みだ。エンジニアも顧客も、誰も正しくないのに全部自分のせいになる。"},
+      ],
+      2: [ // エレベーター（宝箱フロア）
+        {w:30,type:"flavor",text:"誰もが「引き抜き」の噂に怯え、互いを疑う暗い空気。"},
+        {w:30,type:"damage",val:28,text:"同僚から「お前のところのエンジニア、全員あっちの会社に面談予約入れてるらしいぞ」と言われた。"},
+        {w:40,type:"scene",key:"hallucination_resume"},
+      ],
+      3: [ // エレベーター
+        {w:20,type:"next"},
+        {w:hasGift?0:10,type:"sendol_gift"},
+        {w:20,type:"flavor",text:"来年度の配属通知が今日出る。もうどこでもいい気がした。"},
+        {w:20,type:"flavor",text:"最繁忙期だ。泊まり込みの社員もいるのだろうか、そこはかとなく異臭が漂う。"},
+        {w:10,type:"damage",val:10,text:"胸の奥の動悸が激しくなった。"},
+        {w:20,type:"scene",key:"elevator_final"},
+      ].filter(e=>e.w>0),
+    };
+    return p3[m]||p3[4];
+  }
+
+  // --- phase4: 廊下系 or 月固有場所 ---
+  if(phase===4){
+    const p4={
+      4: [ // 廊下（宝箱フロア）
+        {w:20,type:"next"},
+        {w:20,type:"flavor",text:"人が多い。目的の部屋まで辿り着けるだろうか。"},
+        {w:20,type:"damage",val:10,text:"知らない先輩に呼び止められて説教された。理由は教えてもらえなかった。"},
+        {w:20,type:"scene",key:"kyuto_room"},
+        {w:20,type:"flavor",text:"エレベーターで一緒だった死んだ顔をした人たちが同じ廊下を歩いている。"},
+      ],
+      5: [ // アポ先の応接室
+        {w:20,type:"next"},
+        {w:20,type:"flavor",text:"取引先を待つこの時間が一番緊張する。"},
+        {w:20,type:"flavor",text:"応接室の椅子がふかふかだ。沈み込んで緊張が増す。"},
+        {w:20,type:"flavor",text:"エントリーシートは持っただろうか。念の為確認をしておこう。"},
+        {w:20,type:"scene",key:"hamaya_waitroom"},
+      ],
+      6: [ // デスクの山
+        {w:10,type:"next"},
+        {w:20,type:"flavor",text:"30件の緊急マークメール。全部今日中だという。"},
+        {w:20,type:"flavor",text:"成約の喜びの声が聞こえる。自分はまだ未達だ。"},
+        {w:15,type:"damage",val:20,text:"エンジニアから「単価上げないと貸与PC返さずバックれる」とLINE。"},
+        {w:15,type:"damage",val:20,text:"激務によるデートの連続リスケで、恋人からLINEをブロックされた。"},
+        {w:20,type:"scene",key:"mail_bomb"},
+      ],
+      7: [ // 取引先のロビー
+        {w:40,type:"scene",key:"guard_tough"},
+        {w:30,type:"flavor",text:"やらかしのせいか、受付の人の目が冷たい気がする。"},
+        {w:30,type:"damage",val:16,text:"セキュリティゲートで引っかかった。恥ずかしい。"},
+      ],
+      8: [ // 蝉時雨の公園（宝箱フロア）
+        {w:30,type:"flavor",text:"鳩が豆を突いている。自分も魔界の豆を突いているだけなのか。"},
+        {w:20,type:"damage",val:5,text:"平日の昼間から公園のベンチで30分サボる。上司に見られていないかビクビクする。"},
+        {w:30,type:"scene",key:"speaking_cicada"},
+        {w:20,type:"flavor",text:"子どもが鳩を追いかけている。あの頃の自分は何が楽しかったのだろう。"},
+      ],
+      9: [ // 不気味なアパートの階段
+        {w:30,type:"flavor",text:"郵便受けには督促状。山田さんも限界のチキンレースだったのだ。"},
+        {w:30,type:"flavor",text:"インターホンを連打。中に誰かが動く小さな気配がある。確実に入っている。"},
+        {w:20,type:"damage",val:20,text:"階段を息を切らせて5階まで駆け上がった。足が笑っている。"},
+        {w:20,type:"scene",key:"apartment_granny"},
+      ],
+      10:[ // アパートの共有スペース（宝箱フロア）
+        {w:30,type:"flavor",text:"階段からタバコを咥えた、明らかにカタギではない険しい顔の男が近づいてくる。"},
+        {w:20,type:"scene",key:"yakuza_talk"},
+        {w:20,type:"damage",val:22,text:"場の刺々しい空気に圧倒され、心臓が激しく動悸する。"},
+        {w:30,type:"scene",key:"blood_wall"},
+      ],
+      11:[ // クライアントとの電話
+        {w:40,type:"flavor",text:"「この条件を呑まないと上層部の承認が降りない。入場もナシね」と冷たく言われた。"},
+        {w:30,type:"scene",key:"phone_last_fight"},
+        {w:30,type:"flavor",text:"世界中の人間が自分の敵になったような暗い感覚がする。"},
+      ],
+      12:[ // パニックのロビー（敵フロア）
+        {w:40,type:"flavor",text:"他社のエージェントも阿鼻叫喚の状態だった。"},
+        {w:30,type:"flavor",text:"「社長はどこだ！」という声が飛び交っている。"},
+        {w:30,type:"flavor",text:"弁護士の張り紙の前で、みんなが呆然と立ち尽くしている。"},
+      ],
+      1: [ // 自社への帰り道（宝箱フロア）
+        {w:40,type:"damage",val:10,text:"スマホに「労働基準監督署」からの呼び出し着電。心臓が激しく跳ね上がる。"},
+        {w:30,type:"flavor",text:"別の現場のエンジニアが「偽装請負」で労基に駆け込んだらしい。これは自社の問題だ。"},
+        {w:30,type:"scene",key:"red_light_hallucination"},
+      ],
+      2: [ // 廊下
+        {w:20,type:"next"},
+        {w:30,type:"flavor",text:"大量の退職届の処理に追われる人事の人間が走っている。誰も目が合わない。"},
+        {w:20,type:"damage",val:28,text:"「お前の班の管理はどうなってるんだ！」と通りすがりの部長に胸ぐらをつかまれんばかりに怒鳴られた。"},
+        {w:30,type:"flavor",text:"「あいつも辞めるらしいぞ」という囁き声が四方から聞こえる。"},
+      ],
+      3: [ // 廊下
+        {w:20,type:"next"},
+        {w:30,type:"scene",key:"kyuto_final"},
+        {w:20,type:"flavor",text:"退職の挨拶回りをしている人がいる。清々しい顔をしていた。"},
+        {w:20,type:"flavor",text:"インターンの学生が横を通り過ぎる。まだ何も知らない、生き生きとした顔。"},
+        {w:10,type:"scene",key:"mental_breakdown"},
+      ],
+    };
+    return p4[m]||p4[4];
+  }
+
+  // --- phase5: 敵フロア（フレーバーのみ・戦闘はenemyフロア処理で行う）---
+  if(phase===5){
+    const p5={
+      4: [ // 執務室入口
+        {w:30,type:"flavor",text:"廊下の先に執務室の扉が見える。"},
+        {w:30,type:"flavor",text:"どこかから電話の声が漏れ聞こえてくる。誰かが怒鳴られている。"},
+        {w:40,type:"flavor",text:"ここを通るといつも足が重くなる。"},
+      ],
+      5: [ // 商談テーブル（敵フロア）
+        {w:40,type:"flavor",text:"面談が始まった。経歴が盛られていることには気づいている。"},
+        {w:30,type:"flavor",text:"取引先の担当者がこちらを品定めするように見ている。"},
+        {w:30,type:"flavor",text:"エンジニアの答えが詰まるたびに、胃がキリキリする。"},
+      ],
+      6: [ // オンライン面接室（敵フロア）
+        {w:40,type:"flavor",text:"取引先は笑顔の一つもない。お見送りの空気。"},
+        {w:30,type:"flavor",text:"画面越しに怒りが伝わってくる。"},
+        {w:30,type:"flavor",text:"「御社の」という言葉が、刃のように刺さる。"},
+      ],
+      7: [ // 取引先の応接室（敵フロア）
+        {w:40,type:"flavor",text:"先方が待っている。明らかに怒っている。"},
+        {w:30,type:"flavor",text:"羊羹の入った袋が重い。心も重い。"},
+        {w:30,type:"flavor",text:"謝罪の言葉を頭の中で反芻する。"},
+      ],
+      8: [ // 名刺交換会（敵フロア）→フロアは3番目
+        {w:40,type:"flavor",text:"名刺交換の瞬間、相手が一瞬こちらの会社名を見て表情が変わった。"},
+        {w:30,type:"flavor",text:"笑顔の裏に「どうせ中小」という空気を感じる。"},
+        {w:30,type:"flavor",text:"自社より明らかに強そうな会社のブースが多い。"},
+      ],
+      9: [ // 山田さんの部屋の前（敵フロア）
+        {w:40,type:"flavor",text:"ドアの向こうに気配がある。出てきてもらえるだろうか。"},
+        {w:30,type:"flavor",text:"何度インターホンを押しても、中から音がする。"},
+        {w:30,type:"flavor",text:"督促状が詰まった郵便受けが目に入る。山田さんも限界だったのか。"},
+      ],
+      10:[ // 不気味な通路（敵フロア）
+        {w:40,type:"flavor",text:"薄暗い通路。タバコのにおいが漂っている。"},
+        {w:30,type:"flavor",text:"男の目が笑っていない。"},
+        {w:30,type:"flavor",text:"頭の中でアドレナリンが出てくる感覚がする。"},
+      ],
+      11:[ // 交渉のテーブル（敵フロア）
+        {w:40,type:"flavor",text:"相手の法務担当が待っている。笑顔がない。"},
+        {w:30,type:"flavor",text:"「業界の常識」という言葉が凶器になる。"},
+        {w:30,type:"flavor",text:"持参した資料が薄く見える。"},
+      ],
+      12:[ // 弁護士事務所（宝箱フロア）
+        {w:30,type:"flavor",text:"弁護士事務所の重いソファーに座る。「回収は非常に厳しい」という宣告。"},
+        {w:30,type:"flavor",text:"法律という冷たい壁が、焦げ付いた売上を完全に守り隠しているように見えた。"},
+        {w:20,type:"scene",key:"bankruptcy_doc"},
+        {w:20,type:"scene",key:"zero_snow"},
+      ],
+      1: [ // 労基の待合室
+        {w:40,type:"flavor",text:"是正勧告一歩手前の呼び出し。待合室のパイプ椅子が異常に冷たく硬い。"},
+        {w:30,type:"damage",val:26,text:"隣に座る別会社の営業らしき男の激しい貧乏ゆすりの音が精神を削る。"},
+        {w:30,type:"flavor",text:"国の介入。一歩間違えれば、会社の名前が公表され全面業務停止になる。"},
+      ],
+      2: [ // 緊迫の会議室（敵フロア）
+        {w:40,type:"flavor",text:"元コンサルのスカウト担当との対峙。"},
+        {w:30,type:"flavor",text:"「市場原理」「MECE」という言葉が飛び交う。ビジネス用語で攻撃してくる。"},
+        {w:30,type:"flavor",text:"証拠がないのが一番キツい。"},
+      ],
+      3: [ // 執務室入口（敵フロア）
+        {w:30,type:"flavor",text:"来期の配属先。また同じ場所らしい。"},
+        {w:30,type:"flavor",text:"「ファックスの紙切れてるんだけど」。1年経っても変わらない。"},
+        {w:40,type:"flavor",text:"お局様の目が光っている。1年経っても変わらない。"},
+      ],
+    };
+    return p5[m]||p5[4];
+  }
+
+  // --- phase6: デスク・帰り道系 ---
+  if(phase===6){
+    const p6={
+      4: [ // デスク
+        {w:15,type:"next"},
+        {w:20,type:"flavor",text:"誰かを叱っている声がする。自分のことではない。よかった。"},
+        {w:20,type:"flavor",text:"上司がパソコンを覗き込んできた。が、無言で通り過ぎていった。"},
+        {w:20,type:"damage",val:10,text:"コーヒーをぶちまけた。最悪だ。"},
+        {w:15,type:"scene",key:"appoint"},
+        {w:10,type:"scene",key:"mystery_mail"},
+      ],
+      5: [ // 帰り道（タクシー内）
+        {w:20,type:"next"},
+        {w:20,type:"flavor",text:"タクシーの窓を開ける。東京の風は排気ガスの匂いがした。"},
+        {w:20,type:"flavor",text:"社内Slackの通知がうるさい。仕事が溜まっているのだろうが、見る気になれない。"},
+        {w:20,type:"damage",val:12,text:"取引先から「スキル不足で見送ります」とメール。時間は戻らない。"},
+        {w:20,type:"scene",key:"hamaya_msg"},
+      ],
+      6: [ // 終電間際の廊下
+        {w:10,type:"next"},
+        {w:20,type:"flavor",text:"終電間際だというのにまだオフィスにはちらほら人がいる。"},
+        {w:20,type:"flavor",text:"飲み会に出かけた同僚が羨ましい。未達だと視線が痛くて飲みにもいけない。"},
+        {w:20,type:"damage",val:14,text:"壁に強く肩をぶつけた。誰も助けてくれない。"},
+        {w:30,type:"scene",key:"mirror_corridor"},
+      ],
+      7: [ // 帰り道
+        {w:20,type:"next"},
+        {w:30,type:"flavor",text:"なんとか損害賠償は免れそうだが、詰められた記憶が鮮明に残っている。"},
+        {w:30,type:"flavor",text:"これは自分のせいなのか？何のためにこんな屈辱に耐えているのか。"},
+        {w:20,type:"damage",val:16,text:"ビルを出ると、競合の営業と鉢合わせた。「大変ですね」と笑われた。"},
+      ],
+      8: [ // 高級居酒屋（顧客会食）
+        {w:30,type:"flavor",text:"笑顔を貼り付け、顧客のビールの泡の黄金比率を保つ退屈な作業。"},
+        {w:30,type:"flavor",text:"「来期は少し枠を絞る」という重要ワードを拾った。家帰ってメモしよう。"},
+        {w:20,type:"damage",val:18,text:"チャンポンしたアルコールの頭痛が襲ってきた。"},
+        {w:20,type:"scene",key:"kaishoku_info"},
+      ],
+      9: [ // 夕暮れの住宅街
+        {w:40,type:"scene",key:"yamada_run"},
+        {w:30,type:"flavor",text:"夕暮れの住宅街。子どもの声が聞こえる。なぜ自分はここにいるのか。"},
+        {w:30,type:"damage",val:20,text:"追いかけながらアスファルトで激しく転んだ。膝が激痛。"},
+      ],
+      10:[ // 顧客のオフィスロビー
+        {w:40,type:"flavor",text:"万策尽き、上司を連れて顧客のもとへ向かう。絶望で足が震える。"},
+        {w:30,type:"flavor",text:"隣を歩く上司の横顔は、完全に般若のそれだった。誰も喋らない。"},
+        {w:30,type:"flavor",text:"ロビーの豪華な大理石の床が、自分の墓標のように冷たい。"},
+      ],
+      11:[ // 暗転の廊下
+        {w:40,type:"damage",val:24,text:"交渉決裂。内定していた優秀なエンジニアの契約枠がすべて白紙に。"},
+        {w:30,type:"flavor",text:"また一からやり直し。でもやり直す気力がもうどこにも残っていない。"},
+        {w:30,type:"flavor",text:"廊下の蛍光灯がチカチカと点滅している。自分の命の灯火のようだ。"},
+      ],
+      12:[ // 裁判所の廊下
+        {w:40,type:"flavor",text:"独特の冷たい重苦しい空気。自分の名前が法廷に呼ばれるのをじっと待つ。"},
+        {w:30,type:"damage",val:25,text:"裁判所の長い廊下の冷え込みが、足元から精神を凍らせていく。"},
+        {w:30,type:"flavor",text:"年末の喧騒が嘘のように、ここだけが時間が止まっている。"},
+      ],
+      1: [ // 取調室のような部屋
+        {w:40,type:"flavor",text:"監督官の前に座らされる。グレーゾーンの緊迫感で口の中が完全にカラカラ。"},
+        {w:30,type:"damage",val:26,text:"監督官が書類をめくるパサッ、パサッという音が、死刑宣告のカウントダウンのようだ。"},
+        {w:30,type:"flavor",text:"1年間の泥臭い仕事のツケが、すべてここに集約されている。"},
+      ],
+      2: [ // デスク
+        {w:10,type:"next"},
+        {w:20,type:"flavor",text:"抜かれた売上の穴埋め資料の作成。数字をどう弄っても目標に届かない。"},
+        {w:30,type:"damage",val:28,text:"深夜4時。裏切られた怒りと睡眠不足で頭が破裂しそうだ。"},
+        {w:40,type:"scene",key:"last_retain_call"},
+      ],
+      3: [ // デスク（最後かもしれない）
+        {w:15,type:"next"},
+        {w:25,type:"flavor",text:"1年間で焦げ付いた売上、夜逃げされた書類、ボロボロになった名刺をシュレッダーにかける。デスクが少しだけ、綺麗になった。"},
+        {w:25,type:"flavor",text:"引き出しの中に、前任者の「逃げろ」というメモがまだあった。今は少し笑えた。"},
+        {w:20,type:"damage",val:10,text:"最後の架電リストが届いた。心がすっと冷えていく。"},
+        {w:15,type:"scene",key:"appoint"},
+      ],
+    };
+    return p6[m]||p6[4];
+  }
+
+  return[{w:100,type:"next",text:"通過した。"}];
+}
+
+const STREET_EVENTS=[
+  {w:10,type:"flavor",text:"コンビニの前でスーツ姿の男が電話をしていた。声が震えていた。"},
+  {w:8, type:"flavor",text:"居酒屋の前に吐瀉物があった。見なかったことにした。"},
+  {w:7, type:"flavor",text:"信号待ちで隣に立った人が、こちらをじっと見ていた。気のせいかもしれない。"},
+  {w:7, type:"flavor",text:"深夜のファミレスの窓際に、一人でパソコンを開いている人が見えた。"},
+  {w:8, type:"flavor",text:"終電を逃したのか、スーツ姿の人がベンチで眠っていた。"},
+  {w:5, type:"flavor",text:"路地裏から猫が出てきた。目が合った。猫はすぐに去っていった。"},
+  {w:20,type:"coin",text:"財布が落ちていた。中身は8万円。",val:8},
+  {w:20,type:"scene",key:"street_stalker"},
+  {w:20,type:"scene",key:"street_fortune"},
+  {w:15,type:"scene",key:"street_danger"},
+];
+
+function getEnemy(key,month){
+  const m=month||4;
+  // 敵の攻撃セリフリスト（戦闘時にランダム表示）
+  const ENEMY_PHRASES={
+    multi:         ["「ちょっといいですか？将来の資産形成に興味ありませんか？」","「給料足りてますか？もっと稼ぎたくないですか？」","「実は師匠が事業をやっていて、よければ話を聞いてみませんか？」","「起業したい人を集めて、コミュニティを作ってるんです」"],
+    otsubone:      ["「新人のくせに挨拶の声が小さい！聞こえないわよ！」","「その服装、うちの社風に少し合ってないんじゃない？」","「シュレッダーが詰まっているけど、何もしないつもり？」","「コーヒーの豆を変えるとか、新人なりにできることがあるでしょ？」"],
+    engineer_mori: ["「Pythonは実務経験3年です。Pandas？Django？なんですかそれ？」","「残業は嫌です。出社もする気はありません」","「へえ、随分とレガシーな環境なんですね。大変ですね」","「コミュニケーションは得意です。でも、いつも現場の変な人に喧嘩を売られます」"],
+    tebayako:      ["「あ、その企業は俺が先にアプローチしてたから、俺が担当するわ」","「新人は黙ってテレアポだけやってればいいんだよ」","「その人材には、お前が選んだ会社はやめとけって言っといたよ」","「才能ないよ。SESやめたら？」"],
+    client_trouble:["「御社の人材、挨拶もしないしミスだらけなんだけど！どうなってんの？」","「今すぐ代わりの人間をタダで連れてこい！できないなら契約違反だ！」","「事実確認がしたい？そんなことする必要ないだろ！」","「即日終了だよ！金も払えないよ！」"],
+    hr_trouble:    ["「想定と違う環境なので即日辞退します」","「御社のエンジニアのマネジメントが悪い」","「単価が低すぎます。話が違う」"],
+    cio_angry:     ["「羊羹持ってくれば許されると思ってんの？」","「御社の教育どうなってんの？」","「謝罪じゃなくて、誠意を見せろよ」","「これどうすんの？損害賠償ものだよね？」"],
+    rival_sales:   ["「御社、最近エンジニア集まってないみたいですね〜、うちの方が案件豊富ですよ」","「まだそのクラスの役職で消耗してるんですか？転職お勧めしますよ」","「その大手の現場、うちは直で入ってるんで、もしよければ枠分けてあげましょうか？なんちゃって」","「今どきその条件で、まともなエンジニアが残ると思ってるんですか？」"],
+    yamada:        ["「もう無理です！インターフェースの設計がめちゃくちゃでコード書けません！」","「僕をこれ以上追い詰めるなら、労働局にすべて駆け込みますからね！」","「『成長できる現場』って言いましたよね！？ただの古いシステムの保守運用じゃないですか！」","「着信拒否しても会社を変えて電話してくるの、本当に恐怖なんですけど。もう僕の人生に関わらないでください！」"],
+    yakuza:        ["「あいつ、家賃滞納して夜逃げ寸前だよ。俺も金貸してるからさ、PC売って金にするわ」","「兄ちゃん、代わりにこの借金、会社が肩代わりしてくんねえかな？」","「会社支給のパソコン？そんなの俺らには関係ねえよ。売れるもんは全部置いてってもらうからな」","「おーい！早く出てこいよ！近所迷惑だろうが！」"],
+    legal_cold:    ["「何かあったら派遣している側が全責任を負う、これが業界の常識ですよね？」","「大手さんはみんなこの条件で結んでますよ？御社だけ特別扱いする理由はありません」","「損害賠償の上限を設定しろ？ 弊社に数億円規模のシステム障害を起こす可能性が微塵でもあると、そうおっしゃるわけですか？」","「明日の午前中までに判子を押したPDFを送ってこられないなら、この話はなかったことにします」"],
+    other_agent:   ["「御社、いくら未回収ですか！？うちは3か月分焦げ付きました！」","「社長の隠れ家を知りませんか！？このままじゃうちの会社が飛びます！」","「現場にうちのフリーランスが5人残されてるんです！」","「弁護士の張り紙がチェーンで固定されてて中に入れない！」"],
+    pawahara_leader:["「うちの指導は普通だよ。本人のメンタルが弱いだけでしょ？補充の面談、明日までにセットしてね」","「できないなら全て検収拒否にするから。文句ある？」","「ろくにコードも書けない素人を送り込んできて、こっちが被害者なんだけど。」","「次の補充要員だけど、スキルは前の奴の倍以上で、単価は据え置きね。それくらい誠意見せてよ」"],
+    scout_rival:   ["「おたくのエンジニア、みんな『報酬が低い』って嘆いてましたよ？マージン取りすぎなんじゃないですか？」","「うちなら市場価値に見合った報酬が出せますから。引き抜き？人助けと言ってほしいな」","「引き抜いた証拠があるんですか？」","「次はどの子に声をかけようかな。あ、おたくもうちで働いてみる？お茶汲みくらいしかできないか」"],
+    consultant_scout:["「彼らはフリーランス、つまり独立した個人事業主ですよ？ どこから案件を請けるかは彼らの自由であり、法的になんの問題もありません」","「『引き抜き』などという人聞きが悪い言葉は使わないでいただきたい。魅力的なマージン率と案件を提示できない御社の営業力に、重大な欠陥があるのでは？」","「感情論は結構です。ファクトとデータで語ってください。で、彼らが御社に残るメリットは結局何％なんですか？」","「やり甲斐搾取のフェーズは終わったんですよ。リソースを強奪された言い訳を、上層部にどうコミットするつもりですか？」"],
+    naitei_group:  ["「わあ、ガラス張りで綺麗なオフィスですね！みなさん活気があって凄いです！」","「この会社に入れば、若いうちにたくさんチャレンジができるんですよね！」","「今日からインターンで働き始めるんです！楽しみだな！」","「この会社に入った理由はなんですか？参考にさせてください！」"],
+    audit_person:  ["「この焦げ付いた未払金、どのような法的手段で回収する見込みですか？」","「契約書の不備が目立ちます。ガバナンス体制に重大な欠陥がありますね」","「整合性の取れない経費申請がいくつか見受けられます。説明を。」"],
+    ura_boss:      ["「あなたは本当に大丈夫ですか」","「その顔、限界ですよね」","「逃げていいんですよ」"],
+  };
+  const E={
+    multi:            {name:"マルチ勧誘員",             hp:37, maxHp:37, atk:12,expReward:25},
+    otsubone:         {name:"お局ババア",               hp:51, maxHp:51, atk:14,expReward:35},
+    engineer_mori:    {name:"経歴もりもりエンジニア（濱家さん）",hp:60,maxHp:60,atk:17,expReward:40},
+    tebayako:         {name:"手柄横取り同僚・松本",      hp:55, maxHp:55, atk:16,expReward:35},
+    client_trouble:   {name:"クレーム顧客",             hp:65, maxHp:65, atk:18,expReward:45},
+    hr_trouble:       {name:"採用トラブル人材",          hp:65, maxHp:65, atk:18,expReward:45},
+    cio_angry:        {name:"激怒するCIO・橋本さん",    hp:85, maxHp:85, atk:20,expReward:60},
+    rival_sales:      {name:"競合他社マウント営業・川崎",hp:100,maxHp:100,atk:22,expReward:70},
+    yamada:           {name:"失踪エンジニア・山田",      hp:115,maxHp:115,atk:24,expReward:80},
+    yakuza:           {name:"借金取り立て屋",            hp:300,maxHp:300,atk:31,expReward:90},
+    legal_cold:       {name:"冷徹な法務担当・岡本さん", hp:380,maxHp:380,atk:35,expReward:100},
+    other_agent:      {name:"他社エージェント営業・木下さん",hp:400,maxHp:400,atk:38,expReward:110},
+    pawahara_leader:  {name:"パワハラ現場リーダー・安井さん",hp:480,maxHp:480,atk:42,expReward:120},
+    scout_rival:      {name:"ライバル企業のスカウト男",  hp:520,maxHp:520,atk:50,expReward:160},
+    audit_person:     {name:"会計監査担当・真鍋さん",    hp:500,maxHp:500,atk:48,expReward:150},
+    consultant_scout: {name:"引き抜きの首謀者（元コンサル）",hp:600,maxHp:600,atk:55,expReward:180},
+    naitei_group:     {name:"内定者の群れ",              hp:600,maxHp:600,atk:50,expReward:200},
+    ura_boss:         {name:"【裏ボス】深夜の路上カウンセラー",hp:9999,maxHp:9999,atk:200,expReward:5000,isUraBoss:true},
+  };
+  const base=E[key]||E.multi;
+  return{...base, phrases:ENEMY_PHRASES[key]||["「……。」"]};
+}
+function getBoss(month){
+  const BOSS_PHRASES={
+    4: ["「今日の提案はしきった？成約数、足りてないのにもう帰るのかな？」","「予定がある？それはみんな同じだよ」","「メールには必ずCCをつけろっていったよね。できないならもう来なくていいよ」","「まだ22時だけど、今日は何時まで働くの？」"],
+    5: ["「Slackの返事が遅いよ。休日でも5分以内にちゃんと返せよ」","「面接どうだった？スキル不足？それをなんとかするのがお前の仕事だろ」","「で？今月は何件積めんの？」","「トラブルで忙しい？そんなの言い訳だろ。やることやれよ」"],
+    6: ["「今月のノルマは全員倍だ！」","「ノルマを達成するまで帰れると思うな！」","「成果が上がらないならせめて面白いことでも言えよ！」","「スキルはごまかせ！コミュはフォローしろ！」"],
+    7: ["「今回の件、未然に防げなかったの？」","「なんでその人材をアサインしたんだ？」","「うちの評判も落ちたよな。どうしてくれるんだ？」","「今回の損失、どうやって補填するつもり？」"],
+    8: ["「俺は今ハワイからビデオ通話してるから。お盆休み中にこの来期の提案資料、全部1人でまとめておいといて」","「なに？人手が足りない？それはお前の調整能力の問題だろ」","「結果を出してから休みの話をしろ」"],
+    9: ["「前の男の人が『ストーカーに追われてる』って交番に駆け込んできたんだけど。君、身分証出して。ここで何してるの？」","「詳しく話してもらえますか？」","「事情聴取に協力してください」"],
+    10:["「PCの中にうちのソースコードと機密情報が入ってるんだよ！返ってこないなら即座に損害賠償請求だからな！」","「こっちは被害者なんだよ！」","「今すぐ全データのコピーを提出しろ！」"],
+    11:["「なんで基本契約の文言ごときで案件潰してんの？代わりの売上、今月中にどうやって補填するつもり？」","「お前の判断が間違ってた」","「法務に責任押しつけるな！」"],
+    12:["「すでに会社に資産は残っていません。御社への未払い分を支払う原資は1円もありません」","「法的手続きに従ってください」","「優先弁済債権者のリストに入れますが、配当はないでしょうね」"],
+    1: ["「御社の契約、準委任契約なのにクライアントが直接指示を出していますね。これは偽装請負の実態そのものです。どう説明しますか？」","「是正勧告を出すことになります」","「最悪の場合、業務停止処分になりますよ」"],
+    2: ["「経営資源の最適配置において、スキルを持つ人材が高待遇の環境に移動するのは市場原理、すなわち『正義』です」","「感情論は結構です。ファクトとデータで語ってください」","「やり甲斐搾取のフェーズは終わったんですよ」","「引き抜き条項の網の目をすり抜けるスキームなど、我々コンサル出身者には造作もないこと」"],
+    3: ["「昨対比120%？目標は200%だったはずだが？」","「なんで有給がこれしか余ってないんだ？やる気があるのか？」","「給料をあげろ？会社から学んでいる分、むしろ金を払えよ」","「うちは固定残業制だぞ。意味はわかっているな？」"],
+  };
+  const B={
+    4: {name:"限界上司（4月）",                   hp:90,   atk:18, expReward:150},
+    5: {name:"数字押しつけ上司（5月）",            hp:150,  atk:22, expReward:200},
+    6: {name:"繁忙期の化身・鬼部長（6月）",        hp:150,  atk:50, expReward:260},
+    7: {name:"役員報告の生贄係長（7月）",          hp:300,  atk:32, expReward:320},
+    8: {name:"お盆返上を命じた課長（8月）",        hp:330,  atk:35, expReward:390},
+    9: {name:"魔界の警察官（9月）",               hp:350,  atk:65, expReward:460},
+    10:{name:"激怒するクライアント部長・遠藤さん（10月）",hp:600,atk:40,expReward:540},
+    11:{name:"期末追い込みの亡霊・藤本部長（11月）",hp:680, atk:45, expReward:620},
+    12:{name:"年末締切の大魔王（管財人弁護士・有馬先生）",hp:500,atk:80,expReward:720},
+    1: {name:"ベテラン監督官・岩本さん（1月）",    hp:999,  atk:55, expReward:820},
+    2: {name:"コンサル上がり引き抜き大明神（2月）",hp:1400, atk:75, expReward:1000},
+    3: {name:"魔界のグループ会長（最終ボス）",     hp:2000, atk:95, expReward:1500},
+  };
+  const b=B[month]||B[4];
+  return{name:b.name,hp:b.hp,maxHp:b.hp,atk:b.atk,expReward:b.expReward,isBoss:true,payReward:0,phrases:BOSS_PHRASES[month]||BOSS_PHRASES[4]};
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let S={evalCards:0,unlockedJobs:["intern"],selectedJobId:"intern",closet:[]};
+let P={};
+let curPhase=1;
+let maxPhase=0;
+let rerollsLeft=2;
+let pendingDiceStats=null;
+// シーン進行
+
+// ============================================================
+// UTIL
+// ============================================================
+function rollDice(str){
+  const[left,base]=str.split("+");const[num,sides]=left.split("d").map(Number);
+  let s=0;for(let i=0;i<num;i++)s+=Math.floor(Math.random()*sides)+1;return s+(base?+base:0);
+}
+function saveS(){localStorage.setItem("ses_v9_save",JSON.stringify(S));}
+function loadS(){const d=localStorage.getItem("ses_v9_save");if(d)try{S=JSON.parse(d);}catch(e){}}
+function getJob(id){return JOBS.find(j=>j.id===id);}
+function curJob(){return getJob(S.selectedJobId);}
+function equipBonus(){
+  let atk=0,def=0,mnt=0,lck=0,stm=0,fcs=0;
+  (P.inventory||[]).forEach(i=>{
+    if(i.type==="equip"){
+      atk+=i.atk||0;def+=i.def||0;mnt+=i.mnt||0;
+      lck+=i.lck||0;stm+=i.stm||0;fcs+=i.fcs||0;
+    }
+  });
+  return{atk,def,mnt,lck,stm,fcs};
+}
+function weightedRandom(table){
+  const total=table.reduce((a,t)=>a+t.w,0);let r=Math.random()*total;
+  for(const t of table){r-=t.w;if(r<=0)return t;}return table[table.length-1];
+}
+let _tt=null;
+function toast(msg,dur=2400){
+  const el=document.getElementById("toast");el.innerText=msg;el.classList.add("show");
+  if(_tt)clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove("show"),dur);
+}
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+function updateBusyMode(){
+  const m=P.month||0;
+  document.getElementById("app").classList.toggle("busy",m===6);
+  // 10,11,12,1,2,3 は lategame
+  document.getElementById("app").classList.toggle("lategame",m>=10||(m>=1&&m<=3));
+}
+function updateHeader(ctx){
+  const job=curJob();
+  let phaseText="SES魔界サバイバル",lvText=job?job.name:"";
+  if(ctx==="home"){phaseText="🏡 自宅";lvText="Lv."+(P.level||1)+" "+(job?job.name:"");}
+  else if(ctx==="street"){phaseText="街";lvText="Lv."+(P.level||1)+" "+(job?job.name:"");}
+  else if(ctx==="office"||ctx==="battle"){
+    phaseText=""; // フェーズ表示はnovel-floor-labelのみ
+    lvText="Lv."+(P.level||1)+" "+(job?job.name:"");
+  }
+  document.getElementById("hdr-lv").innerText=lvText;
+  const hp=P.hp||0,maxHp=P.maxHp||1;
+  const pct=Math.max(0,hp/maxHp*100);
+  document.getElementById("hp-fill").style.width=pct+"%";
+  document.getElementById("hp-fill").style.background=pct>50?"linear-gradient(90deg,#18a060,#40c080)":pct>25?"linear-gradient(90deg,#e07820,#f0a040)":"linear-gradient(90deg,#e03030,#ff6060)";
+  document.getElementById("hp-num").innerText=P.maxHp?(P.hp+"/"+P.maxHp):"—";
+  document.getElementById("hdr-coin").innerText=P.maxHp?((P.payWallet||0)+"万"):"—万";
+}
+
+// ============================================================
+// STAT DRAWER
+// ============================================================
+function toggleDrawer(){const d=document.getElementById("stat-drawer");d.classList.contains("open")?closeDrawer():openDrawer();}
+function openDrawer(){
+  // --- EXP表示 ---
+  const lv=P.level||1;
+  const curExp=P.exp||0;
+  const job=curJob();
+  const maxLv=job?job.maxLv:30;
+  // 次Lvの必要EXP（簡略：Lv×50）
+  const needExp=lv<maxLv?lv*50:0;
+  const expPct=needExp>0?Math.min(100,Math.floor(curExp/needExp*100)):100;
+  const toNext=needExp>0?needExp-curExp:0;
+
+  document.getElementById("drawer-lv-text").innerText="Lv."+lv+(lv>=maxLv?" (MAX)":"");
+  document.getElementById("drawer-exp-text").innerText="EXP "+curExp+" / "+(needExp||"MAX");
+  document.getElementById("drawer-exp-fill").style.width=expPct+"%";
+  document.getElementById("drawer-nextlv-text").innerText=lv>=maxLv?"最大レベル到達！":"次のLvまで: "+toNext;
+
+  // --- 未割振りポイント ---
+  const pts=P.pendingPoints||0;
+  const pRow=document.getElementById("drawer-points-row");
+  const pNum=document.getElementById("drawer-points-num");
+  if(pRow){pRow.style.display=pts>0?"block":"none";}
+  if(pNum){pNum.innerText=pts;}
+
+  // --- ステータス ---
+  const eb=equipBonus();
+  const STAT_KEYS=[
+    {k:"atk",n:"話術(ATK)"},{k:"def",n:"根性(DEF)"},{k:"mnt",n:"精神(MNT)"},
+    {k:"lck",n:"運(LCK)"},  {k:"stm",n:"体力(STM)"},{k:"fcs",n:"集中(FCS)"},
+  ];
+  const grid=document.getElementById("drawer-stats");grid.innerHTML="";
+  STAT_KEYS.forEach(s=>{
+    const base=P[s.k]||0;const total=base+(eb[s.k]||0);
+    const cls=total<=6?"dv-low":total<=12?"dv-mid":"dv-high";
+    const bonusTxt=(eb[s.k]||0)>0?`<span style="color:var(--green);font-size:9px;">+${eb[s.k]}</span>`:"";
+    const allocBtns=pts>0?`
+      <div class="stat-alloc-btn">
+        <button class="minus" onclick="allocPoint('${s.k}',-1)">－</button>
+        <button class="plus" onclick="allocPoint('${s.k}',1)">＋</button>
+      </div>`:"";
+    const el=document.createElement("div");el.className="stat-box";
+    el.innerHTML=`<div class="stat-box-name">${s.n}</div><div class="stat-box-val ${cls}">${total}${bonusTxt}</div>${allocBtns}`;
+    grid.appendChild(el);
+  });
+
+  // --- 手荷物 ---
+  const inv=document.getElementById("drawer-items");
+  if(!(P.inventory||[]).length){
+    inv.innerHTML=`<div style="color:var(--sub);font-size:12px;padding:4px 0;">空っぽ</div>`;
+  }else{
+    inv.innerHTML=(P.inventory||[]).map((it,i)=>{
+      const itBtn=(it.type==="use"||it.type==="sp")
+        ?'<button class="ibtn" onclick="useItemFromDrawer('+i+')">使う</button>'
+        :'<span style="font-size:10px;color:var(--cyan);">装備中</span>';
+      return '<div class="irow"><div class="irow-info"><div class="irow-name">'+it.name+'</div><div class="irow-desc">'+(it.desc||"")+'</div></div>'+itBtn+'</div>';
+    }).join("");
+  }
+
+  document.getElementById("stat-drawer").classList.add("open");
+}
+
+function allocPoint(stat,delta){
+  const pts=P.pendingPoints||0;
+  if(delta>0&&pts<=0)return;
+  if(delta<0&&(P[stat]||0)<=0)return; // 0未満にはしない（元の値からは引かない）
+  P[stat]=(P[stat]||0)+delta;
+  P.pendingPoints=(pts-delta);
+  if(P.pendingPoints<0)P.pendingPoints=0;
+  updateHeader("office");
+  openDrawer(); // 再レンダリング
+}
+function closeDrawer(){document.getElementById("stat-drawer").classList.remove("open");}
+function closeDrawerOutside(e){if(e.target===document.getElementById("stat-drawer"))closeDrawer();}
+function useItemFromDrawer(idx){
+  const it=(P.inventory||[])[idx];if(!it)return;
+  if(it.type==="use"&&it.heal){P.hp=Math.min(P.maxHp,P.hp+it.heal);P.inventory.splice(idx,1);toast("🍶 "+it.name+"！ メンタル+"+it.heal);}
+  else if(it.type==="sp"){P.sp=Math.min(100,(P.sp||0)+it.spVal);P.inventory.splice(idx,1);toast(""+it.name+"！ SP+"+it.spVal);}
+  updateHeader("home");openDrawer();
+}
+
+// ============================================================
+// TITLE
+// ============================================================
+window.onload=function(){loadS();renderTitle();};
+function renderTitle(){
+  showScreen("title-screen");updateHeader("title");
+  document.getElementById("eval-count").innerText=S.evalCards;
+  renderJobList();
+}
+function renderJobList(){
+  var el=document.getElementById("job-list");
+  el.innerHTML="";
+  for(var ji=0;ji<JOBS.length;ji++){
+    var job=JOBS[ji];
+    var unlocked=S.unlockedJobs.indexOf(job.id)>=0;
+    var selected=S.selectedJobId===job.id;
+    var canBuy=!unlocked&&S.evalCards>=job.cost;
+    var card=document.createElement("div");
+    card.className="card"+(selected?" selected":"")+(unlocked?"":" locked");
+    var titleDiv=document.createElement("div");titleDiv.className="card-title";titleDiv.innerText=job.name;
+    var badge=document.createElement("span");badge.className="badge "+job.badge;badge.innerText=unlocked?"解放済":"コスト "+job.cost+"枚";
+    titleDiv.appendChild(badge);
+    var descDiv=document.createElement("div");descDiv.className="card-desc";descDiv.innerText=job.desc;
+    var leftDiv=document.createElement("div");leftDiv.style.flex="1";
+    leftDiv.appendChild(titleDiv);leftDiv.appendChild(descDiv);
+    var btn=document.createElement("button");
+    if(unlocked){
+      btn.className="ibtn"+(selected?" warn":"");
+      btn.innerText=selected?"選択中":"選択";
+      (function(jid){btn.onclick=function(){selectJob(jid);};})(job.id);
+    } else {
+      btn.className="ibtn"+(canBuy?"":" dis");
+      btn.innerText=canBuy?"解放":"不足";
+      if(canBuy){(function(jid,jcost){btn.onclick=function(){unlockJob(jid,jcost);};})(job.id,job.cost);}
+    }
+    var rightDiv=document.createElement("div");rightDiv.style.flexShrink="0";rightDiv.appendChild(btn);
+    var row=document.createElement("div");row.className="card-row";
+    row.appendChild(leftDiv);row.appendChild(rightDiv);
+    card.appendChild(row);
+    el.appendChild(card);
+  }
+}
+function selectJob(id){S.selectedJobId=id;saveS();renderJobList();}
+function unlockJob(id,cost){
+  if(S.evalCards<cost)return;
+  S.evalCards-=cost;S.unlockedJobs.push(id);S.selectedJobId=id;
+  saveS();renderJobList();document.getElementById("eval-count").innerText=S.evalCards;
+  toast("「"+getJob(id).name+"」を解放！");
+}
+
+// ============================================================
+// DICE
+// ============================================================
+function startRun(){rerollsLeft=2;rollStats();document.getElementById("dice-modal").classList.add("active");}
+function rollStats(){
+  const job=curJob();
+  pendingDiceStats={atk:rollDice(job.diceAtk),def:rollDice(job.diceDef),mnt:rollDice(job.diceMnt),lck:rollDice(job.diceLck),stm:rollDice(job.diceStm),fcs:rollDice(job.diceFcs)};
+  renderDiceModal();
+}
+function renderDiceModal(){
+  const s=pendingDiceStats;
+  const defs=[{k:"atk",n:"話術(ATK)",d:"攻撃・交渉力"},{k:"def",n:"根性(DEF)",d:"防御・耐久力"},{k:"mnt",n:"精神力(MNT)",d:"HP補正"},{k:"lck",n:"運(LCK)",d:"選択肢・乱数"},{k:"stm",n:"体力(STM)",d:"繁忙期軽減"},{k:"fcs",n:"集中(FCS)",d:"SP回収量"}];
+  const grid=document.getElementById("dice-grid");grid.innerHTML="";
+  defs.forEach(d=>{const v=s[d.k];const cls=v<=6?"dv-low":v<=12?"dv-mid":"dv-high";const el=document.createElement("div");el.className="dice-item";el.innerHTML=`<div class="dice-item-name">${d.n}</div><div class="dice-item-val ${cls}">${v}</div><div class="dice-item-desc">${d.d}</div>`;grid.appendChild(el);});
+  const total=Object.values(s).reduce((a,v)=>a+v,0);
+  document.getElementById("dice-flavor").innerText="合計値: "+total+"　"+(total<45?"…人生って不公平だ。":total<60?"まあ、こんなもんか。":total<75?"悪くない出目だ。":"これはかなり恵まれた。");
+  document.getElementById("reroll-left").innerText=rerollsLeft;
+  document.getElementById("reroll-btn").classList.toggle("btn-disabled",rerollsLeft===0);
+}
+function rerollDice(){if(rerollsLeft<=0)return;rerollsLeft--;rollStats();}
+function confirmDice(){
+  const job=curJob();const s=pendingDiceStats;
+  P={level:1,exp:0,hp:job.hp+s.mnt,maxHp:job.hp+s.mnt,sp:0,
+     atk:s.atk,def:s.def,mnt:s.mnt,lck:s.lck,stm:s.stm,fcs:s.fcs,
+     payWallet:0,month:4,inventory:[],enemy:null,battleLog:[],nextAtkBonus:0,
+     clearedEnemies:{},battleCtx:"field"};
+  curPhase=1;maxPhase=0;
+  document.getElementById("dice-modal").classList.remove("active");
+  goHome();
+}
+
+// ============================================================
+// HOME
+// ============================================================
+
+// 広告システム（1時間3回まで）
+const AD_LIMIT=3;
+const AD_WINDOW=60*60*1000; // 1時間
+const AD_REWARD=6; // 6枚/回
+
+function getAdState(){
+  try{
+    const raw=localStorage.getItem("ses_ad_log");
+    const log=raw?JSON.parse(raw):[];
+    const now=Date.now();
+    const recent=log.filter(t=>now-t<AD_WINDOW);
+    return{count:recent.length, log:recent};
+  }catch(e){return{count:0,log:[]};}
+}
+
+function showAdOffer(){
+  showScreen("office-screen");
+  updateHeader("home");
+  const lbl=document.getElementById("novel-floor-label");
+  if(lbl) lbl.innerText="上司の誘い";
+  updateImgArea("home","📺");
+  const st=getAdState();
+  const remaining=AD_LIMIT-st.count;
+  const scroll=document.getElementById("office-scroll");
+  const cmds=document.getElementById("office-cmds");
+  if(remaining<=0){
+    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">「また今度な」\n\n上司はそう言って去っていった。\n1時間後にまた声をかけてくる。</span>`;
+    cmds.innerHTML=renderSideBtns([{label:"← 戻る",fn:"goHome()"}]);
+    return;
+  }
+  scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">「付き合えよ」\n\n断れる雰囲気ではない。\n評価カード ${AD_REWARD}枚獲得（残り${remaining}回/時間）</span>`;
+  cmds.innerHTML=renderSideBtns([
+    {label:"見る（"+AD_REWARD+"枚獲得）",fn:"startAd()"},
+    {label:"断る",fn:"goHome()"}
+  ]);
+}
+
+let _adTimer=null;
+let _adCount=0;
+function startAd(){
+  showScreen("office-screen");
+  const scroll=document.getElementById("office-scroll");
+  const cmds=document.getElementById("office-cmds");
+  _adCount=5;
+  scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">上司と出かけた。\n気づいたら営業の説明を聞かされていた。</span>`;
+  // AdSense 広告スロット（下記をAdSenseのins要素に差し替え）
+  cmds.innerHTML=`
+    <div id="ad-slot-container" style="width:100%;text-align:center;margin-bottom:6px;">
+      <!-- AdSense slot: ここにins要素を貼る -->
+      <!-- <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto"></ins> -->
+      <!-- <script>(adsbygoogle = window.adsbygoogle || []).push({});</script> -->
+    </div>
+    <div style="text-align:center;padding:12px 0;font-size:32px;font-weight:900;color:var(--orange);" id="ad-countdown">${_adCount}</div>`;
+  _adTimer=setInterval(function(){
+    _adCount--;
+    const el=document.getElementById("ad-countdown");
+    if(el) el.innerText=_adCount;
+    if(_adCount<=0){
+      clearInterval(_adTimer);
+      finishAd();
+    }
+  },1000);
+}
+
+function finishAd(){
+  const st=getAdState();
+  const newLog=[...st.log, Date.now()];
+  localStorage.setItem("ses_ad_log", JSON.stringify(newLog));
+  S.evalCards+=AD_REWARD;
+  saveS();
+  const scroll=document.getElementById("office-scroll");
+  const cmds=document.getElementById("office-cmds");
+  scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">解放された。\n評価カードを${AD_REWARD}枚もらった。\n理由はよくわからない。</span>`;
+  cmds.innerHTML=renderSideBtns([{label:"帰宅する",fn:"goHome()"}]);
+  document.getElementById("eval-count")&&(document.getElementById("eval-count").innerText=S.evalCards);
+}
+
+function goHome(){
+  // enemy-name-label などバトルUIをリセット
+  var _enl=document.getElementById("enemy-name-label");
+  if(_enl) _enl.style.display="none";
+  var _edl=document.getElementById("enemy-dmg-label");
+  if(_edl) _edl.style.display="none";
+  var _ph=document.getElementById("novel-img-placeholder");
+  if(_ph) _ph.style.display="";
+  showScreen("office-screen");updateBusyMode();updateHeader("home");
+  const lbl=document.getElementById("novel-floor-label");
+  if(lbl) lbl.innerText="🏡 自宅";
+  updateImgArea("home","🏡");
+  const scroll=document.getElementById("office-scroll");
+  const cmds=document.getElementById("office-cmds");
+  const msgs=["ドアの外は魔界。この部屋の中だけが唯一の安全地帯……のはずだ。","ベッドに倒れ込む。天井のシミが今日も変わらずある。","静かだ。会社の怒号が耳鳴りのように残っている。","冷蔵庫を開けた。昨日の残りのご飯があった。","窓の外は夜だった。自分がいなくても街は動いている。"];
+  scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${msgs[(P.month||4)%msgs.length]}</span>`;
+  cmds.innerHTML=renderSideBtns([
+    {label:"オフィスへ向かう",fn:"goToOffice()"},
+    {label:"街に繰り出す",fn:"goToStreet()"},
+    {label:"上司の誘いで出かける",fn:"showAdOffer()"},
+    {label:"クローゼット",fn:"showCloset()"},
+    {label:"物思いにふける",fn:"showIntrospection()"}
+  ]);
+}
+
+// ============================================================
+// STREET
+// ============================================================
+function goToStreet(){
+  showScreen("office-screen");
+  updateHeader("street");
+  const lbl=document.getElementById("novel-floor-label");
+  if(lbl) lbl.innerText="街";
+  updateImgArea("street","🏙️");
+  const enemyLbl=document.getElementById("enemy-name-label");
+  if(enemyLbl) enemyLbl.style.display="none";
+  const scroll=document.getElementById("office-scroll");
+  const cmds=document.getElementById("office-cmds");
+  scroll.innerHTML='<span style="font-size:15px;line-height:1.8;animation:fadeIn 0.3s ease-out;">平日夜の街。疲れた顔をしたサラリーマンたちが行き交う。</span>';
+  cmds.innerHTML=renderSideBtns([
+    {label:"セレクトショップ", fn:"showSelectShop()"},
+    {label:"飲食店",          fn:"showFoodShop()"},
+    {label:"街を探索する",    fn:"doStreetExplore()"},
+    {label:"← 自宅に帰る",      fn:"goHome()"}
+  ]);
+}
+function showSelectShop(){showScreen("shop-screen");updateHeader("street");renderShop("セレクトショップ 🛍️",SELECT_SHOP,"select");}
+function showFoodShop(){showScreen("shop-screen");updateHeader("street");renderShop("飲食店 🍜",FOOD_SHOP,"food");}
+function renderShop(title,items,type){
+  document.getElementById("shop-scroll").innerHTML=`
+    <div style="font-size:17px;font-weight:900;margin-bottom:10px;">${title}</div>
+    <div class="panel">給与ウォレット: <b style="color:var(--yellow)">${P.payWallet||0} 万円</b></div>
+    <div class="sec">商品リスト</div>
+    ${items.map((item,i)=>{const can=(P.payWallet||0)>=item.cost;return`<div class="irow">
+      <div class="irow-info"><div class="irow-name">${item.name} <span style="color:var(--yellow);font-size:10px;">${item.cost}万円</span></div><div class="irow-desc">${item.desc}</div></div>
+      <button class="ibtn${can?"":" dis"}" ${can?`onclick="shopBuy('${type}',${i})"`:""}>${can?"購入":"不足"}</button>
+    </div>`}).join("")}`;
+  document.getElementById("shop-cmds").innerHTML=`<button class="btn btn-secondary" onclick="goToStreet()">← 街へ戻る</button>`;
+}
+function shopBuy(type,idx){
+  const item=(type==="select"?SELECT_SHOP:FOOD_SHOP)[idx];
+  if((P.payWallet||0)<item.cost)return;
+  P.payWallet-=item.cost;P.inventory.push({...item});toast("「"+item.name+"」を購入！");
+  renderShop(type==="select"?"セレクトショップ 🛍️":"飲食店 🍜",type==="select"?SELECT_SHOP:FOOD_SHOP,type);
+  updateHeader("street");
+}
+function doStreetExplore(){
+  const ev=weightedRandom(STREET_EVENTS);
+  if(ev.type==="flavor"||ev.type==="nothing"){
+    showStreetResult(ev.text);return;
+  }
+  if(ev.type==="coin"){
+    P.payWallet=(P.payWallet||0)+ev.val;updateHeader("street");
+    showStreetResult(ev.text);return;
+  }
+  if(ev.type==="scene"){
+    startScene(ev.key,()=>navigateAfterScene("street"),"street");return;
+  }
+}
+
+function showStreetResult(text){
+  showScreen("office-screen");
+  updateHeader("street");
+  const lbl=document.getElementById("novel-floor-label");
+  if(lbl) lbl.innerText="街";
+  updateImgArea("street","🏙️");
+  const scroll=document.getElementById("office-scroll");
+  const cmds=document.getElementById("office-cmds");
+  scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;animation:fadeIn 0.3s ease-out;">${text}</span>`;
+  cmds.innerHTML=renderSideBtns([
+    {label:"もう一度探索",fn:"doStreetExplore()"},
+    {label:"帰宅する",fn:"goHome()"}
+  ]);
+}
+
+// シーン終了後・探索後の遷移を一元管理
+function navigateAfterScene(ctx){
+  if(ctx==="street"){
+    // 街に戻る
+    showScreen("office-screen");
+    updateHeader("street");
+    const lbl=document.getElementById("novel-floor-label");
+    if(lbl) lbl.innerText="街";
+    updateImgArea("street","🏙️");
+    const _el=document.getElementById("enemy-name-label");
+    if(_el) _el.style.display="none";
+    const scroll=document.getElementById("office-scroll");
+    const cmds=document.getElementById("office-cmds");
+    scroll.innerHTML="";
+    cmds.innerHTML=renderSideBtns([
+      {label:"もう一度探索",fn:"doStreetExplore()"},
+      {label:"帰宅する",fn:"goHome()"}
+    ]);
+  } else {
+showFieldExploreMenu();
+  }
+}
+
+function showStreetExploreMenu(){
+  showScreen("office-screen");
+  updateHeader("street");
+  const lbl=document.getElementById("novel-floor-label");
+  if(lbl) lbl.innerText="街";
+  updateImgArea("street","🏙️");
+  const enemyLbl=document.getElementById("enemy-name-label");
+  if(enemyLbl) enemyLbl.style.display="none";
+  const scroll=document.getElementById("office-scroll");
+  const cmds=document.getElementById("office-cmds");
+  scroll.innerHTML="";
+  cmds.innerHTML=renderSideBtns([
+    {label:"もう一度探索",fn:"doStreetExplore()"},
+    {label:"帰宅する",fn:"goHome()"}
+  ]);
+}
+
+// doStreetExplore (removed duplicate)
+
+// ============================================================
+// CLOSET
+// ============================================================
+function showCloset(){
+  showScreen("shop-screen");updateHeader("home");
+  const cItems=S.closet;
+  const iItems=P.inventory||[];
+  const makeClosetItem=(it,i,fromCloset)=>`
+    <div class="closet-item">
+      <div class="closet-item-name">${it.name}</div>
+      <div style="font-size:10px;color:var(--sub);margin-bottom:5px;">${it.desc||""}</div>
+      <button class="closet-move-btn${fromCloset?" warn":""}" onclick="${fromCloset?`closetToInv(${i})`:`invToCloset(${i})`}">${fromCloset?"→ 手荷物へ":"← 預ける"}</button>
+    </div>`;
+  document.getElementById("shop-scroll").innerHTML=`
+    <div style="font-size:17px;font-weight:900;margin-bottom:6px;">クローゼット整理</div>
+    <div style="font-size:11px;color:var(--sub);margin-bottom:10px;">クローゼット＝死亡後も残る。手荷物＝死亡でロスト。</div>
+    <div class="closet-cols">
+      <div>
+        <div class="closet-col-title">💼 手荷物（ロスト）</div>
+        ${iItems.length?iItems.map((it,i)=>makeClosetItem(it,i,false)).join(""):`<div style="color:var(--sub);font-size:11px;">空っぽ</div>`}
+      </div>
+      <div>
+        <div class="closet-col-title">クローゼット（安全）</div>
+        ${cItems.length?cItems.map((it,i)=>makeClosetItem(it,i,true)).join(""):`<div style="color:var(--sub);font-size:11px;">空っぽ</div>`}
+      </div>
+    </div>`;
+  document.getElementById("shop-cmds").innerHTML=`<button class="btn btn-secondary" onclick="goHome()">← 自宅に戻る</button>`;
+}
+function invToCloset(idx){const it=P.inventory.splice(idx,1)[0];S.closet.push(it);saveS();showCloset();}
+function closetToInv(idx){const it=S.closet.splice(idx,1)[0];P.inventory.push(it);saveS();showCloset();}
+
+// ============================================================
+// INTROSPECTION（物思いにふける）
+// ============================================================
+function showIntrospection(){
+  showScreen("shop-screen");updateHeader("home");
+  const enemies=getIntrospectionEnemies(P.month||4);
+  const btns=enemies.map(e=>`<button class="btn btn-danger" onclick="startIntrospectionBattle('${e.name}',${e.hp},${e.atk},${e.expReward})">${e.name}<span class="btn-sub">HP:${e.hp} / ATK:${e.atk} / EXP:${e.expReward}</span></button>`).join("");
+  document.getElementById("shop-scroll").innerHTML=`
+    <div style="font-size:17px;font-weight:900;margin-bottom:10px;">物思いにふける</div>
+    <div class="panel">目を閉じると、様々な感情が浮かんでくる。\nそれと向き合い、叩き潰すことで経験値を得られる。\nHP0になれば本当に死ぬ。</div>
+    <div class="sec">対決できる感情（月が進むとアンロック）</div>
+    ${btns||"<div style='color:var(--sub);font-size:12px;'>まだ何もない。</div>"}`;
+  document.getElementById("shop-cmds").innerHTML=`<button class="btn btn-secondary" onclick="goHome()">← やめておく</button>`;
+}
+function startIntrospectionBattle(name,hp,atk,exp){
+  P.enemy={name:name,hp:hp,maxHp:hp,atk:atk,expReward:exp,isTrauma:true};
+  P.battleLog=[];P.battleCtx="home";
+  showScreen("office-screen");renderBattle(name+"と向き合う。");
+}
+
+// ============================================================
+// OFFICE
+// ============================================================
+function goToOffice(){curPhase=1;showScreen("office-screen");updateBusyMode();renderFloor();}
+
+function renderFloor(){
+showScreen("office-screen");
+  updateHeader("office");
+  const floors=getMonthFloors(P.month||4);
+  const f=floors[curPhase-1];
+  if(!f){return;}
+  const alreadyCleared=curPhase<=maxPhase;
+  const scroll=document.getElementById("office-scroll");
+  const cmds=document.getElementById("office-cmds");
+  const lbl=document.getElementById("novel-floor-label");
+  const ph=document.getElementById("novel-img-placeholder");
+  const enemyLbl=document.getElementById("enemy-name-label");
+
+  // 画像エリア更新
+  if(lbl) lbl.innerText=(P.month||4)+"-"+curPhase+" "+f.name;
+  if(ph){ph.innerText=f.icon||"🏢";ph.style.display="";}
+  if(enemyLbl) enemyLbl.style.display="none";
+
+  // 雰囲気テキスト（全フロアタイプで共通）
+  const atmos=getFloorAtmos(P.month||4,curPhase);
+
+  // 繁忙期警告はtoastで
+  if((P.month||0)===6){
+    const pen=Math.max(1,3-Math.floor((P.stm||0)/8));
+    toast("繁忙期：探索ごとにメンタル-"+pen);
+  }
+
+  // ボタン（右カラム統一スタイル）
+  if(f.type==="boss"){
+    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${atmos}</span>`;
+    cmds.innerHTML=alreadyCleared
+      ?renderSideBtns([{label:"次の月へ →",fn:"passPhase()"},{label:"再挑戦",fn:"enterBossFloor()"},{label:"← 戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}])
+      :renderSideBtns([{label:"ボスに立ち向かう",fn:"enterBossFloor()"},{label:"← 戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}]);
+    // phase1はなし（ボスは7なので常に戻るあり）
+  } else if(f.type==="treasure"){
+    const tKey=(P.month||4)+"-"+curPhase;
+    const opened=!!(P.exploredPhases&&P.exploredPhases[tKey]);
+    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${atmos}\n\n${opened?"（宝箱はすでに開けた）":"何やら宝箱が見える。自分にだけ見えているようだ。"}</span>`;
+    // Bug1修正: 開封済みでも「探索する」ボタンを常に表示する
+    const treasureBtns=[];
+    if(alreadyCleared) treasureBtns.push({label:"次へ進む →",fn:"passPhase()"});
+    if(!opened) treasureBtns.push({label:"宝箱を開ける",fn:"openTreasure()"});
+    treasureBtns.push({label:"探索する",fn:"exploreFloor()"});
+    if(curPhase>1) treasureBtns.push({label:"← 戻る",fn:"goBack()"});
+    treasureBtns.push({label:"帰宅する",fn:"goHome()"});
+    cmds.innerHTML=renderSideBtns(treasureBtns);
+  } else if(f.type==="enemy"){
+    window._pendingEnemyKey=f.enemyKey;
+    // 雰囲気テキスト＋warnテキスト両方表示
+    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${atmos}${f.warn?'\n\n'+f.warn:''}</span>`;
+    cmds.innerHTML=alreadyCleared
+      ?renderSideBtns([{label:"次へ進む →",fn:"passPhase()"},{label:"あえて戦う",fn:"enterEnemyFloor()"},{label:"← 一つ前に戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}])
+      :renderSideBtns([{label:"戦闘（通過必要）",fn:"enterEnemyFloor()"},{label:"← 一つ前に戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}]);
+  } else {
+    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${atmos}</span>`;
+    if(curPhase<=1){
+      cmds.innerHTML=alreadyCleared
+        ?renderSideBtns([{label:"次へ進む →",fn:"passPhase()"},{label:"探索する",fn:"exploreFloor()"},{label:"帰宅する",fn:"goHome()"}])
+        :renderSideBtns([{label:"探索する",fn:"exploreFloor()"},{label:"帰宅する",fn:"goHome()"}]);
+    } else {
+      cmds.innerHTML=alreadyCleared
+        ?renderSideBtns([{label:"次へ進む →",fn:"passPhase()"},{label:"探索する",fn:"exploreFloor()"},{label:"← 戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}])
+        :renderSideBtns([{label:"探索する",fn:"exploreFloor()"},{label:"← 戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}]);
+    }
+  }
+}
+
+function passPhase(){
+  curPhase++;
+  if(curPhase>getMonthFloors(P.month||4).length){nextMonth();return;}
+  showFieldExploreMenu();
+}
+function openTreasure(){
+  const f=getMonthFloors(P.month||4)[curPhase-1];
+  if(!f||f.type!=="treasure")return;
+  const tKey=(P.month||4)+"-"+curPhase;
+  if(!P.exploredPhases)P.exploredPhases={};
+  if(P.exploredPhases[tKey]){showFieldExploreMenu();return;}
+  P.exploredPhases[tKey]=true;
+  const item=TREASURE_ITEMS[tKey];
+  const scroll=document.getElementById("office-scroll");
+  const cmds=document.getElementById("office-cmds");
+  if(item){
+    P.inventory.push({...item});
+    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">宝箱を開けた！\n\n📦「${item.name}」を獲得！\n\n${item.desc}</span>`;
+    toast("📦 「"+item.name+"」を獲得！");
+  } else {
+    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">宝箱を開けた……\n\n中には何も入っていなかった。\nでも少しだけ気持ちが楽になった気がした。</span>`;
+  }
+  cmds.innerHTML=renderSideBtns([{label:"次へ進む →",fn:"passPhase()"},{label:"← 戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}]);
+}
+function exploreFloor(){
+  // 探索済みマーク
+  if(!P.exploredPhases) P.exploredPhases={};
+  P.exploredPhases[(P.month||4)+"-"+curPhase]=true;
+  // maxPhase は advancePhase で更新（次フェーズに進んだ時点でクリア済み）
+  if((P.month||0)===6){
+    const pen=Math.max(1,3-Math.floor((P.stm||0)/8));
+    P.hp=Math.max(0,P.hp-pen);updateHeader("office");
+    if(P.hp<=0){triggerDeath();return;}
+  }
+  const table=buildEventTable(P.month||4,curPhase);
+  const ev=weightedRandom(table);
+  handleFieldEvent(ev);
+}
+
+function handleFieldEvent(ev){
+  if(ev.type==="next"){
+    advancePhase();return;
+  }
+  if(ev.type==="flavor"){
+    showFieldResult(ev.text||"");return;
+  }
+  if(ev.type==="damage"){
+    if(ev.isCoinLoss){
+      P.payWallet=Math.max(0,(P.payWallet||0)-(ev.coinLoss||0));
+      updateHeader("office");
+      showFieldResult(ev.text||"");return;
+    }
+    const val=ev.val||0;
+    P.hp=Math.max(0,P.hp-val);
+    updateHeader("office");
+    showHpFlash(-val);
+    if(P.hp<=0){triggerDeath();return;}
+    showFieldResult(ev.text||"");return;
+  }
+  if(ev.type==="heal"){
+    P.hp=Math.min(P.maxHp,P.hp+(ev.val||0));
+    updateHeader("office");
+    showHpFlash(+(ev.val||0));
+    showFieldResult(ev.text||"");return;
+  }
+  if(ev.type==="sp"){
+    P.sp=Math.min(100,(P.sp||0)+(ev.val||0));
+    updateHeader("office");
+    showFieldResult(ev.text||"");return;
+  }
+  if(ev.type==="item"){
+    const all=[...SELECT_SHOP,...FOOD_SHOP];
+    const it=all.find(i=>i.id===ev.itemId);
+    if(it){P.inventory.push({...it});showFieldResult(ev.text||"");}
+    return;
+  }
+  if(ev.type==="scene"){startScene(ev.key,()=>navigateAfterScene("field"),"field");return;}
+  if(ev.type==="sendol_gift"){
+    if(P.gotSendolGift){exploreFloor();return;}
+    P.gotSendolGift=true;
+    const it=FOOD_SHOP.find(i=>i.id==="caffeine")||FOOD_SHOP[0];
+    if(it)P.inventory.push({...it});
+    showFieldResult("同僚が声をかけてきた。\n\n「お疲れ様です。これ、良かったら」\n\nカフェイン錠剤を渡してくれた。なぜか泣きそうになった。");
+    return;
+  }
+}
+
+// シーン終了後：フロアに戻らず探索メニューを再表示
+function showFieldExploreMenu(){
+showScreen("office-screen");
+  updateHeader("office");
+  const floors=getMonthFloors(P.month||4);
+  const f=floors[curPhase-1];
+  const alreadyCleared=curPhase<=maxPhase;
+  const isBossFloor=f&&f.type==="boss";
+  const isEnemyFloor=f&&f.type==="enemy";
+  const scroll=document.getElementById("office-scroll");
+  const cmds=document.getElementById("office-cmds");
+  const lbl=document.getElementById("novel-floor-label");
+  if(lbl&&f) lbl.innerText=(P.month||4)+"-"+curPhase+" "+f.name;
+  const ph=document.getElementById("novel-img-placeholder");
+  if(ph){ph.innerText=f?f.icon:"🏢";ph.style.display="";}
+  const _el=document.getElementById("enemy-name-label");
+  if(_el) _el.style.display="none";
+
+  // フロアの雰囲気テキスト
+  const atmos=f?getFloorAtmos(P.month||4,curPhase):"";
+
+  if(isBossFloor){
+    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${atmos}</span>`;
+    cmds.innerHTML=alreadyCleared
+      ?renderSideBtns([{label:"次の月へ →",fn:"passPhase()"},{label:"再挑戦",fn:"enterBossFloor()"},{label:"← 戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}])
+      :renderSideBtns([{label:"ボスに立ち向かう",fn:"enterBossFloor()"},{label:"← 戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}]);
+  } else if(f&&f.type==="treasure"){
+    // Bug1修正: treasure フロアはいつでも「探索する」を表示
+    const tKey2=(P.month||4)+"-"+curPhase;
+    const opened2=!!(P.exploredPhases&&P.exploredPhases[tKey2]);
+    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${atmos}\n\n${opened2?"（宝箱はすでに開けた）":"何やら宝箱が見える。自分にだけ見えているようだ。"}</span>`;
+    const tBtns=[];
+    if(alreadyCleared) tBtns.push({label:"次へ進む →",fn:"passPhase()"});
+    if(!opened2) tBtns.push({label:"宝箱を開ける",fn:"openTreasure()"});
+    tBtns.push({label:"探索する",fn:"exploreFloor()"});
+    if(curPhase>1) tBtns.push({label:"← 戻る",fn:"goBack()"});
+    tBtns.push({label:"帰宅する",fn:"goHome()"});
+    cmds.innerHTML=renderSideBtns(tBtns);
+  } else if(isEnemyFloor){
+    window._pendingEnemyKey=f.enemyKey;
+    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${atmos}${f.warn?"\n\n"+f.warn:""}</span>`;
+    cmds.innerHTML=alreadyCleared
+      ?renderSideBtns([{label:"次へ進む →",fn:"passPhase()"},{label:"あえて戦う",fn:"enterEnemyFloor()"},{label:"← 戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}])
+      :renderSideBtns([{label:"戦闘（通過必要）",fn:"enterEnemyFloor()"},{label:"← 戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}]);
+  } else {
+    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${atmos}</span>`;
+    if(curPhase<=1){
+      cmds.innerHTML=alreadyCleared
+        ?renderSideBtns([{label:"次へ進む →",fn:"passPhase()"},{label:"探索する",fn:"exploreFloor()"},{label:"帰宅する",fn:"goHome()"}])
+        :renderSideBtns([{label:"探索する",fn:"exploreFloor()"},{label:"帰宅する",fn:"goHome()"}]);
+    } else {
+      cmds.innerHTML=alreadyCleared
+        ?renderSideBtns([{label:"次へ進む →",fn:"passPhase()"},{label:"探索する",fn:"exploreFloor()"},{label:"← 戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}])
+        :renderSideBtns([{label:"探索する",fn:"exploreFloor()"},{label:"← 戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}]);
+    }
+  }
+}
+
+
+// フロアイベント結果をノベルボックスに表示
+function showFieldResult(text){
+  showScreen("office-screen");
+  updateHeader("office");
+  const scroll=document.getElementById("office-scroll");
+  const cmds=document.getElementById("office-cmds");
+  // floor label 更新
+  const floors=getMonthFloors(P.month||4);
+  const f=floors[curPhase-1];
+  const lbl=document.getElementById("novel-floor-label");
+  if(lbl&&f) lbl.innerText=(P.month||4)+"-"+curPhase+" "+f.name;
+  // フェードインアニメーション（同じテキストでも変化を視覚的に表現）
+  scroll.innerHTML="";
+  requestAnimationFrame(function(){
+    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;white-space:pre-wrap;animation:fadeIn 0.3s ease-out;">${text}</span>`;
+  });
+  const _floors=getMonthFloors(P.month||4);
+  const _hasNext=curPhase<_floors.length;
+  const _alreadyCleared=curPhase<maxPhase; // 次フェーズに一度でも進んだことがある
+  const _btns=[];
+  if(_hasNext&&_alreadyCleared) _btns.push({label:"次へ進む →",fn:"advancePhase()"});
+  _btns.push({label:"もう一度探索",fn:"exploreFloor()"});
+  if(curPhase>1) _btns.push({label:"← 戻る",fn:"goBack()"});
+  _btns.push({label:"帰宅する",fn:"goHome()"});
+  cmds.innerHTML=renderSideBtns(_btns);
+}
+function clearBattleEnemyBlock(){
+  const enemyLbl=document.getElementById("enemy-name-label");
+  if(enemyLbl) enemyLbl.style.display="none";
+  const enemyDmg=document.getElementById("enemy-dmg-label");
+  if(enemyDmg) enemyDmg.style.display="none";
+  const ph=document.getElementById("novel-img-placeholder");
+  if(ph) ph.style.display="";
+}
+function goBack(){
+  if(curPhase>1){
+    curPhase--;
+    renderFloor();
+  } else {
+    goHome();
+  }
+}
+function advancePhase(){
+  if(curPhase>maxPhase)maxPhase=curPhase;
+  curPhase++;
+  if(curPhase>getMonthFloors(P.month||4).length){nextMonth();return;}
+  showFieldExploreMenu();
+}
+function nextMonth(){
+  // 月の順序：4→5→...→12→1→2→3→クリア
+  const order=[4,5,6,7,8,9,10,11,12,1,2,3];
+  const curIdx=order.indexOf(P.month||4);
+  if(curIdx>=0&&curIdx<order.length-1){
+    P.month=order[curIdx+1];
+  } else {
+    // 3月クリア
+    oneYearClear();return;
+  }
+  curPhase=1;maxPhase=0;P.exploredPhases={};updateBusyMode();
+  toast((P.month)+"月に突入した！",2500);
+  showFieldExploreMenu();
+}
+function enterEnemyFloor(){
+  const key=window._pendingEnemyKey||"multi";
+  const enemy=getEnemy(key,P.month||4);
+  P.enemy=enemy;P.battleCtx="field";
+  clearBattleEnemyBlock();
+  renderBattle(""+enemy.name+"が現れた！");
+}
+function enterBossFloor(){
+  const boss=getBoss(P.month||4);
+  boss.payReward=curJob().pay;
+  P.enemy=boss;P.battleCtx="field";
+  clearBattleEnemyBlock();
+  toast(""+(P.month||4)+"月のボスが現れた！",2500);
+  renderBattle("🚨【BOSS】"+boss.name+"が立ちはだかった！");
+}
+
+// ============================================================
+// SCENES — シーン定義
+// step型:
+//   {t:"n", tx:"地の文", btn:"ボタンテキスト"}
+//   {t:"d", sp:"話者名", tx:"セリフ", btn:"ボタンテキスト"}
+//   {t:"c", choices:[{label, steps:[]}]}
+//   {t:"r", stat, threshold, ok:[steps], ng:[steps]}
+//   {t:"e", damage/heal/sp/item/battle, tx:"説明"}
+// btn省略時はデフォルト表示（"…"）
+// ============================================================
+
+// 評価カード報酬定義
+const CARD_REWARDS={
+  normal: 1,      // 通常敵
+  boss4:  3,      // 4月ボス（平社員で倒せる）
+  boss5:  3,      // 5月
+  boss6:  3,      // 6月
+  boss7:  4,      // 7月
+  boss8:  4,      // 8月
+  boss9:  4,      // 9月（マネージャーギリギリ）
+  boss10: 5,      // 10月
+  boss11: 5,      // 11月
+  boss12: 6,      // 12月（部長ギリギリ）
+  boss1:  6,      // 1月
+  boss2:  6,      // 2月
+  boss3:  10,     // 3月（最終・執行役員ギリギリ）
+  ura:    100,    // 裏ボス（代表取締役推奨）
+};
+
+function getCardReward(enemy){
+  if(!enemy) return 0;
+  if(enemy.isUraBoss) return CARD_REWARDS.ura;
+  if(enemy.isBoss){
+    const m=P.month||4;
+    const key="boss"+m;
+    return CARD_REWARDS[key]||3;
+  }
+  return CARD_REWARDS.normal;
+}
+
+// 画像差し込みマップ（後から画像URLを設定する）
+// キー: シーンkey or フェーズ識別子 (例: "4-1", "chikan", "home")
+const SCENE_IMAGES={
+  // フロア画像: "月-フェーズ" 形式
+  // "4-1": "/images/train.jpg",
+  // "4-2": "/images/entrance.jpg",
+  // シーン画像: シーンキー
+  // "chikan": "/images/chikan.jpg",
+  // ホーム・街
+  // "home": "/images/home.jpg",
+  // "street": "/images/street.jpg",
+};
+
+// 画像エリアを更新（画像があれば表示、なければプレースホルダー）
+function updateImgArea(key, fallbackEmoji){
+  const area=document.getElementById("novel-img-area");
+  const ph=document.getElementById("novel-img-placeholder");
+  if(!area||!ph) return;
+
+  // 既存の背景画像をクリア
+  area.style.backgroundImage="";
+  area.style.backgroundSize="";
+  area.style.backgroundPosition="";
+
+  const url=SCENE_IMAGES[key];
+  if(url){
+    // 画像あり: img-area に背景として表示
+    area.style.backgroundImage="url('"+url+"')";
+    area.style.backgroundSize="cover";
+    area.style.backgroundPosition="center";
+    ph.style.display="none";
+  } else {
+    // 画像なし: 絵文字プレースホルダー
+    ph.style.display="";
+    ph.innerText=fallbackEmoji||"🏢";
+  }
+}
+
+const SCENES={
+
+  chikan:{
+    title:"通勤電車にて",
+    steps:[
+      {t:"n",tx:"車内は人が詰まっている。動くたびに誰かの肘が当たる。",btn:"ぼんやり立っている"},
+      {t:"n",tx:"早く着いてほしい。",btn:"ぼんやり立っている"},
+      {t:"d",sp:"謎の女",tx:"「ちょっと！！！」",btn:"なにごとだ？"},
+      {t:"n",tx:"振り返ると、隣の女性がこちらを睨んでいた。\n車内の視線が、一斉に集まってくる。",btn:"……"},
+      {t:"d",sp:"謎の女",tx:"「この人が触ってきたんです！ずっとです！」",btn:"……"},
+      {t:"n",tx:"何も言えない。触っていない。だが、それを証明する方法がない。",btn:"…"},
+      {t:"c",choices:[
+        {label:"弁明する",steps:[
+          {t:"n",tx:"喉の奥から、かすれた声が出た。",btn:"俺は触ってない！"},
+          {t:"r",stat:"atk",threshold:5,
+           ok:[
+             {t:"n",tx:"別の乗客が証言してくれた。無事解放される。",btn:"EXPLORE"},
+             {t:"e",damage:0}
+           ],
+           ng:[
+             {t:"n",tx:"言葉が出てこなかった。駅員室に連れていかれる。",btn:"EXPLORE"},
+             {t:"e",damage:10}
+           ]
+          }
+        ]},
+        {label:"黙って次の駅で降りる",steps:[
+          {t:"n",tx:"何も言わずにドアの方へ移動した。",btn:"人をかき分ける"},
+          {t:"r",stat:"lck",threshold:5,
+           ok:[
+             {t:"n",tx:"追われることなく逃げ切った。",btn:"EXPLORE"},
+             {t:"e",damage:0}
+           ],
+           ng:[
+             {t:"d",sp:"駅員",tx:"お客様、ちょっとよろしいですか。",btn:"立ち止まる"},
+             {t:"n",tx:"駅員に捕まってしまった。",btn:"EXPLORE"},
+             {t:"e",damage:12}
+           ]
+          }
+        ]},
+        {label:"謝罪をする",steps:[
+          {t:"n",tx:"やってないのに謝罪してしまった。示談金が発生した。",btn:"EXPLORE"},
+          {t:"e",damage:10}
+        ]},
+      ]},
+    ]
+  },
+
+  kijin:{
+    title:"通勤電車にて",
+    steps:[
+      {t:"n",tx:"次の駅まであと三分。なんとか立っている。",btn:"耐えている"},
+      {t:"d",sp:"男",tx:"「このヤロウが！！！」",btn:"びくっとする"},
+      {t:"n",tx:"突然だった。隣の男が怒鳴り始めた。誰に向けているのかわからない。全員かもしれない。",btn:"固まる"},
+      {t:"d",sp:"男",tx:"「お前らが全部悪いんだ！！わかってるか！！」",btn:"…"},
+      {t:"n",tx:"がっしりした手が、肩を掴んだ。車内は完全に静まり返っている。",btn:"…"},
+      {t:"c",choices:[
+        {label:"静かに語りかける",steps:[
+          {t:"n",tx:"なるべく低い声で、ゆっくり言った。",btn:"落ち着いてください"},
+          {t:"r",stat:"atk",threshold:5,
+           ok:[
+             {t:"n",tx:"無言で手が離れた。",btn:"EXPLORE"},
+             {t:"e",damage:0}
+           ],
+           ng:[
+             {t:"d",sp:"男",tx:"「落ち着けだと？！お前が一番おかしいんだよ！！」",btn:"…"},
+             {t:"n",tx:"逆上した。首元まで掴まれる。",btn:"EXPLORE"},
+             {t:"e",damage:10}
+           ]
+          }
+        ]},
+        {label:"振り払う",steps:[
+          {t:"r",stat:"def",threshold:5,
+           ok:[
+             {t:"n",tx:"うまく脱出できた。",btn:"EXPLORE"},
+             {t:"e",damage:0}
+           ],
+           ng:[
+             {t:"d",sp:"男",tx:"「逃げるのか！！！」",btn:"…"},
+             {t:"n",tx:"さらに掴まれた。",btn:"EXPLORE"},
+             {t:"e",damage:12}
+           ]
+          }
+        ]},
+        {label:"完全無視",steps:[
+          {t:"n",tx:"10分間耐え続けた。精神的にきつかった。",btn:"EXPLORE"},
+          {t:"e",damage:10}
+        ]},
+      ]},
+    ]
+  },
+
+  elevator_event:{
+    title:"エレベーターにて",
+    steps:[
+      {t:"n",tx:"乗り込んだら、役員と二人きりだった。行先ボタンを押す手が一瞬止まった。",btn:"ボタンを押す"},
+      {t:"d",sp:"鷹野常務",tx:"「……君、最近どうだ。」",btn:"どきっとする"},
+      {t:"n",tx:"何を聞きたいのか、わからない。本音を求めているのか、建前で十分なのか。",btn:"…"},
+      {t:"c",choices:[
+        {label:"明るく答える",steps:[
+          {t:"d",sp:"自分",tx:"「はい。非常に充実しています。」",btn:"…"},
+          {t:"r",stat:"atk",threshold:11,
+           ok:[
+             {t:"d",sp:"鷹野常務",tx:"「そうか。顔に出てるな。」",btn:"…"},
+             {t:"n",tx:"フロアに着いた。常務は何も言わず降りていった。なぜか少し、背筋が伸びた気がした。",btn:"EXPLORE"},
+             {t:"e",sp:25}
+           ],
+           ng:[
+             {t:"d",sp:"鷹野常務",tx:"「……そうか。」",btn:"…"},
+             {t:"n",tx:"明らかに信じていない顔だった。ドアが開くまでの数秒が、やたら長かった。",btn:"EXPLORE"},
+             {t:"e",damage:10}
+           ]
+          }
+        ]},
+        {label:"正直に答える",steps:[
+          {t:"d",sp:"自分",tx:"「正直に言うと、かなり厳しい状況が続いています。」",btn:"…"},
+          {t:"n",tx:"常務が初めてこちらを向いた。",btn:"…"},
+          {t:"r",stat:"lck",threshold:9,
+           ok:[
+             {t:"d",sp:"鷹野常務",tx:"「そうか。……少し考える。」",btn:"…"},
+             {t:"n",tx:"何を考えるのかはわからない。でも、聞いてもらえた。",btn:"EXPLORE"},
+             {t:"e",heal:20}
+           ],
+           ng:[
+             {t:"d",sp:"鷹野常務",tx:"「それは……君自身の問題だな。」",btn:"…"},
+             {t:"n",tx:"ドアが開いた。常務は振り返らなかった。「君自身の問題」という言葉だけが残った。",btn:"EXPLORE"},
+             {t:"e",damage:15}
+           ]
+          }
+        ]},
+        {label:"黙って会釈する",steps:[
+          {t:"n",tx:"何も言わず、頭だけ下げた。",btn:"…"},
+          {t:"d",sp:"鷹野常務",tx:"「……。」",btn:"…"},
+          {t:"n",tx:"この沈黙が何を意味するのか。永遠にわからないままだろう。",btn:"EXPLORE"},
+          {t:"e",damage:0}
+        ]},
+      ]},
+    ]
+  },
+
+  kyuto_room:{
+    title:"給湯室にて",
+    steps:[
+      {t:"n",tx:"お茶を淹れに給湯室に入ると、先客がいた。",btn:"入る"},
+      {t:"n",tx:"田所さん。隣の部署の人だ。こちらに気づいて、少し微笑んだ。",btn:"…"},
+      {t:"d",sp:"田所さん",tx:"「お疲れ様です。最近、忙しそうですね。」",btn:"…"},
+      {t:"n",tx:"「忙しそう」というのは、「顔色が悪い」という意味に聞こえた。でも、気にかけてもらえた。それは確かだ。",btn:"…"},
+      {t:"c",choices:[
+        {label:"笑って返す",steps:[
+          {t:"d",sp:"自分",tx:"「まあ、なんとかやってます。」",btn:"…"},
+          {t:"r",stat:"atk",threshold:8,
+           ok:[
+             {t:"d",sp:"田所さん",tx:"「そうですよね。私も最近バタバタしてて。」",btn:"…"},
+             {t:"n",tx:"少し話が弾んだ。それだけのことなのに、やけに救われた気がした。",btn:"EXPLORE"},
+             {t:"e",heal:15}
+           ],
+           ng:[
+             {t:"d",sp:"田所さん",tx:"「……そうですか。」",btn:"…"},
+             {t:"n",tx:"笑い方がぎこちなかった。田所さんはそのまま給湯室を出ていった。",btn:"EXPLORE"},
+             {t:"e",damage:0}
+           ]
+          }
+        ]},
+        {label:"話を振る",steps:[
+          {t:"d",sp:"自分",tx:"「田所さんはどうですか？」",btn:"…"},
+          {t:"r",stat:"lck",threshold:7,
+           ok:[
+             {t:"d",sp:"田所さん",tx:"「実は私も、ちょっとしんどくて……」",btn:"…"},
+             {t:"n",tx:"思いがけず打ち明けてくれた。自分だけじゃないとわかって、少し楽になった。",btn:"EXPLORE"},
+             {t:"e",heal:20}
+           ],
+           ng:[
+             {t:"d",sp:"田所さん",tx:"「え、私ですか？」",btn:"…"},
+             {t:"n",tx:"困惑された。田所さんはお茶を持って出ていった。給湯室に一人残された。",btn:"EXPLORE"},
+             {t:"e",damage:5}
+           ]
+          }
+        ]},
+        {label:"何も言わずにお茶を淹れる",steps:[
+          {t:"n",tx:"無言でお茶を淹れた。田所さんも何も言わなかった。",btn:"…"},
+          {t:"d",sp:"田所さん",tx:"「……（小さく溜息をついた）」",btn:"…"},
+          {t:"n",tx:"何か言えばよかったかもしれない。でも、何を言えばよかったのかは今もわからない。",btn:"EXPLORE"},
+          {t:"e",damage:0}
+        ]},
+      ]},
+    ]
+  },
+
+  corridor_event:{
+    title:"廊下にて",
+    steps:[
+      {t:"n",tx:"コピー機の前で立ち止まった瞬間、視界の端に見覚えのある顔が映った。",btn:"振り返る"},
+      {t:"n",tx:"田中だ。一年前に辞めた同僚。退職理由は「一身上の都合」だったが、本当の理由は全員知っていた。",btn:"目が合う"},
+      {t:"d",sp:"田中",tx:"「あ……。お久しぶりです。」",btn:"…"},
+      {t:"c",choices:[
+        {label:"明るく声をかける",steps:[
+          {t:"d",sp:"自分",tx:"「久しぶり！元気そうじゃないか。」",btn:"…"},
+          {t:"r",stat:"atk",threshold:9,
+           ok:[
+             {t:"d",sp:"田中",tx:"「……ええ、まあ。今は別の会社で。あなたはまだここにいるんですね。」",btn:"…"},
+             {t:"d",sp:"田中",tx:"「……すごいと思います。本当に。」",btn:"…"},
+             {t:"n",tx:"褒め言葉なのかどうか、わからなかった。でも、少しだけ胸が温かくなった。",btn:"EXPLORE"},
+             {t:"e",heal:15}
+           ],
+           ng:[
+             {t:"d",sp:"田中",tx:"「……（薄く笑う）……はあ。」",btn:"…"},
+             {t:"n",tx:"全然元気そうじゃなかった。自分の明るさが、ひどく空虚に感じた。",btn:"EXPLORE"},
+             {t:"e",damage:8}
+           ]
+          }
+        ]},
+        {label:"気づかないフリをする",steps:[
+          {t:"r",stat:"lck",threshold:8,
+           ok:[
+             {t:"n",tx:"目が合う直前に視線を外した。田中も、同じことをした。二人とも、気づかなかったことにした。",btn:"EXPLORE"},
+             {t:"e",damage:0}
+           ],
+           ng:[
+             {t:"d",sp:"田中",tx:"「……あの。無視しましたよね？」",btn:"…"},
+             {t:"n",tx:"最悪だ。",btn:"EXPLORE"},
+             {t:"e",damage:12}
+           ]
+          }
+        ]},
+        {label:"話しかける",steps:[
+          {t:"d",sp:"自分",tx:"「なんでまだここに来てるの？」",btn:"…"},
+          {t:"d",sp:"田中",tx:"「……荷物、忘れてたんです。」",btn:"…"},
+          {t:"n",tx:"忘れ物を取りに来ただけだった。余計なことを言った。",btn:"EXPLORE"},
+          {t:"e",damage:5}
+        ]},
+      ]},
+    ]
+  },
+
+  desk_event:{
+    title:"デスクにて",
+    steps:[
+      {t:"n",tx:"差出人：不明　件名：至急",btn:"メールを見る"},
+      {t:"n",tx:"「今すぐ確認してください。手遅れになります」\nリンクが一つだけ貼ってある。URLは意味不明な文字列だ。",btn:"…"},
+      {t:"c",choices:[
+        {label:"捨てる",steps:[
+          {t:"n",tx:"削除した。",btn:"…"},
+          {t:"n",tx:"スパムだった。ただ、「手遅れになります」という言葉がなぜか頭から離れない。",btn:"EXPLORE"},
+          {t:"e",damage:0}
+        ]},
+        {label:"リンクを開く",steps:[
+          {t:"n",tx:"タップした。",btn:"…"},
+          {t:"r",stat:"lck",threshold:10,
+           ok:[
+             {t:"n",tx:"……取引先の新しいポータルサイトだった。「登録特典：SPドリンク1本贈呈」",btn:"EXPLORE"},
+             {t:"e",item:"sp_drink"}
+           ],
+           ng:[
+             {t:"n",tx:"フィッシングサイトだった。パスワードを入れてしまっていた。",btn:"…"},
+             {t:"d",sp:"システム部（内線）",tx:"「〇〇さん、少しよろしいですか。」",btn:"受話器を取る"},
+             {t:"n",tx:"30分後、始末書を書いていた。",btn:"EXPLORE"},
+             {t:"e",damage:25}
+           ]
+          }
+        ]},
+        {label:"ITに転送する",steps:[
+          {t:"n",tx:"転送して、待った。",btn:"…"},
+          {t:"n",tx:"3時間後、返信が来た。",btn:"…"},
+          {t:"d",sp:"ITヘルプデスク",tx:"「スパムです。お手数おかけしました。」",btn:"…"},
+          {t:"n",tx:"3時間待った。正しかったのかもしれない。でも3時間は返ってこない。",btn:"EXPLORE"},
+          {t:"e",sp:20}
+        ]},
+      ]},
+    ]
+  },
+
+  appoint:{
+    title:"デスクにて",
+    steps:[
+      {t:"n",tx:"リストの一番上。株式会社〇〇。担当者名：不明。",btn:"かけるしかない"},
+      {t:"n",tx:"ツー、ツー、ツー……",btn:"…"},
+      {t:"c",choices:[
+        {label:"準備してからかける",steps:[{t:"n",tx:"_CALL_",btn:"…"}]},
+        {label:"とりあえずかける",  steps:[{t:"n",tx:"_CALL_",btn:"…"}]},
+        {label:"気合を入れてかける",steps:[{t:"n",tx:"_CALL_",btn:"…"}]},
+      ]},
+    ]
+  },
+
+  appoint_call:{
+    title:"デスクにて",
+    steps:[
+      {t:"n",tx:"出た。",btn:"…"},
+      {t:"d",sp:"相手",tx:"「はい。」",btn:"営業トークを始める"},
+      {t:"d",sp:"相手",tx:"「……（無言）」",btn:"…"},
+      {t:"d",sp:"相手",tx:"「結構です。（ガチャ）」",btn:"…"},
+      {t:"n",tx:"0.8秒だった。",btn:"…"},
+      {t:"c",choices:[
+        {label:"もう一件かける",steps:[
+          {t:"n",tx:"次のリスト。株式会社△△。",btn:"…"},
+          {t:"r",stat:"atk",threshold:10,
+           ok:[
+             {t:"d",sp:"相手（女性）",tx:"「少しだけお話を聞きましょうか。」",btn:"…"},
+             {t:"n",tx:"アポが取れた。初めて今日、誰かに話を聞いてもらえた。",btn:"EXPLORE"},
+             {t:"e",sp:30,heal:10}
+           ],
+           ng:[
+             {t:"d",sp:"相手（女性）",tx:"「もう二度とかけてこないでください。」",btn:"…"},
+             {t:"n",tx:"声が、思ったより優しかった。それがかえって刺さった。",btn:"EXPLORE"},
+             {t:"e",damage:18}
+           ]
+          }
+        ]},
+        {label:"今日はもうやめる",steps:[
+          {t:"n",tx:"リストをそっと閉じた。上司は見ていた。",btn:"…"},
+          {t:"d",sp:"上司",tx:"「……（何も言わない）」",btn:"…"},
+          {t:"n",tx:"何も言われない方が、怖い。",btn:"EXPLORE"},
+          {t:"e",damage:10}
+        ]},
+      ]},
+    ]
+  },
+
+  street_stalker:{
+    title:"夜道にて",
+    steps:[
+      {t:"n",tx:"帰り道。背後に気配がある。",btn:"歩き続ける"},
+      {t:"n",tx:"信号で止まると、向こうも止まる。歩くと、歩く。",btn:"振り返りたい衝動を抑える"},
+      {t:"c",choices:[
+        {label:"コンビニに逃げ込む",steps:[
+          {t:"n",tx:"コンビニに入った。レジの前に立った。",btn:"…"},
+          {t:"d",sp:"店員",tx:"「……いらっしゃいませ。何かお探しですか？」",btn:"笑顔を作る"},
+          {t:"n",tx:"30分待った。外を確認すると、人影はなかった。ホットスナックを一本買って帰った。",btn:"EXPLORE"},
+          {t:"e",damage:0}
+        ]},
+        {label:"振り返る",steps:[
+          {t:"r",stat:"atk",threshold:12,
+           ok:[
+             {t:"n",tx:"スーツ姿の男だった。目が合うと、男は苦笑いをした。",btn:"…"},
+             {t:"d",sp:"謎のスーツ男",tx:"「あ、実はですね。うちのサービスに興味はございませんか。」",btn:"呆れる"},
+             {t:"n",tx:"勧誘だった。断ったら、お詫びと言ってドリンクをくれた。",btn:"EXPLORE"},
+             {t:"e",item:"sp_drink"}
+           ],
+           ng:[
+             {t:"n",tx:"男は立ち止まっていた。目が合った。その目が、笑っていなかった。",btn:"…"},
+             {t:"d",sp:"男（不明）",tx:"「……なんでもない。」",btn:"…"},
+             {t:"n",tx:"走って帰った。翌朝まで眠れなかった。",btn:"EXPLORE"},
+             {t:"e",damage:25}
+           ]
+          }
+        ]},
+        {label:"全力で走る",steps:[
+          {t:"r",stat:"def",threshold:8,
+           ok:[
+             {t:"n",tx:"追いかけてこなかった。自宅まで走り切った。謎の達成感がある。",btn:"EXPLORE"},
+             {t:"e",heal:15}
+           ],
+           ng:[
+             {t:"n",tx:"足がもつれた。転んだ。振り返ると、追いかけてきていたのは犬だった。",btn:"EXPLORE"},
+             {t:"e",damage:8}
+           ]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  street_fortune:{
+    title:"夜道にて",
+    steps:[
+      {t:"n",tx:"折りたたみ椅子に腰かけた老人が、こちらを見ていた。",btn:"足が止まる"},
+      {t:"d",sp:"老人",tx:"「あなたには、暗い未来が見える。」",btn:"聞こえなかったふりをする"},
+      {t:"d",sp:"老人",tx:"「……だが、変えられる。」",btn:"立ち止まる"},
+      {t:"c",choices:[
+        {label:"手を差し出す",steps:[
+          {t:"n",tx:"老人が手相を見始めた。異様に長い沈黙が続く。",btn:"待つ"},
+          {t:"r",stat:"lck",threshold:10,
+           ok:[
+             {t:"d",sp:"老人",tx:"「……あなたは強くなれる。今夜、その力が宿る。」",btn:"…"},
+             {t:"n",tx:"何かが体の中で動いた気がした。気のせいかもしれない。",btn:"EXPLORE"},
+             {t:"e",sp:40}
+           ],
+           ng:[
+             {t:"d",sp:"老人",tx:"「……もう、遅いかもしれない。」",btn:"…"},
+             {t:"n",tx:"それだけだった。その言葉だけが夜道に残った。",btn:"EXPLORE"},
+             {t:"e",damage:20}
+           ]
+          }
+        ]},
+        {label:"断って歩き続ける",steps:[
+          {t:"d",sp:"自分",tx:"「結構です。」",btn:"…"},
+          {t:"n",tx:"老人は何も言わなかった。振り返ると、もうそこには誰もいなかった。",btn:"EXPLORE"},
+          {t:"e",damage:0}
+        ]},
+      ]},
+    ]
+  },
+
+  street_danger:{
+    title:"路地裏にて",
+    steps:[
+      {t:"n",tx:"路地裏。突き当たりに錆びた扉がある。",btn:"近づく"},
+      {t:"n",tx:"「OPEN」と書かれた赤いランプが点灯している。",btn:"立ち止まる"},
+      {t:"c",choices:[
+        {label:"扉を開ける",steps:[
+          {t:"n",tx:"扉に手をかけた。ゆっくりと引いた。",btn:"引く"},
+          {t:"r",stat:"lck",threshold:13,
+           ok:[
+             {t:"n",tx:"中は、高級会員制レストランだった。",btn:"目を疑う"},
+             {t:"d",sp:"支配人",tx:"「あ、本日のご予約の方ですね。どうぞ。」",btn:"違うとは言えない"},
+             {t:"n",tx:"フルコースをごちそうになった。正しい扉だったのかもしれない。",btn:"EXPLORE"},
+             {t:"e",item:"steak"}
+           ],
+           ng:[
+             {t:"n",tx:"暗闇の中に、人が立っていた。",btn:"…"},
+             {t:"d",sp:"???",tx:"「……待っていた。」",btn:"…"},
+             {t:"e",battle:"ura_boss",tx:"裏ボスとの戦闘！"}
+           ]
+          }
+        ]},
+        {label:"引き返す",steps:[
+          {t:"n",tx:"やめた。",btn:"…"},
+          {t:"n",tx:"正解だったかもしれない。一生わからない。",btn:"EXPLORE"},
+          {t:"e",damage:0}
+        ]},
+      ]},
+    ]
+  },
+
+  // ===== 5月新規シーン =====
+  route_confirm:{
+    title:"渋川駅にて",
+    steps:[
+      {t:"n",tx:"スマホの地図アプリの調子が悪い。地図がぐるぐる回って取引先の場所がわからない。",btn:"焦る"},
+      {t:"c",choices:[
+        {label:"通行人に道を聞く",steps:[
+          {t:"r",stat:"atk",threshold:7,
+           ok:[{t:"n",tx:"丁寧に教えてもらい、最短ルートが判明した。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"「急いでるので」と冷たくあしらわれ、声を出すのが怖くなった。",btn:"EXPLORE"},{t:"e",damage:15}]
+          }
+        ]},
+        {label:"直感で歩く",steps:[
+          {t:"r",stat:"lck",threshold:7,
+           ok:[{t:"n",tx:"なんと目の前に目的のビルが現れた。運が良い。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"完全に逆方向の住宅街に迷い込み、体力を激しく消耗した。",btn:"EXPLORE"},{t:"e",damage:15}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  ai_reception:{
+    title:"取引先ビルの受付にて",
+    steps:[
+      {t:"n",tx:"ビルの受付が最新のタッチパネル機になっている。操作が異常に分かりづらく、後ろに他社の営業の長蛇の列ができてきた。",btn:"操作する"},
+      {t:"c",choices:[
+        {label:"冷静にガイドを読み切る",steps:[
+          {t:"r",stat:"fcs",threshold:7,
+           ok:[{t:"n",tx:"一発で入館証を発行できた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"エラー音が鳴り響く。後ろのスーツの男性に舌打ちされる。",btn:"EXPLORE"},{t:"e",damage:15}]
+          }
+        ]},
+        {label:"警備員をインターホンで呼ぶ",steps:[
+          {t:"r",stat:"atk",threshold:7,
+           ok:[{t:"n",tx:"手動で通してもらう。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"「画面の通りに操作してください」と突っぱねられる。",btn:"EXPLORE"},{t:"e",damage:12}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  hamaya_waitroom:{
+    title:"アポ先の応接室にて",
+    steps:[
+      {t:"n",tx:"エンジニアの濱家さんがスマホゲーム（ツメツメ）をしていてこちらの話を聞かない。面接前なのに。",btn:"…"},
+      {t:"c",choices:[
+        {label:"「面接前なので一旦やめましょうか」",steps:[
+          {t:"r",stat:"atk",threshold:7,
+           ok:[{t:"d",sp:"濱家さん",tx:"「そうですよね、すみません」と真面目な顔になった。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"完全に無視されてゲームを続けられた。",btn:"EXPLORE"},{t:"e",damage:15}]
+          }
+        ]},
+        {label:"「ツメツメ、おもしろいですよね！」",steps:[
+          {t:"r",stat:"lck",threshold:7,
+           ok:[{t:"n",tx:"話が盛り上がり、濱家さんとの距離が縮まった。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"濱家さん",tx:"「あ、はい」とだけ言われ、さらに気まずい空間になった。",btn:"EXPLORE"},{t:"e",damage:15}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  hamaya_msg:{
+    title:"タクシー内にて",
+    steps:[
+      {t:"d",sp:"濱家さん（LINE）",tx:"「単価安すぎましたかね？」",btn:"…"},
+      {t:"n",tx:"どこからその自信がくるのか。",btn:"…"},
+      {t:"c",choices:[
+        {label:"「実績を出してから交渉しましょう」と諭す",steps:[
+          {t:"r",stat:"atk",threshold:7,
+           ok:[{t:"d",sp:"濱家さん",tx:"「確かにそうですね、頑張ります」",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"濱家さん",tx:"「エージェントのくせに交渉力ないな！」",btn:"EXPLORE"},{t:"e",damage:15}]
+          }
+        ]},
+        {label:"一旦様子を見る",steps:[
+          {t:"r",stat:"lck",threshold:7,
+           ok:[{t:"n",tx:"追撃メッセージは来なかった。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"濱家さん",tx:"「無視ですか？不誠実ですね」と追い討ちが来た。",btn:"EXPLORE"},{t:"e",damage:15}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  // ===== 6月新規シーン =====
+  vending_sigh:{
+    title:"エレベーターホールにて",
+    steps:[
+      {t:"n",tx:"エレベーターホール横の自販機で、エナジードリンクを買おうとしたら売り切れ。",btn:"がっくりする"},
+      {t:"c",choices:[
+        {label:"激安炭酸水を飲む",steps:[
+          {t:"r",stat:"lck",threshold:9,
+           ok:[{t:"n",tx:"強炭酸が喉に刺さり、一瞬だけ頭がシャキッとした。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"炭酸が強すぎてお腹を下し、トイレに引きこもる羽目になった。",btn:"EXPLORE"},{t:"e",damage:14}]
+          }
+        ]},
+        {label:"冷たい水で目を覚ます",steps:[
+          {t:"r",stat:"mnt",threshold:9,
+           ok:[{t:"n",tx:"冷たさが体に染み渡り、少しだけ落ち着きを取り戻した。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"自分がひどく惨めな存在に思えてきて、涙が出そうになった。",btn:"EXPLORE"},{t:"e",damage:14}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  mail_bomb:{
+    title:"デスクにて",
+    steps:[
+      {t:"n",tx:"未読メールの中に、「緊急・重要」と書かれた見慣れないパートナー企業からのメール。",btn:"開く"},
+      {t:"c",choices:[
+        {label:"内容を精査して即座に返信する",steps:[
+          {t:"r",stat:"fcs",threshold:9,
+           ok:[{t:"n",tx:"他社に奪われかけていたエンジニアの予定を押さえることに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"添付ファイルのウイルスを誤って開き、パソコンがフリーズした。",btn:"EXPLORE"},{t:"e",damage:20}]
+          }
+        ]},
+        {label:"翌朝一番に対応する",steps:[
+          {t:"r",stat:"lck",threshold:9,
+           ok:[{t:"n",tx:"ただの誤送信メールだった。無視して正解だった。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"翌朝には案件が他社に流れており、機会損失として上司に怒鳴られた。",btn:"EXPLORE"},{t:"e",damage:14}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  mirror_corridor:{
+    title:"廊下の洗面所にて",
+    steps:[
+      {t:"n",tx:"洗面所の鏡に映った自分の顔を見る。完全に目の下が黒くなっている。",btn:"見つめる"},
+      {t:"c",choices:[
+        {label:"強く頬を叩いて気合を入れ直す",steps:[
+          {t:"r",stat:"stm",threshold:9,
+           ok:[{t:"n",tx:"アドレナリンが出て、最後の力を振り絞る元気が湧いた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"自分の叩いた痛さで余計に頭がクラクラしてきた。",btn:"EXPLORE"},{t:"e",damage:14}]
+          }
+        ]},
+        {label:"冷たい水で顔を洗う",steps:[
+          {t:"r",stat:"mnt",threshold:9,
+           ok:[{t:"n",tx:"一瞬だけスッキリして、作業に戻る心の余裕ができた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"水が耳に入り、不快感と耳鳴りが止まらなくなった。",btn:"EXPLORE"},{t:"e",damage:14}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  // ===== 7月新規シーン =====
+  receipt_name:{
+    title:"老舗の和菓子屋にて",
+    steps:[
+      {t:"d",sp:"店員",tx:"「領収書の宛名はどうなさいますか？」",btn:"一瞬考える"},
+      {t:"n",tx:"自腹だが、一縷の望みをかけて会社名にするか。",btn:"…"},
+      {t:"c",choices:[
+        {label:"会社名で切ってもらう",steps:[
+          {t:"r",stat:"atk",threshold:12,
+           ok:[{t:"n",tx:"後日、経理の人が「今回だけ特別に経費にする」と認めてくれた。奇跡。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"上司に「自分でやらかした損害を会社に回すな」と激怒され、領収書を破られた。所持金-10万円。",btn:"EXPLORE"},{t:"e",damage:0,isCoinLoss:true,coinLoss:10}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  boss_slack_demand:{
+    title:"タクシー内にて",
+    steps:[
+      {t:"d",sp:"上司（Slack）",tx:"「今どこだ？一言一句メールで状況を説明しろ」",btn:"…"},
+      {t:"n",tx:"これから謝罪訪問で準備があるのに。",btn:"…"},
+      {t:"c",choices:[
+        {label:"観念してSlackに打ち込む",steps:[
+          {t:"r",stat:"fcs",threshold:12,
+           ok:[{t:"n",tx:"上司のヒステリーをいなすことに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"画面を見すぎて激しく車酔いした。吐き気が止まらない。",btn:"EXPLORE"},{t:"e",damage:20}]
+          }
+        ]},
+        {label:"「乗車中のため到着後報告します」と無視",steps:[
+          {t:"r",stat:"mnt",threshold:12,
+           ok:[{t:"n",tx:"上司が静かになった。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"即座に電話がかかってきて、車内で怒鳴り散らされた。",btn:"EXPLORE"},{t:"e",damage:20}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  guard_tough:{
+    title:"取引先のロビーにて",
+    steps:[
+      {t:"n",tx:"セキュリティチェックが異常に厳しく、不審者扱いされ中に入らせてもらえない。",btn:"交渉する"},
+      {t:"c",choices:[
+        {label:"正当性を毅然と主張する",steps:[
+          {t:"r",stat:"atk",threshold:12,
+           ok:[{t:"n",tx:"なんとか確認が取れ、中に入ることができた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"「アポなしの立ち入りは認められません」と完全に排除された。",btn:"EXPLORE"},{t:"e",damage:16}]
+          }
+        ]},
+        {label:"先方の担当に直接電話する",steps:[
+          {t:"r",stat:"lck",threshold:12,
+           ok:[{t:"n",tx:"担当が降りてきてくれてゲートを通過。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"担当も怒っているのか電話に出ない。さらに焦る。",btn:"EXPLORE"},{t:"e",damage:16}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  // ===== 8月新規シーン =====
+  boss_phone_road:{
+    title:"猛暑の路上にて",
+    steps:[
+      {t:"d",sp:"上司（着電）",tx:"「お盆も動いてるか。売上状況はどうだ」",btn:"応答する"},
+      {t:"c",choices:[
+        {label:"「新規の仕込みを進めています」とハキハキ答える",steps:[
+          {t:"r",stat:"atk",threshold:14,
+           ok:[{t:"d",sp:"上司",tx:"「お盆明けに期待してるぞ」と電話が切れた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"「行動が遅い。お盆のうちにアポを詰めろ」と路上で説教。",btn:"EXPLORE"},{t:"e",damage:18}]
+          }
+        ]},
+        {label:"「出るしかなくて…」と弱音を漏らす",steps:[
+          {t:"r",stat:"lck",threshold:14,
+           ok:[{t:"d",sp:"上司",tx:"「…まあ、今の時期はみんなきついな」と少し同情された。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"上司",tx:"「お盆を言い訳にするな。休んでる競合を抜け」と怒鳴られる。",btn:"EXPLORE"},{t:"e",damage:18}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  speaking_cicada:{
+    title:"公園にて",
+    steps:[
+      {t:"n",tx:"目の前の木にとまっているセミが、「マチング、シロ、マチング、シロ」と明瞭な声で発音している。",btn:"…"},
+      {t:"n",tx:"……幻聴か？",btn:"…"},
+      {t:"c",choices:[
+        {label:"木を激しく蹴る",steps:[
+          {t:"r",stat:"stm",threshold:14,
+           ok:[{t:"n",tx:"セミは飛び去り、ただの幻聴だと自分を落ち着かせた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"蹴った衝撃で大量のセミが一斉に自分に向かって飛び、周囲に恥をかいた。",btn:"EXPLORE"},{t:"e",damage:18}]
+          }
+        ]},
+        {label:"耳を塞いで立ち去る",steps:[
+          {t:"r",stat:"def",threshold:14,
+           ok:[{t:"n",tx:"気味の悪い場所からスムーズに離脱した。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"歩いても歩いても、頭の中でセミの声が響き渡り続ける。",btn:"EXPLORE"},{t:"e",damage:18}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  kaishoku_info:{
+    title:"高級居酒屋にて",
+    steps:[
+      {t:"d",sp:"顧問・菊地さん（酔い気味）",tx:"「君、この仕事向いてると思うか？」",btn:"…"},
+      {t:"c",choices:[
+        {label:"「はい、向いていると思います」",steps:[
+          {t:"r",stat:"atk",threshold:14,
+           ok:[{t:"d",sp:"菊地さん",tx:"「そうか。じゃあ続けなさい」と杯を傾けた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"菊地さん",tx:"「顔が嘘をついてるぞ」と見透かされた。",btn:"EXPLORE"},{t:"e",damage:18}]
+          }
+        ]},
+        {label:"「正直、最近わからなくなってきて」",steps:[
+          {t:"r",stat:"lck",threshold:14,
+           ok:[{t:"d",sp:"菊地さん",tx:"「そういう時期は大事だ。考え続けなさい」",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"菊地さん",tx:"「それを言うなら辞めなさい。迷いは仕事に出る」",btn:"EXPLORE"},{t:"e",damage:18}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  // ===== 9月新規シーン =====
+  progress_call:{
+    title:"エントランスにて",
+    steps:[
+      {t:"d",sp:"上司（着電）",tx:"「予算、厳しそうだな」",btn:"…"},
+      {t:"c",choices:[
+        {label:"「なんとか数字を作ります」と言い切る",steps:[
+          {t:"r",stat:"atk",threshold:16,
+           ok:[{t:"d",sp:"上司",tx:"「期待している」とだけ言われ、電話が切れた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"「具体的には？」とエントランスで15分詰められる。",btn:"EXPLORE"},{t:"e",damage:20}]
+          }
+        ]},
+        {label:"「現場の不条理を正直に報告する」",steps:[
+          {t:"r",stat:"lck",threshold:16,
+           ok:[{t:"d",sp:"上司",tx:"「…一度、上で実態を調査する」と意外な言葉が出た。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"上司",tx:"「言い訳をするタイミングが遅すぎる」と一蹴された。",btn:"EXPLORE"},{t:"e",damage:20}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  yokoku_call:{
+    title:"移動中の電車内にて",
+    steps:[
+      {t:"n",tx:"山田さんの裏垢SNSを血眼でスクロールしていると、突然上司から着電。",btn:"出る"},
+      {t:"d",sp:"上司",tx:"「山田の件、今どうなってる？」",btn:"…"},
+      {t:"c",choices:[
+        {label:"「今向かっています」と答える",steps:[
+          {t:"r",stat:"atk",threshold:16,
+           ok:[{t:"d",sp:"上司",tx:"「早急に対応しろ。クライアントへの報告も頼む」",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"「なんでもっと早く動かなかったんだ！」と詰められた。",btn:"EXPLORE"},{t:"e",damage:20}]
+          }
+        ]},
+        {label:"（取らなかった）",steps:[
+          {t:"n",tx:"折り返すと「なぜ出なかった」と怒られた。",btn:"EXPLORE"},
+          {t:"e",damage:15}
+        ]},
+      ]},
+    ]
+  },
+
+  apartment_granny:{
+    title:"アパートの階段にて",
+    steps:[
+      {t:"n",tx:"インターホンを連打していると、隣室のドアが開いておばあさんが顔を出した。",btn:"頭を下げる"},
+      {t:"c",choices:[
+        {label:"「山田という方のご様子を知りませんか」",steps:[
+          {t:"r",stat:"atk",threshold:16,
+           ok:[{t:"d",sp:"おばあさん",tx:"「この頃ずっと部屋にいるみたいだよ。物音はするから生きてると思う」",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"おばあさん",tx:"「知りません」とドアを閉められた。",btn:"EXPLORE"},{t:"e",damage:10}]
+          }
+        ]},
+        {label:"「すみません、急いでいて…」",steps:[
+          {t:"n",tx:"おばあさんが「何か困ったら言いなさいよ」と言ってドアを閉めた。",btn:"EXPLORE"},
+          {t:"e",damage:5}
+        ]},
+      ]},
+    ]
+  },
+
+  yamada_run:{
+    title:"夕暮れの住宅街にて",
+    steps:[
+      {t:"n",tx:"説得に応じたと思った瞬間、山田さんが寝巻き姿のまま全力疾走で逃亡！",btn:"「待ってください！」"},
+      {t:"c",choices:[
+        {label:"全力疾走で追いかける",steps:[
+          {t:"r",stat:"stm",threshold:16,
+           ok:[{t:"n",tx:"角を曲がった山田さんの背中を見失わずに追尾。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"完全に息が切れて足がもつれ、転倒。山田さんを見失った。",btn:"EXPLORE"},{t:"e",damage:20}]
+          }
+        ]},
+        {label:"「警察を呼びますよ！」と大声で脅す",steps:[
+          {t:"r",stat:"atk",threshold:16,
+           ok:[{t:"n",tx:"その言葉に怯えたのか、山田さんが一瞬立ち止まった。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"近隣住民に「うるさい！」と窓から怒鳴られ、怯んだ隙に逃げられた。",btn:"EXPLORE"},{t:"e",damage:20}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  // ===== 10月新規シーン =====
+  client_urgent_call:{
+    title:"移動中にて",
+    steps:[
+      {t:"d",sp:"常駐先（着電）",tx:"「エンジニアの〇〇さん、連絡つかないけど何か知ってます？」",btn:"…"},
+      {t:"c",choices:[
+        {label:"「体調不良で本日お休みです」と嘘をつく",steps:[
+          {t:"r",stat:"lck",threshold:20,
+           ok:[{t:"d",sp:"担当者",tx:"「分かりました、お大事に」と信じてもらい、時間を稼いだ。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"担当者",tx:"「いや、さっき本人から会社に文句のメール来ましたよ？」と嘘がバレた。",btn:"EXPLORE"},{t:"e",damage:22}]
+          }
+        ]},
+        {label:"「トラブル対応で連絡を試みています」と伝える",steps:[
+          {t:"r",stat:"atk",threshold:20,
+           ok:[{t:"d",sp:"担当者",tx:"「すぐに詳細を報告してください」と、ギリギリのラインで繋ぎ止めた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"「御社の管理はどうなってるんだ」と電話口で10分怒鳴られる。",btn:"EXPLORE"},{t:"e",damage:22}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  yakuza_talk:{
+    title:"アパートの共有スペースにて",
+    steps:[
+      {t:"d",sp:"強面の男",tx:"「兄ちゃん、あいつ探してんの？」",btn:"…"},
+      {t:"c",choices:[
+        {label:"「はい、会社の用事です」と毅然と答える",steps:[
+          {t:"r",stat:"atk",threshold:20,
+           ok:[{t:"n",tx:"男は「へえ」と言って、それ以上凄んでこなかった。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"「生意気な口利くなよ」と胸ぐらを掴まれそうになり、すくみ上がる。",btn:"EXPLORE"},{t:"e",damage:22}]
+          }
+        ]},
+        {label:"無言で軽く会釈して距離を取る",steps:[
+          {t:"r",stat:"def",threshold:20,
+           ok:[{t:"n",tx:"男は興味を失ったのか、タバコを吐き捨てて立ち去った。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"逃げ腰なのがバレ、「オイ待てよ」としつこく付きまとわれた。",btn:"EXPLORE"},{t:"e",damage:22}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  blood_wall:{
+    title:"アパートの通路にて",
+    steps:[
+      {t:"n",tx:"薄暗いアパートの通路。コンクリートの壁から、じわりと赤黒い染みが広がり、「未達、未達、未達」という文字を形作っていく。",btn:"…幻覚か？"},
+      {t:"c",choices:[
+        {label:"「ただの雨漏りのシミだ」と自己暗示をかける",steps:[
+          {t:"r",stat:"mnt",threshold:20,
+           ok:[{t:"n",tx:"冷静さを取り戻し、視界を正常に戻した。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"シミがさらに広がり、自分の足元が沈んでいく幻覚を見る。",btn:"EXPLORE"},{t:"e",damage:22}]
+          }
+        ]},
+        {label:"指で文字をバツ印で上書きする",steps:[
+          {t:"r",stat:"atk",threshold:20,
+           ok:[{t:"n",tx:"幻覚を自分の意志で打ち破り、壁はただの汚れたコンクリートに戻った。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"血の文字が衣服に染み付くような強烈な悪寒に襲われ、硬直する。",btn:"EXPLORE"},{t:"e",damage:22}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  // ===== 11月新規シーン =====
+  boss_pressure:{
+    title:"自社デスクにて",
+    steps:[
+      {t:"d",sp:"上司",tx:"「おい、あの基本契約、早くハンコ貰ってこいよ」",btn:"…"},
+      {t:"c",choices:[
+        {label:"「上限なし条項はリスクが高すぎます」と法務の意見を伝える",steps:[
+          {t:"r",stat:"atk",threshold:23,
+           ok:[{t:"d",sp:"上司",tx:"「チッ、法務は頭が硬いな。一回俺から話すわ」と上司が引き取った。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"「そんなのリスクヘッジして事故らなきゃいいだけだろ！」と怒鳴られる。",btn:"EXPLORE"},{t:"e",damage:24}]
+          }
+        ]},
+        {label:"「直接交渉して落とし所を探します」と請け負う",steps:[
+          {t:"r",stat:"fcs",threshold:23,
+           ok:[{t:"d",sp:"上司",tx:"「おう、お前が泥を被れよ」と最悪の交渉へ向かう許可を得た。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"「お前にそんな高度な交渉ができるわけないだろ」と書類を奪われ、査定を下げられた。",btn:"EXPLORE"},{t:"e",damage:24}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  phone_last_fight:{
+    title:"クライアントとの電話にて",
+    steps:[
+      {t:"n",tx:"「なんとか個別の案件ごとに上限を設定できませんか」と粘る。",btn:"粘る"},
+      {t:"c",choices:[
+        {label:"過去の取引実績を持ち出して哀願する",steps:[
+          {t:"r",stat:"lck",threshold:23,
+           ok:[{t:"d",sp:"担当者",tx:"「…一度、うちの法務にもう一回だけ聞いてみるわ」",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"担当者",tx:"「うちはボランティアじゃないんで」と冷たく電話を切られた。",btn:"EXPLORE"},{t:"e",damage:24}]
+          }
+        ]},
+        {label:"他社ベンダーの事例を引き合いに出して説得する",steps:[
+          {t:"r",stat:"atk",threshold:23,
+           ok:[{t:"d",sp:"担当者",tx:"「なるほどね、じゃあ特約条項として別紙で巻くか」と一歩前進。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"担当者",tx:"「他所は他所、うちはうち。ルールに従えないなら結構です」",btn:"EXPLORE"},{t:"e",damage:24}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  // ===== 12月新規シーン =====
+  taxi_panic:{
+    title:"タクシー内にて",
+    steps:[
+      {t:"n",tx:"現地へ向かうタクシーの中。心臓のバクバクが止まらず、呼吸が浅くなる。",btn:"深呼吸する"},
+      {t:"c",choices:[
+        {label:"深く深呼吸して回収の優先順位を整理する",steps:[
+          {t:"r",stat:"fcs",threshold:26,
+           ok:[{t:"n",tx:"頭が冴え、現地の貸与PCや書類の回収手順をシミュレートできた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"パニックで過呼吸気味になり、タクシーのシートで完全にへたり込んだ。",btn:"EXPLORE"},{t:"e",damage:25}]
+          }
+        ]},
+        {label:"会社に電話してパニックのまま報告する",steps:[
+          {t:"r",stat:"atk",threshold:26,
+           ok:[{t:"d",sp:"上司",tx:"「すぐに俺も現地に向かう！」と意外にも動いてくれた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"上司",tx:"「お前何パニくってんだよ！落ち着いてから電話しろ！」と怒鳴られて切られる。",btn:"EXPLORE"},{t:"e",damage:25}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  bankruptcy_doc:{
+    title:"弁護士事務所にて",
+    steps:[
+      {t:"n",tx:"裁判所に提出するための債権金額の書類を、正確に作成しなければならない。1円のミスも許されない。",btn:"作業する"},
+      {t:"c",choices:[
+        {label:"徹夜で稼働ログと請求書データを全て照合する",steps:[
+          {t:"r",stat:"fcs",threshold:26,
+           ok:[{t:"d",sp:"弁護士",tx:"「これならすぐに手続きに移れる」と褒められた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"弁護士",tx:"「これでは受理されません」と突き返された。",btn:"EXPLORE"},{t:"e",damage:25}]
+          }
+        ]},
+        {label:"自社の経理のベテランに泣きついて手伝ってもらう",steps:[
+          {t:"r",stat:"lck",threshold:26,
+           ok:[{t:"d",sp:"経理の小林さん",tx:"「大変だったね」と一瞬で正確なデータを作ってくれた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"経理の小林さん",tx:"「自分の営業した案件の後始末くらい自分でやりなさい」と冷たく断られた。",btn:"EXPLORE"},{t:"e",damage:25}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  // ===== 1月新規シーン =====
+  contract_defense:{
+    title:"常駐先の会議室にて",
+    steps:[
+      {t:"d",sp:"顧客の購買担当",tx:"「補充要員の費用を持たないなら、今月までの売上を全額検収拒否にする」",btn:"…"},
+      {t:"c",choices:[
+        {label:"「検収規定に違反します」と法律を盾に突っぱねる",steps:[
+          {t:"r",stat:"atk",threshold:28,
+           ok:[{t:"n",tx:"相手が「チッ、分かったよ」と引き下がり、不当な検収拒否を回避。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"担当者",tx:"「生意気なエージェントだな！全面取引停止だ！」と火に油を注いだ。",btn:"EXPLORE"},{t:"e",damage:26}]
+          }
+        ]},
+        {label:"「上層部と確認します」と平謝りして時間を稼ぐ",steps:[
+          {t:"r",stat:"def",threshold:28,
+           ok:[{t:"n",tx:"相手の興奮が冷め、交渉の余地を残したまま自社に戻ることに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"担当者",tx:"「今すぐここでイエスかノーか答えろ！」と退路を断たれた。",btn:"EXPLORE"},{t:"e",damage:26}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  red_light_hallucination:{
+    title:"帰り道にて",
+    steps:[
+      {t:"n",tx:"労基からの電話を切った瞬間、周囲の街灯がすべて真っ赤な赤色灯に変化し、「お前は有罪だ」という文字が街頭ビジョンに躍る。",btn:"…幻覚か"},
+      {t:"c",choices:[
+        {label:"「これはただの幻覚だ！」と大声で叫んで走る",steps:[
+          {t:"r",stat:"stm",threshold:28,
+           ok:[{t:"n",tx:"身体を激しく動かすことで幻覚を払いのけた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"サイレンの音が大きくなりすぎて頭痛が激化し、その場にうずくまる。",btn:"EXPLORE"},{t:"e",damage:26}]
+          }
+        ]},
+        {label:"財布から自社の名刺を取り出し、強く握りしめる",steps:[
+          {t:"r",stat:"atk",threshold:28,
+           ok:[{t:"n",tx:"自社の存在という現実の錨にすがりつくことで、正気を取り戻した。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"名刺の文字すら赤く染まり、「偽装請負」という文字に変形していく。",btn:"EXPLORE"},{t:"e",damage:26}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  // ===== 2月新規シーン =====
+  hp_shock:{
+    title:"通勤電車内にて",
+    steps:[
+      {t:"n",tx:"先月「家庭の事情で契約終了します」と涙ながらに去っていったエースエンジニアが、競合コンサル会社のHPに「シニアコンサルタント・中途入社！」として満面の笑みで載っている。",btn:"…"},
+      {t:"c",choices:[
+        {label:"「事実確認のメッセージを送る」",steps:[
+          {t:"r",stat:"atk",threshold:30,
+           ok:[{t:"n",tx:"本人が罪悪感からか「すみません、単価が倍だったんで…」と白状した。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"メッセージは即座に既読無視され、そのままブロックされた。",btn:"EXPLORE"},{t:"e",damage:28}]
+          }
+        ]},
+        {label:"証拠のスクリーンショットを保存して法務に回す",steps:[
+          {t:"r",stat:"fcs",threshold:30,
+           ok:[{t:"n",tx:"冷静に法的手段の準備を進めることに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"画面を見つめすぎて怒りが爆発し、スマホの画面にヒビを入れた。",btn:"EXPLORE"},{t:"e",damage:28}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  hallucination_resume:{
+    title:"エレベーター内にて",
+    steps:[
+      {t:"n",tx:"エレベーターの天井が突然透明になり、上空から自社エンジニアたちの履歴書が顔写真付きでヒラヒラと降ってくる。写真のエンジニアたちが一斉に「さようなら」と口を動かした。",btn:"…"},
+      {t:"c",choices:[
+        {label:"「全員ただの幻だ」と唱えて目を閉じる",steps:[
+          {t:"r",stat:"mnt",threshold:30,
+           ok:[{t:"n",tx:"精神を完全に内側に集中させ、幻覚を消滅させた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"耳元で「次の退職者は誰でしょう？」という声が響き続ける。",btn:"EXPLORE"},{t:"e",damage:28}]
+          }
+        ]},
+        {label:"幻覚の履歴書を手で叩き落とす",steps:[
+          {t:"r",stat:"def",threshold:30,
+           ok:[{t:"n",tx:"強い拒絶の意志で幻覚を遮断し、エレベーターは元の狭い空間に戻った。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"履歴書が顔に張り付き、窒息しそうな強烈なパニックに陥る。",btn:"EXPLORE"},{t:"e",damage:28}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  last_retain_call:{
+    title:"深夜のデスクにて",
+    steps:[
+      {t:"n",tx:"明日退職予定のエンジニアに、最後の望みをかけて電話をかける。受話器が重い。",btn:"かける"},
+      {t:"c",choices:[
+        {label:"これまでの情と重要性を熱く語る",steps:[
+          {t:"r",stat:"atk",threshold:30,
+           ok:[{t:"n",tx:"相手が「そこまで言ってくれるなら、もう一回考え直します」と残留を決定。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"エンジニア",tx:"「そういうウェットな関係が重いんですよね」と冷たく一蹴された。",btn:"EXPLORE"},{t:"e",damage:28}]
+          }
+        ]},
+        {label:"単価アップの条件交渉をストレートに提示する",steps:[
+          {t:"r",stat:"fcs",threshold:30,
+           ok:[{t:"n",tx:"上司から事前に引き出した予算枠を提示し、ギリギリで引き留めに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"エンジニア",tx:"「あっちは有給消化100%なんで、話になりません」と鼻で笑われた。",btn:"EXPLORE"},{t:"e",damage:28}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  // ===== 3月新規シーン =====
+  naitei_voice:{
+    title:"通勤電車にて",
+    steps:[
+      {t:"n",tx:"隣に内定式帰りらしい若者が座った。緊張した顔。1年前の自分だ。",btn:"…"},
+      {t:"c",choices:[
+        {label:"声をかける",steps:[
+          {t:"r",stat:"atk",threshold:33,
+           ok:[{t:"d",sp:"若者",tx:"「ありがとうございます、頑張ります！」と言われた。何かが報われた気がした。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"不審者を見るような目で見られた。若者は席を立った。",btn:"EXPLORE"},{t:"e",damage:10}]
+          }
+        ]},
+        {label:"うらやましいと思いながら見ている",steps:[
+          {t:"r",stat:"lck",threshold:33,
+           ok:[{t:"n",tx:"その感情が、まだ前を向いている証拠だと気づいた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"羨ましいという感情すら、もう薄れていることに気づいた。",btn:"EXPLORE"},{t:"e",damage:10}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  elevator_final:{
+    title:"エレベーターにて（最終版）",
+    steps:[
+      {t:"n",tx:"エレベーターに常務と2人きり。常務がじっと横顔を見て言う。",btn:"ボタンを押す"},
+      {t:"d",sp:"鷹野常務",tx:"「1年どうだった。来期はどうする」",btn:"…"},
+      {t:"c",choices:[
+        {label:"「いろいろ学べました。来期も頑張ります」",steps:[
+          {t:"r",stat:"atk",threshold:33,
+           ok:[{t:"d",sp:"鷹野常務",tx:"「そうか。お前なら言うと思ったよ」",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"d",sp:"鷹野常務",tx:"「口先だけの顔をしてるな」と言われた。",btn:"EXPLORE"},{t:"e",damage:20}]
+          }
+        ]},
+        {label:"「正直に話します。全部きつかったです」",steps:[
+          {t:"r",stat:"lck",threshold:33,
+           ok:[{t:"d",sp:"鷹野常務",tx:"常務は静かに微笑んだ。「…そうか。よく耐えたな」この1年で一番救われた言葉だった。",btn:"EXPLORE"},{t:"e",heal:9999}],
+           ng:[{t:"d",sp:"鷹野常務",tx:"「それは私に言うことか」と静かに言われた。",btn:"EXPLORE"},{t:"e",damage:15}]
+          }
+        ]},
+        {label:"「ありがとうございました」とだけ言う",steps:[
+          {t:"d",sp:"鷹野常務",tx:"「そちらこそ」と言った。それだけで十分だった。",btn:"EXPLORE"},
+          {t:"e",damage:0}
+        ]},
+      ]},
+    ]
+  },
+
+  kyuto_final:{
+    title:"給湯室にて（最終版）",
+    steps:[
+      {t:"n",tx:"給湯室。田所さんが君を見て、痛ましそうな顔で言う。",btn:"…"},
+      {t:"d",sp:"田所さん",tx:"「本当に、もう無理しないでね……」",btn:"…"},
+      {t:"c",choices:[
+        {label:"「ありがとうございます、田所さんも」",steps:[
+          {t:"d",sp:"田所さん",tx:"「1年間本当にお疲れ様。よく頑張ったよ」",btn:"EXPLORE"},
+          {t:"e",damage:0}
+        ]},
+      ]},
+    ]
+  },
+
+  mental_breakdown:{
+    title:"廊下にて",
+    steps:[
+      {t:"d",sp:"謎の声",tx:"「労働基準局だ。貴様を逮捕する」",btn:"…なぜここに？"},
+      {t:"n",tx:"様子がおかしい。幻覚か？",btn:"…"},
+      {t:"c",choices:[
+        {label:"走って逃げる",steps:[
+          {t:"r",stat:"lck",threshold:33,
+           ok:[{t:"n",tx:"なんだったんだ。気づけばトイレの鏡の前にいた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"知らない人にぶつかる。気づくと先ほどの男は姿を消していた。",btn:"EXPLORE"},{t:"e",damage:20}]
+          }
+        ]},
+        {label:"「何も悪いことはしていない」と踏ん張る",steps:[
+          {t:"r",stat:"atk",threshold:33,
+           ok:[{t:"n",tx:"ふと気づくと、そこに男はいなかった。幻覚だったのだろうか。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"法律違反を犯したのだろうか。この1年やってきたことはなんだったのだろうか。気づくと男はいなくなっていたが、なんとも言えない気持ちになった。",btn:"EXPLORE"},{t:"e",damage:20}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  // ===== 共通シーン（旧 corridor_event, desk_event を統合）=====
+  mystery_mail:{
+    title:"デスクにて",
+    steps:[
+      {t:"n",tx:"件名「今すぐ確認してください。手遅れになります」",btn:"…"},
+      {t:"c",choices:[
+        {label:"ゴミ箱に捨てる",steps:[
+          {t:"n",tx:"スパムだったようだ。でも「手遅れ」という言葉が頭に残った。",btn:"EXPLORE"},
+          {t:"e",damage:0}
+        ]},
+        {label:"リンクを開く",steps:[
+          {t:"r",stat:"lck",threshold:8,
+           ok:[{t:"n",tx:"「貴社のSESはグレーだ。今すぐ転職しろ」なんのことだろう？",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"フィッシングサイトだった。情報漏洩の恐れがあると言われた。始末書を書いた。",btn:"EXPLORE"},{t:"e",damage:20}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  // ===== v6設計書 幻覚・幻想シーン（8月〜12月）=====
+
+  kieru_passenger:{
+    title:"通勤電車（8月）にて",
+    steps:[
+      {t:"n",tx:"ガラガラの車内。向かいに座っている男の顔が、なぜかノイズのように激しくブレて見える。目をこすると、誰もいない。",btn:"…"},
+      {t:"c",choices:[
+        {label:"疲れているだけだと目を閉じる",steps:[
+          {t:"r",stat:"mnt",threshold:14,
+           ok:[{t:"n",tx:"脳の錯覚として処理し、精神を安定させた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"目を閉じても、耳元で「お前も消えるよ」と囁かれた気がした。",btn:"EXPLORE"},{t:"e",damage:18}]
+          }
+        ]},
+        {label:"隣の車両へ即座に移動する",steps:[
+          {t:"r",stat:"lck",threshold:14,
+           ok:[{t:"n",tx:"何も起きず、平穏な座席に移動できた。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"移動した先の車両の乗客全員が、同じ自分の顔をしていた。",btn:"EXPLORE"},{t:"e",damage:18}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  hebi_tsurikawa:{
+    title:"失踪現場への移動（9月）にて",
+    steps:[
+      {t:"n",tx:"山田さんの家に向かう車内。ふと見上げると、吊り革が全てぬるぬると動く青い蛇に変わっている。蛇たちが一斉にこちらを向いて「山田は逃げた」と囁いた。",btn:"…"},
+      {t:"c",choices:[
+        {label:"蛇の頭を掴んで引きちぎる幻覚を脳内で描く",steps:[
+          {t:"r",stat:"atk",threshold:16,
+           ok:[{t:"n",tx:"強い精神力で幻覚を霧散させ、正気を取り戻した。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"蛇が腕に絡みついてくる感覚に襲われ、車内で悲鳴を上げそうになる。",btn:"EXPLORE"},{t:"e",damage:20}]
+          }
+        ]},
+        {label:"座席の下をじっと見つめて無視する",steps:[
+          {t:"r",stat:"mnt",threshold:16,
+           ok:[{t:"n",tx:"視覚情報を遮断し、幻覚の侵食を防ぎ切った。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"足元からも無数の蛇が這い上がってくる錯覚に陥り、パニックになる。",btn:"EXPLORE"},{t:"e",damage:20}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  hanko_hallucination:{
+    title:"法務部の廊下（11月）にて",
+    steps:[
+      {t:"n",tx:"法務部を出た瞬間、廊下の壁一面から無数の腕が生え、凄まじい勢いで「承認」「却下」のハンコを空中に連打し始める。そのインクの飛沫が顔にかかる気がした。",btn:"…"},
+      {t:"c",choices:[
+        {label:"「異議あり！」と大声で叫んで突き進む",steps:[
+          {t:"r",stat:"atk",threshold:23,
+           ok:[{t:"n",tx:"幻覚の腕が煙のように消え去り、無事に廊下を突破した。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"ハンコの音が脳内に直接響き渡り、強烈な耳鳴りに襲われる。",btn:"EXPLORE"},{t:"e",damage:24}]
+          }
+        ]},
+        {label:"目を細めて、足元の白線だけを見て歩く",steps:[
+          {t:"r",stat:"def",threshold:23,
+           ok:[{t:"n",tx:"余計な視覚情報をカットし、精神の汚染を防いだ。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"視界全体が真っ赤なハンコの印影で埋め尽くされ、平衡感覚を失う。",btn:"EXPLORE"},{t:"e",damage:24}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  zero_snow:{
+    title:"弁護士事務所（12月）にて",
+    steps:[
+      {t:"n",tx:"弁護士事務所の窓の外。銀座の街に雪が降り始めるが、よく見ると雪の結晶ではなく、全て「0」という数字が無限に舞い落ちている。触れると頭が冷たく痺れる感覚がした。",btn:"…"},
+      {t:"c",choices:[
+        {label:"「売上を返せ！」と窓を開けて叫ぶ",steps:[
+          {t:"r",stat:"atk",threshold:26,
+           ok:[{t:"n",tx:"強い衝動で脳の錯覚を吹き飛ばし、外の景色は普通の雪に戻った。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"数字の雪が部屋の中にまで吹き込んできて、自分の身体を白く埋め尽くす幻覚を見る。",btn:"EXPLORE"},{t:"e",damage:25}]
+          }
+        ]},
+        {label:"温かいお茶を飲んで視線をそらす",steps:[
+          {t:"r",stat:"mnt",threshold:26,
+           ok:[{t:"n",tx:"胃を温めることで自律神経を安定させ、幻覚を消去した。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"お茶の湯気すら「00000」という数字の羅列に見えてきて、吐き気が増す。",btn:"EXPLORE"},{t:"e",damage:25}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+  hp_shock_train:{
+    title:"通勤電車（2月）にて",
+    steps:[
+      {t:"n",tx:"先月「家庭の事情で契約終了します」と涙ながらに去っていったエースエンジニアが、競合コンサル会社のHPに「シニアコンサルタント・中途入社！」として満面の笑みで載っている。よく見ると他にも複数名いる。",btn:"…"},
+      {t:"c",choices:[
+        {label:"即座に本人のLINEに事実確認を送る",steps:[
+          {t:"r",stat:"atk",threshold:30,
+           ok:[{t:"n",tx:"本人が罪悪感からか「すみません、あっちの方が単価倍だったんで…」と白状した。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"メッセージは即座に既読無視され、そのままブロックされた。精神的ダメージが深い。",btn:"EXPLORE"},{t:"e",damage:28}]
+          }
+        ]},
+        {label:"証拠のスクリーンショットを無言で保存し、法務に回す",steps:[
+          {t:"r",stat:"fcs",threshold:30,
+           ok:[{t:"n",tx:"冷静に法的手段の準備を進めることに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
+           ng:[{t:"n",tx:"画面を見つめすぎて怒りが爆発し、スマホの画面を強く叩きすぎてヒビを入れた。",btn:"EXPLORE"},{t:"e",damage:28}]
+          }
+        ]},
+      ]},
+    ]
+  },
+
+};
+// sceneState: {flatSteps:[...], idx:int, after:fn}
+// flatStepsは実行時に確定済みのステップ配列（choice/rollは展開後）
+
+let sceneState=null;
+
+// 右カラム用ボタン群を生成（全て同じスタイル）
+function renderSideBtns(items){
+  return items.map(it=>
+    `<button onclick="${it.fn}" style="background:#1a2540;border:1px solid #2a3a58;border-radius:7px;padding:11px 9px;font-size:14px;font-weight:700;color:#c8d0e0;cursor:pointer;width:100%;text-align:left;line-height:1.4;word-break:break-all;">${it.label}</button>`
+  ).join("");
+}
+
+function getSceneEmoji(title){
+  if(title.includes("通勤電車")) return "🚃";
+  if(title.includes("エレベーター")) return "🔲";
+  if(title.includes("廊下")) return "🚶";
+  if(title.includes("給湯室")) return "☕";
+  if(title.includes("デスク")) return "💻";
+  if(title.includes("夜道")) return "🌙";
+  if(title.includes("路地裏")) return "🚪";
+  if(title.includes("エントランス")) return "🏢";
+  return "🏢";
+}
+function startScene(key, afterFn, ctx){
+  const def=SCENES[key];
+  if(!def){if(afterFn)afterFn();return;}
+  sceneState={
+    steps: JSON.parse(JSON.stringify(def.steps)),
+    idx:0,
+    after:afterFn,
+    title:def.title,
+    ctx:ctx||"field",  // "field" or "street"
+    history:[]
+  };
+  showScreen("office-screen");
+  runSceneStep();
+}
+
+function runSceneStep(){
+  if(!sceneState)return;
+  // 有効なステップを探す
+  while(sceneState.idx < sceneState.steps.length){
+    const st=sceneState.steps[sceneState.idx];
+    if(!st){sceneState.idx++;continue;}
+    // _CALL_ は架電シーンへ橋渡し
+    if(st.t==="n"&&st.tx==="_CALL_"){
+      const after=sceneState.after;
+      const ctx=sceneState.ctx;
+      sceneState=null;
+      startScene("appoint_call", after, ctx);
+      return;
+    }
+
+    if(st.t==="n"||st.t==="d"){
+      // 次ステップが c（選択肢）なら即表示してボタン待ち
+      const nextSt=sceneState.steps[sceneState.idx+1];
+      if(nextSt&&nextSt.t==="c"){
+        sceneState.idx++; // cに進める
+        renderSceneUI(); // cを表示（テキストも上に残る）
+        return;
+      }
+      renderSceneUI();
+      return;
+    }
+    if(st.t==="c"){
+      renderSceneUI();
+      return;
+    }
+    if(st.t==="r"){
+      // 判定 → 自動展開してステップ差し替え
+      const lckBonus=st.stat==="lck"?Math.floor((P.lck||0)/5):0;
+      const val=(P[st.stat]||0)+lckBonus;
+      const success=val>=st.threshold;
+      const resultSteps=JSON.parse(JSON.stringify(success?st.ok:st.ng));
+      // 判定結果はコメントボックスに出さない（HPフラッシュで表現）
+      sceneState.steps.splice(sceneState.idx,1,...resultSteps);
+      // そのままループ続行
+      continue;
+    }
+    if(st.t==="e"){
+      // エフェクト適用してから次へ
+      applySceneEffect(st);
+      sceneState.idx++;
+      if((P.hp||0)<=0){setTimeout(()=>triggerDeath(),400);return;}
+      if(st.battle){return;} // battle起動済みなので停止
+      continue;
+    }
+    sceneState.idx++;
+  }
+  // 全ステップ完了
+  endScene();
+}
+
+function renderSceneUI(){
+  if(!sceneState)return;
+  updateHeader("office");
+  const scroll=document.getElementById("office-scroll");
+  const cmds=document.getElementById("office-cmds");
+  const st=sceneState.steps[sceneState.idx];
+
+  // フロアラベル: 街/自宅シーンとオフィスシーンで分ける
+  const lbl=document.getElementById("novel-floor-label");
+  if(sceneState.ctx==="street"){
+    if(lbl) lbl.innerText="街";
+    updateImgArea("street","🏙️");
+  } else {
+    const floors=getMonthFloors(P.month||4);
+    const _f=floors[curPhase-1];
+    if(lbl&&_f) lbl.innerText=(P.month||4)+"-"+curPhase+" "+_f.name;
+    updateImgArea((P.month||4)+"-"+curPhase, _f?(_f.icon||"🏢"):"🏢");
+  }
+
+  // テキスト表示（cステップの場合は直前のn/dを表示）
+  if(st.t==="n"){
+    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;animation:fadeIn 0.25s ease-out;">${st.tx}</span>`;
+  } else if(st.t==="d"){
+    scroll.innerHTML=`<span class="novel-speaker" style="font-size:11px;font-weight:700;color:var(--orange);display:block;margin-bottom:4px;animation:fadeIn 0.25s ease-out;">${st.sp}</span><span style="font-size:15px;line-height:1.8;">${st.tx}</span>`;
+  } else if(st.t==="c"){
+    // 直前のステップのテキストを探して表示
+    let prevTx="";
+    for(let pi=sceneState.idx-1;pi>=0;pi--){
+      const ps=sceneState.steps[pi];
+      if(ps&&(ps.t==="n"||ps.t==="d")){
+        if(ps.t==="n") prevTx=`<span style="font-size:15px;line-height:1.8;">${ps.tx}</span>`;
+        else prevTx=`<span class="novel-speaker" style="font-size:11px;font-weight:700;color:var(--orange);display:block;margin-bottom:4px;">${ps.sp}</span><span style="font-size:15px;line-height:1.8;">${ps.tx}</span>`;
+        break;
+      }
+    }
+    scroll.innerHTML=prevTx;
+  }
+
+  // ボタン制御
+  scroll.onclick=null; // 常にクリア
+  if(st.t==="n"||st.t==="d"){
+    const btnLabel=st.btn||"";
+    if(btnLabel==="EXPLORE"){
+      cmds.innerHTML=renderSideBtns([
+        {label:"探索する", fn:"sceneAdvanceToExplore()"},
+        {label:"帰宅する",    fn:"sceneAdvanceToHome()"}
+      ]);
+    } else {
+      // 通常テキスト: btn値をボタンラベルに使用
+      const displayLabel = (btnLabel && btnLabel !== "" && btnLabel !== "…") ? btnLabel : "……";
+      cmds.innerHTML=renderSideBtns([{label:displayLabel, fn:"sceneAdvance()"}]);
+    }
+  } else if(st.t==="c"){
+    // 選択肢
+    cmds.innerHTML=renderSideBtns(
+      st.choices.map((ch,ci)=>({label:ch.label, fn:"sceneChoose("+ci+")"}))
+    );
+  }
+}
+
+function sceneAdvance(){
+  if(!sceneState)return;
+  sceneState.idx++;
+  runSceneStep();
+}
+
+function sceneAdvanceToExplore(){
+  // ctxを先に保存（eステップ処理前）
+  const isStreet = sceneState && sceneState.ctx==="street";
+  if(sceneState){
+    while(sceneState.idx < sceneState.steps.length){
+      const st=sceneState.steps[sceneState.idx];
+      if(!st){sceneState.idx++;continue;}
+      if(st.t==="e"){applySceneEffect(st);sceneState.idx++;continue;}
+      break;
+    }
+  }
+  sceneState=null;
+  if(isStreet) navigateAfterScene("street");
+  else navigateAfterScene("field");
+}
+
+function sceneAdvanceToHome(){
+  if(sceneState){
+    while(sceneState.idx < sceneState.steps.length){
+      const st=sceneState.steps[sceneState.idx];
+      if(!st){sceneState.idx++;continue;}
+      if(st.t==="e"){applySceneEffect(st);sceneState.idx++;continue;}
+      break;
+    }
+  }
+  sceneState=null;
+  goHome();
+}
+
+function sceneChoose(ci){
+  if(!sceneState)return;
+  const st=sceneState.steps[sceneState.idx];
+  if(!st||st.t!=="c")return;
+  const chosen=st.choices[ci];
+  if(!chosen)return;
+  // choiceのstepsを直接展開（ラベルnarrationは不要）
+  const chosenSteps=JSON.parse(JSON.stringify(chosen.steps));
+  sceneState.steps.splice(sceneState.idx,1,...chosenSteps);
+  runSceneStep();
+}
+
+let _enemyDmgTimer=null;
+function showEnemyDmg(val){
+  const el=document.getElementById("enemy-dmg-label");
+  if(!el) return;
+  el.style.cssText="display:block;position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);font-size:44px;font-weight:900;color:#ff4444;opacity:1;pointer-events:none;z-index:10;text-shadow:0 2px 12px #ff0000;transition:none;";
+  el.innerText="-"+val;
+  clearTimeout(_enemyDmgTimer);
+  setTimeout(function(){
+    el.style.transition="opacity 0.7s, transform 0.7s";
+    el.style.opacity="0";
+    el.style.transform="translate(-50%,-120%)";
+  },50);
+  _enemyDmgTimer=setTimeout(function(){
+    el.style.display="none";
+    el.style.transition="none";
+    el.style.transform="translate(-50%,-50%)";
+  },800);
+}
+
+let _hpFlashTimer=null;
+function showHpFlash(val){
+  const el=document.getElementById("hp-flash");
+  if(!el) return;
+  const color=val<0?"#ff4444":"#44dd88";
+  el.style.transition="none";
+  el.style.opacity="1";
+  el.style.color=color;
+  el.style.fontSize="15px";
+  el.innerText=(val>0?"+":"")+val;
+  clearTimeout(_hpFlashTimer);
+  _hpFlashTimer=setTimeout(function(){
+    el.style.transition="opacity 0.8s";
+    el.style.opacity="0";
+  },1400);
+}
+function applySceneEffect(eff){
+  const all=[...SELECT_SHOP,...FOOD_SHOP];
+  // Bug3修正: Number()で確実に数値変換。damage:0は意図的に何もしない
+  const dmg=Number(eff.damage);
+  if(!isNaN(dmg)&&dmg>0){
+    P.hp=Math.max(0,(P.hp||0)-dmg);
+    updateHeader("office");
+    showHpFlash(-dmg);
+  }
+  // 所持金減少
+  if(eff.isCoinLoss&&eff.coinLoss>0){
+    P.payWallet=Math.max(0,(P.payWallet||0)-Number(eff.coinLoss));
+    updateHeader("office");
+  }
+  const heal=Number(eff.heal);
+  if(!isNaN(heal)&&heal>0){
+    P.hp=Math.min(P.maxHp,(P.hp||0)+heal);
+    updateHeader("office");
+    showHpFlash(+heal);
+  }
+  if(eff.sp&&Number(eff.sp)>0){P.sp=Math.min(100,(P.sp||0)+Number(eff.sp));updateHeader("office");}
+  if(eff.item){const it=all.find(i=>i.id===eff.item);if(it)P.inventory.push({...it});}
+  if(eff.battle){
+    const enemy=getEnemy(eff.battle,P.month||4);
+    P.enemy=enemy;P.battleLog=[];
+    P.battleCtx=sceneState?sceneState.ctx:"field";
+    renderBattle(eff.tx||"戦闘開始！");
+  }
+}
+
+function endScene(){
+  const after=sceneState?sceneState.after:null;
+  sceneState=null;
+  if(after) after();
+}
+
+// ============================================================
+// BATTLE
+// ============================================================
+function renderBattle(msg){
+  showScreen("office-screen");
+  updateHeader("battle");
+  const job=curJob();const e=P.enemy;
+  if(!e)return;
+  const canSkill=(P.sp||0)>=job.skillCost;
+  const useableItems=(P.inventory||[]).filter(i=>i.type==="use"||i.type==="sp");
+  const scroll=document.getElementById("office-scroll");
+  const cmds=document.getElementById("office-cmds");
+  // 敵名を色で残量表現（100%→白、50%以下→黄、20%以下→赤）
+  const eHpPct=Math.max(0,e.hp/e.maxHp*100);
+  // フロアラベル
+  const lbl2=document.getElementById("novel-floor-label");
+  if(lbl2) lbl2.innerText="戦闘中";
+  const ph2=document.getElementById("novel-img-placeholder");
+  if(ph2) ph2.style.display="none";
+  // 敵名ラベル：残量で色変え（白→黄→赤）
+  const enemyLbl=document.getElementById("enemy-name-label");
+  if(enemyLbl){
+    enemyLbl.style.display="block";
+    enemyLbl.style.color=eHpPct<=20?"#e03030":eHpPct<=50?"#d4a820":"#f0f0f0";
+    enemyLbl.innerText=e.name;
+  }
+  // textboxに結果メッセージ
+  scroll.innerHTML="";
+
+  const spGainInfo=8+Math.floor((P.fcs||0)/5);
+  var battleBtns=[
+    {label:""+job.normalName, fn:"doBattle('attack')"},
+    {label:(canSkill?"✨ ":"✨ （SP不足）")+job.skillName, fn:canSkill?"doBattle('skill')":""}
+  ];
+  useableItems.slice(0,2).forEach(function(it){
+    const idx=P.inventory.findIndex(function(x){return x===it;});
+    battleBtns.push({label:"🍶 "+it.name, fn:"useBattleItem("+idx+")"});
+  });
+  cmds.innerHTML=battleBtns.map(function(b){
+    const disabled=!b.fn;
+    return `<button onclick="${b.fn}" ${disabled?'disabled':''} style="background:${disabled?'#111827':'#1a2540'};border:1px solid ${disabled?'#1a2235':'#2a3a58'};border-radius:7px;padding:11px 9px;font-size:14px;font-weight:700;color:${disabled?'#2d3a50':'#c8d0e0'};cursor:${disabled?'not-allowed':'pointer'};width:100%;text-align:left;line-height:1.4;word-break:break-all;">${b.label}</button>`;
+  }).join("");
+}
+
+function useBattleItem(idx){
+  const it=(P.inventory||[])[idx];if(!it)return;
+  if(it.type==="use"){P.hp=Math.min(P.maxHp,P.hp+(it.heal||0));P.inventory.splice(idx,1);toast("🍶 "+it.name+"！ メンタル+"+it.heal);}
+  else if(it.type==="sp"){P.sp=Math.min(100,(P.sp||0)+(it.spVal||0));P.inventory.splice(idx,1);toast(""+it.name+"！ SP+"+it.spVal);}
+  updateHeader("battle");renderBattle("");
+}
+
+function doBattle(type){
+  const job=curJob();const e=P.enemy;if(!e)return;
+  const eb=equipBonus();const myAtk=(P.atk||0)+eb.atk;const myDef=(P.def||0)+eb.def;
+  let logText="",logCls="info";
+  if(type==="attack"){
+    const dice=Math.floor(Math.random()*6)+1;
+    const mult=dice<=2?0.5:dice>=5?1.5:1.0;
+    let dmg=Math.floor(myAtk*mult);
+    if(P.nextAtkBonus>0){dmg=Math.floor(dmg*(1+P.nextAtkBonus/100));P.nextAtkBonus=0;}
+    e.hp=Math.max(0,e.hp-dmg);
+    const spGain=8+Math.floor((P.fcs||0)/5);P.sp=Math.min(100,(P.sp||0)+spGain);
+    showEnemyDmg(dmg);
+    logText="🎲["+dice+"](×"+mult+") → "+dmg+"ダメージ / SP+"+spGain;logCls="info";
+  } else if(type==="skill"){
+    if((P.sp||0)<job.skillCost){toast("SPが足りない！");return;}
+    P.sp-=job.skillCost;
+    if(job.id==="intern"){P.hp=Math.min(P.maxHp,(P.hp||0)+25);logText="メンタル+25回復";logCls="good";}
+    else if(job.id==="staff"){const d=40;e.hp=Math.max(0,e.hp-d);showEnemyDmg(d);logText="💥 固定40ダメージ！";logCls="bad";}
+    else if(job.id==="leader"){const d=50;e.hp=Math.max(0,e.hp-d);showEnemyDmg(d);P.sp=Math.min(100,(P.sp||0)+15);logText="💥 50ダメージ！SP+15";}
+    else if(job.id==="manager"){const d=50;e.hp=Math.max(0,e.hp-d);showEnemyDmg(d);P.nextAtkBonus=300;logText="💥 50ダメージ！次ターン+300%";}
+    else if(job.id==="bucho"){const d=Math.floor(e.hp*0.3);e.hp=Math.max(0,e.hp-d);showEnemyDmg(d);P.sp=Math.min(100,(P.sp||0)+30);logText="💥 残HP30%カット("+d+")";}
+    else if(job.id==="exec"){const d=100;e.hp=Math.max(0,e.hp-d);showEnemyDmg(d);P.hp=Math.min(P.maxHp,(P.hp||0)+100);logText="💥 100ダメージ！HP+100";}
+    else if(job.id==="ceo"){const d=Math.floor(e.hp/2);e.hp-=d;showEnemyDmg(d);P.nextAtkBonus=300;P.hp=Math.min(P.maxHp,(P.hp||0)+100);logText="💥 HP半分カット("+d+")+HP+100";}
+    else if(job.id==="cleaner"){const d=999;e.hp=Math.max(0,e.hp-d);showEnemyDmg(Math.min(d,e.maxHp));logText="💥 強制廃棄！999ダメージ！";logCls="bad";}
+  }
+  let enemyPhrase="";
+  let resultMsg=logText;
+  if(e.hp>0){
+    const eDmg=Math.max(1,e.atk-myDef);
+    P.hp=Math.max(0,(P.hp||0)-eDmg);
+    showHpFlash(-eDmg);
+    // 敵の攻撃セリフをランダム表示
+    if(e.phrases&&e.phrases.length){
+      enemyPhrase=e.phrases[Math.floor(Math.random()*e.phrases.length)];
+    }
+    resultMsg+="\n相手の反論：メンタル-"+eDmg+(enemyPhrase?"\n\n"+enemyPhrase:"");
+  }
+  updateHeader("battle");
+  if((P.hp||0)<=0){setTimeout(()=>triggerDeath(),300);return;}
+  if(e.hp<=0){
+    P.exp=(P.exp||0)+(e.expReward||0);
+    let lvMsg="";
+    // v6: レベルアップは役職別経験値テーブルで管理（簡略版：50×Lv）
+    while(P.exp>=(P.level||1)*50&&(P.level||1)<(curJob().maxLv||30)){
+      P.exp-=(P.level||1)*50;P.level++;
+      // レベルアップ時にポイント付与（per5 or per10）
+      const jobLvPer=curJob().lvPointPer||5;
+      P.pendingPoints=(P.pendingPoints||0)+jobLvPer;
+      lvMsg+="\n🌟 Lv."+P.level+"！ポイント+"+jobLvPer;
+    }
+    let payMsg="";
+    if(e.isBoss){P.payWallet=(P.payWallet||0)+(e.payReward||curJob().pay);payMsg="\n💰 月末給与 "+(e.payReward||curJob().pay)+"万円 獲得！";}
+    const isTrauma=e.isTrauma,isUraBoss=e.isUraBoss,isBoss=e.isBoss;
+    // 評価カード付与
+    const enemyKey=e.isBoss?(P.month||4)+"boss":e.isUraBoss?"ura":(e.name||"enemy"+Math.random());
+    const isFirstClear=!P.clearedEnemies[enemyKey];
+    let cardGain=0;
+    if(isBoss||isUraBoss){
+      // ボスは初回確定1枚（3月は10枚）
+      if(isFirstClear){
+        cardGain=(P.month===3)?10:isUraBoss?100:1;
+        P.clearedEnemies[enemyKey]=true;
+        S.evalCards+=cardGain;
+        saveS();
+      }
+    } else {
+      // 通常敵は1%でドロップ
+      if(Math.random()<0.01){
+        cardGain=1;
+        S.evalCards+=1;
+        saveS();
+      }
+    }
+    P.enemy=null;P.nextAtkBonus=0;
+    const cardMsg=cardGain>0?"\n評価カード+"+cardGain+"枚！":"";
+    const uraBonusMsg=isUraBoss&&isFirstClear?"\n【裏ボス】撃破！":"";
+    toast("論破！EXP+"+(e.expReward||0)+lvMsg+payMsg+cardMsg+uraBonusMsg,3500);
+    if(isTrauma) goHome();
+    else if(P.battleCtx==="street") navigateAfterScene("street");
+    else advancePhase();
+    P.battleCtx="field";
+    return;
+  }
+  // 戦闘継続：敵セリフをコメントボックスに表示
+  const scroll=document.getElementById("office-scroll");
+  if(scroll&&enemyPhrase){
+    scroll.innerHTML=`<span style="font-size:13px;line-height:1.7;color:var(--sub);">${logText}</span>\n<span style="font-size:15px;line-height:1.8;color:var(--red);">${enemyPhrase}</span>`;
+  } else if(scroll){
+    scroll.innerHTML=`<span style="font-size:13px;line-height:1.7;color:var(--sub);">${logText}</span>`;
+  }
+  renderBattle("");
+}
+
+// ============================================================
+// DEATH / CLEAR
+// ============================================================
+function triggerDeath(){
+  showScreen("go-screen");updateHeader("title");
+  P.inventory=[];
+  P.enemy=null;
+  P.battleLog=[];
+  sceneState=null;
+  P.clearedEnemies={};  // 撃破済み敵リセット（死亡で初回判定リセット）
+  var _enl=document.getElementById("enemy-name-label");
+  if(_enl) _enl.style.display="none";
+  var _edl=document.getElementById("enemy-dmg-label");
+  if(_edl) _edl.style.display="none";
+  var _ph3=document.getElementById("novel-img-placeholder");
+  if(_ph3){_ph3.style.display="";_ph3.innerText="🏢";}
+  // UIリセット
+  var _enl=document.getElementById("enemy-name-label");
+  if(_enl) _enl.style.display="none";
+  var _ph=document.getElementById("novel-img-placeholder");
+  if(_ph){_ph.style.display="";_ph.innerText="🏢";}
+  var _lbl=document.getElementById("novel-floor-label");
+  if(_lbl) _lbl.innerText="";
+  var _edl=document.getElementById("enemy-dmg-label");
+  if(_edl) _edl.style.display="none";
+  saveS();
+  curPhase=1;maxPhase=0;
+  document.getElementById("go-title").innerText="評価の時期が来た";
+  document.getElementById("go-title").style.color="var(--red)";
+  document.getElementById("go-panel").innerText="君のメンタルは完全に崩壊した。\n\n【ロスト】レベル・手荷物・給与ウォレット・フェーズ進行\n\n【引き継ぎ】クローゼットの資産のみ\n\n次の戦いに備えよ…";
+  document.getElementById("go-closet").innerHTML=S.closet.length===0
+    ?`<div style="color:var(--sub);font-size:12px;">空（何も引き継げなかった）</div>`
+    :S.closet.map(i=>`<div class="irow"><div class="irow-name">${i.name}</div><span class="badge b-green">引き継ぎ</span></div>`).join("");
+}
+function backToTitle(){renderTitle();}
+function oneYearClear(){
+  showScreen("go-screen");S.evalCards+=10;saveS();
+  document.getElementById("go-title").innerText="1年間のサバイバル完遂！";
+  document.getElementById("go-title").style.color="var(--green)";
+  document.getElementById("go-panel").innerText="魔界オフィスでの12ヶ月を生き抜いた！\n\n社内評価カード +10枚 獲得！";
+  document.getElementById("go-closet").innerHTML=`<div style="color:var(--green);font-weight:700;text-align:center;padding:12px;">1年サバイバル達成</div>`;
+}
+</script>
+</body>
+</html>
