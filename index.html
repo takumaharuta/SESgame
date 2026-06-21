@@ -1457,7 +1457,14 @@ function useItemFromDrawer(idx){
 // ============================================================
 // TITLE
 // ============================================================
-window.onload=function(){loadS();renderTitle();};
+window.onload=function(){loadS();preloadImages();renderTitle();};
+function preloadImages(){
+  // SCENE_IMAGESに登録された全画像をゲーム起動時に先読み
+  Object.values(SCENE_IMAGES).forEach(function(entry){
+    if(entry.bg){new Image().src=entry.bg;}
+    if(entry.chara){new Image().src=entry.chara;}
+  });
+}
 function renderTitle(){
   showScreen("title-screen");updateHeader("title");
   document.getElementById("eval-count").innerText=S.evalCards;
@@ -1968,9 +1975,10 @@ showScreen("office-screen");
   const cmds=document.getElementById("office-cmds");
   const lbl=document.getElementById("novel-floor-label");
   if(lbl&&f) lbl.innerText=(P.month||4)+"-"+curPhase+" "+f.name;
+  const ph=document.getElementById("novel-img-placeholder");
+  if(ph){ph.innerText=f?f.icon:"🏢";ph.style.display="";}
   const _el=document.getElementById("enemy-name-label");
   if(_el) _el.style.display="none";
-  updateImgArea((P.month||4)+"-"+curPhase, f?(f.icon||"🏢"):"🏢");
 
   // フロアの雰囲気テキスト
   const atmos=f?getFloorAtmos(P.month||4,curPhase):"";
