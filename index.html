@@ -1818,8 +1818,8 @@ showScreen("office-screen");
 
   // 画像エリア更新
   if(lbl) lbl.innerText=(P.month||4)+"-"+curPhase+" "+f.name;
-  if(ph){ph.innerText=f.icon||"🏢";ph.style.display="";}
   if(enemyLbl) enemyLbl.style.display="none";
+  updateImgArea((P.month||4)+"-"+curPhase, f.icon||"🏢");
 
   // 雰囲気テキスト（全フロアタイプで共通）
   const atmos=getFloorAtmos(P.month||4,curPhase);
