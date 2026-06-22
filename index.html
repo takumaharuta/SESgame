@@ -1281,7 +1281,7 @@ function getEnemy(key,month){
     ura_boss:         {name:"【裏ボス】深夜の路上カウンセラー",hp:9999,maxHp:9999,atk:200,expReward:5000,isUraBoss:true},
   };
   const base=E[key]||E.multi;
-  return{...base, key:key, phrases:ENEMY_PHRASES[key]||["「……。」"]};
+  return{...base, phrases:ENEMY_PHRASES[key]||["「……。」"]};
 }
 function getBoss(month){
   const BOSS_PHRASES={
@@ -1313,7 +1313,7 @@ function getBoss(month){
     3: {name:"魔界のグループ会長（最終ボス）",     hp:2000, atk:95, expReward:1500},
   };
   const b=B[month]||B[4];
-  return{name:b.name,hp:b.hp,maxHp:b.hp,atk:b.atk,expReward:b.expReward,isBoss:true,payReward:0,key:"boss"+(month||4),phrases:BOSS_PHRASES[month]||BOSS_PHRASES[4]};
+  return{name:b.name,hp:b.hp,maxHp:b.hp,atk:b.atk,expReward:b.expReward,isBoss:true,payReward:0,phrases:BOSS_PHRASES[month]||BOSS_PHRASES[4]};
 }
 
 // ============================================================
@@ -1903,7 +1903,7 @@ function openTreasure(){
 function exploreFloor(){
   if(!P.exploredPhases) P.exploredPhases={};
   P.exploredPhases[(P.month||4)+"-"+curPhase]=true;
-  if(curPhase>maxPhase) maxPhase=curPhase;
+  // maxPhaseはadvancePhase（next到達時）のみ更新する
   if((P.month||0)===6){
     const pen=Math.max(1,3-Math.floor((P.stm||0)/8));
     P.hp=Math.max(0,P.hp-pen);updateHeader("office");
@@ -2038,7 +2038,7 @@ function showFieldResult(text){
   });
   const _floors=getMonthFloors(P.month||4);
   const _hasNext=curPhase<_floors.length;
-  const _alreadyCleared=curPhase<=maxPhase;
+  const _alreadyCleared=curPhase<maxPhase; // nextを引いて次フェーズに進んだことがある場合のみ
   const _btns=[];
   if(_hasNext&&_alreadyCleared) _btns.push({label:"次へ進む →",fn:"advancePhase()"});
   _btns.push({label:"もう一度探索",fn:"exploreFloor()"});
@@ -3779,33 +3779,11 @@ function renderBattle(msg){
   const cmds=document.getElementById("office-cmds");
   // 敵名を色で残量表現（100%→白、50%以下→黄、20%以下→赤）
   const eHpPct=Math.max(0,e.hp/e.maxHp*100);
-  // フロアラベル＆画像更新（背景はフロアのまま、キャラだけ敵キーから取得）
+  // フロアラベル
   const lbl2=document.getElementById("novel-floor-label");
   if(lbl2) lbl2.innerText="戦闘中";
-  // 背景: 現在のフロア画像をそのまま維持しつつキャラを切り替え
-  const battleBgKey=(P.month||4)+"-"+curPhase;
-  const battleBgEntry=SCENE_IMAGES[battleBgKey]||{};
-  const enemyEntry=SCENE_IMAGES[e.key||""]||{};
-  // bgは現フロア画像、charaは敵キーから取得
-  const battleBg=battleBgEntry.bg||null;
-  const battleChara=enemyEntry.chara||null;
-  const area=document.getElementById("novel-img-area");
   const ph2=document.getElementById("novel-img-placeholder");
-  if(area){
-    if(battleBg){
-      area.style.backgroundImage="url('"+battleBg+"')";
-      area.style.backgroundSize="cover";
-      area.style.backgroundPosition="center";
-      if(ph2) ph2.style.display="none";
-    } else {
-      if(ph2) ph2.style.display="";
-    }
-  }
-  const charaEl=document.getElementById("chara-img");
-  if(charaEl){
-    if(battleChara){charaEl.src=battleChara;charaEl.style.display="block";}
-    else{charaEl.style.display="none";charaEl.src="";}
-  }
+  if(ph2) ph2.style.display="none";
   // 敵名ラベル：残量で色変え（白→黄→赤）
   const enemyLbl=document.getElementById("enemy-name-label");
   if(enemyLbl){
