@@ -1816,7 +1816,7 @@ showScreen("office-screen");
   const floors=getMonthFloors(P.month||4);
   const f=floors[curPhase-1];
   if(!f){return;}
-  const alreadyCleared=curPhase<=maxPhase;
+  const alreadyCleared=curPhase<maxPhase; // nextを引いて次フェーズに進んだ時のみtrue
   const scroll=document.getElementById("office-scroll");
   const cmds=document.getElementById("office-cmds");
   const lbl=document.getElementById("novel-floor-label");
@@ -1968,7 +1968,7 @@ showScreen("office-screen");
   updateHeader("office");
   const floors=getMonthFloors(P.month||4);
   const f=floors[curPhase-1];
-  const alreadyCleared=curPhase<=maxPhase;
+  const alreadyCleared=curPhase<maxPhase; // nextを引いて次フェーズに進んだ時のみtrue
   const isBossFloor=f&&f.type==="boss";
   const isEnemyFloor=f&&f.type==="enemy";
   const scroll=document.getElementById("office-scroll");
