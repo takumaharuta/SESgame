@@ -325,15 +325,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
   <div id="novel-img-area" style="flex:1;min-height:0;position:relative;background:var(--bg);overflow:visible;">
     <!-- フェーズ表示（画像エリア左上のみ） -->
     <div id="enemy-dmg-label" style="display:none;position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);font-size:44px;font-weight:900;color:#ff4444;opacity:0;pointer-events:none;z-index:10;text-shadow:0 2px 12px #ff0000;"></div>
-    <div id="novel-floor-label" style="position:absolute;top:10px;left:12px;font-size:16px;font-weight:700;color:var(--orange);background:rgba(0,0,0,0.72);padding:5px 12px;border-radius:6px;z-index:3;letter-spacing:0.5px;"></div>
+    <div id="novel-floor-label" style="position:absolute;top:10px;left:12px;font-size:16px;font-weight:700;color:var(--orange);background:rgba(0,0,0,0.72);padding:5px 12px;border-radius:6px;z-index:9;letter-spacing:0.5px;"></div>
     <!-- 背景プレースホルダー -->
     <div id="novel-img-placeholder" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:52px;opacity:0.10;">🏢</div>
     <!-- キャラクター画像（背景の上に重ねて表示）-->
-    <img id="chara-img" style="display:none;position:absolute;bottom:0;left:50%;transform:translateX(-50%);max-height:85%;max-width:55%;object-fit:contain;z-index:2;pointer-events:none;filter:drop-shadow(0 4px 16px rgba(0,0,0,0.7));">
+    <img id="chara-img" style="display:none;position:absolute;bottom:0;left:8px;max-height:92%;max-width:54%;object-fit:contain;z-index:6;pointer-events:none;filter:drop-shadow(0 4px 18px rgba(0,0,0,0.85));">
     <!-- 敵名（戦闘中のみ） -->
-    <div id="enemy-name-label" style="display:none;position:absolute;top:36px;left:10px;right:10px;text-align:center;font-size:15px;font-weight:900;color:#f0f0f0;padding:5px 10px;border-radius:8px;background:rgba(0,0,0,0.72);z-index:3;transition:color 0.4s;"></div>
+    <div id="enemy-name-label" style="display:none;position:absolute;top:36px;left:10px;right:10px;text-align:center;font-size:15px;font-weight:900;color:#f0f0f0;padding:5px 10px;border-radius:8px;background:rgba(0,0,0,0.72);z-index:8;transition:color 0.4s;"></div>
     <!-- ボタンオーバーレイ（画像右側） -->
-    <div id="office-cmds" style="position:absolute;top:0;right:0;bottom:0;width:140px;display:flex;flex-direction:column;gap:7px;z-index:4;justify-content:center;overflow-y:auto;padding:10px 8px;background:rgba(7,9,18,0.7);"></div>
+    <div id="office-cmds" style="position:absolute;top:0;right:0;bottom:0;width:140px;display:flex;flex-direction:column;gap:7px;z-index:7;justify-content:center;overflow-y:auto;padding:10px 8px;background:rgba(7,9,18,0.7);"></div>
   </div>
   <!-- メッセージボックス（固定・スタイル統一） -->
   <div style="flex-shrink:0;background:#0d1120;border-top:1px solid #1e2d45;">
@@ -2209,8 +2209,8 @@ const SCENE_IMAGES={
   "2-1":  { bg:"https://takumaharuta.github.io/SESgame/images/train.jpg" },
   "3-1":  { bg:"https://takumaharuta.github.io/SESgame/images/train.jpg" },
 
-  // --- 敵キャラクター（戦闘開始時に表示）---
-  "multi": { chara:"https://takumaharuta.github.io/SESgame/images/chara_multi.png" },
+  // --- シーンイベント（キャラ画像も設定可）---
+  // "chikan": { bg:"https://...", chara:"https://..." },
 };
 
 // 画像エリアを更新（画像があれば表示、なければプレースホルダー）
