@@ -1281,7 +1281,7 @@ function getEnemy(key,month){
     ura_boss:         {name:"【裏ボス】深夜の路上カウンセラー",hp:9999,maxHp:9999,atk:200,expReward:5000,isUraBoss:true},
   };
   const base=E[key]||E.multi;
-  return{...base, phrases:ENEMY_PHRASES[key]||["「……。」"]};
+  return{...base, key:key, phrases:ENEMY_PHRASES[key]||["「……。」"]};
 }
 function getBoss(month){
   const BOSS_PHRASES={
@@ -2209,8 +2209,8 @@ const SCENE_IMAGES={
   "2-1":  { bg:"https://takumaharuta.github.io/SESgame/images/train.jpg" },
   "3-1":  { bg:"https://takumaharuta.github.io/SESgame/images/train.jpg" },
 
-  // --- シーンイベント（キャラ画像も設定可）---
-  // "chikan": { bg:"https://...", chara:"https://..." },
+  // --- 敵キャラクター（戦闘開始時に表示）---
+  "multi": { chara:"https://takumaharuta.github.io/SESgame/images/chara_multi.png" },
 };
 
 // 画像エリアを更新（画像があれば表示、なければプレースホルダー）
@@ -3784,6 +3784,22 @@ function renderBattle(msg){
   if(lbl2) lbl2.innerText="戦闘中";
   const ph2=document.getElementById("novel-img-placeholder");
   if(ph2) ph2.style.display="none";
+  // 背景はフロア画像キープ、キャラは敵キーから取得して表示
+  (function(){
+    const bgEntry=SCENE_IMAGES[(P.month||4)+"-"+curPhase]||{};
+    const charaEntry=SCENE_IMAGES[e.key||""]||{};
+    const area=document.getElementById("novel-img-area");
+    if(area&&bgEntry.bg){
+      area.style.backgroundImage="url('"+bgEntry.bg+"')";
+      area.style.backgroundSize="cover";
+      area.style.backgroundPosition="center";
+    }
+    const charaEl=document.getElementById("chara-img");
+    if(charaEl){
+      if(charaEntry.chara){charaEl.src=charaEntry.chara;charaEl.style.display="block";}
+      else{charaEl.style.display="none";charaEl.src="";}
+    }
+  })();
   // 敵名ラベル：残量で色変え（白→黄→赤）
   const enemyLbl=document.getElementById("enemy-name-label");
   if(enemyLbl){
