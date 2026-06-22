@@ -2107,8 +2107,8 @@ function monthClearGoHome(){
   }
 }
 function advancePhase(){
-  if(curPhase>maxPhase)maxPhase=curPhase;
   curPhase++;
+  if(curPhase>maxPhase)maxPhase=curPhase; // curPhase++後に更新→「到達済み最大フェーズ」が正しく記録される
   if(curPhase>getMonthFloors(P.month||4).length){nextMonth();return;}
   showFieldExploreMenu();
 }
