@@ -3595,34 +3595,26 @@ function renderSceneUI(){
   const cmds=document.getElementById("office-cmds");
   const st=sceneState.steps[sceneState.idx];
 
+  // フロアラベル: 背景はフロア画像を維持（シーンが発生しても変えない）
   const lbl=document.getElementById("novel-floor-label");
   if(sceneState.ctx==="street"){
     if(lbl) lbl.innerText="街";
-    const sk=sceneState.sceneKey||"street";
-    updateImgArea(SCENE_IMAGES[sk]?(sk):"street","🏙️");
-    // シーンキーにcharaがあれば表示
-    (function(){
-      const el=document.getElementById("chara-img");
-      if(!el) return;
-      const url=(SCENE_IMAGES[sceneState.sceneKey||""]||{}).chara||null;
-      if(url){el.src=url;el.style.display="block";}
-      else{el.style.display="none";el.src="";}
-    })();
+    updateImgArea("street","🏙️");
   } else {
     const floors=getMonthFloors(P.month||4);
     const _f=floors[curPhase-1];
     if(lbl&&_f) lbl.innerText=(P.month||4)+"-"+curPhase+" "+_f.name;
-    const sk=sceneState.sceneKey||(P.month||4)+"-"+curPhase;
-    updateImgArea(SCENE_IMAGES[sk]?sk:(P.month||4)+"-"+curPhase, _f?(_f.icon||"🏢"):"🏢");
-    // シーンキーにcharaがあれば表示
-    (function(){
-      const el=document.getElementById("chara-img");
-      if(!el) return;
-      const url=(SCENE_IMAGES[sceneState.sceneKey||""]||{}).chara||null;
-      if(url){el.src=url;el.style.display="block";}
-      else{el.style.display="none";el.src="";}
-    })();
+    updateImgArea((P.month||4)+"-"+curPhase, _f?(_f.icon||"🏢"):"🏢");
   }
+
+  // キャラクター: シーンキーにcharaがあれば表示、なければ非表示
+  (function(){
+    const el=document.getElementById("chara-img");
+    if(!el) return;
+    const url=(SCENE_IMAGES[sceneState.sceneKey||""]||{}).chara||null;
+    if(url){el.src=url;el.style.display="block";}
+    else{el.style.display="none";el.src="";}
+  })();
 
   // テキスト表示（cステップの場合は直前のn/dを表示）
   if(st.t==="n"){
@@ -3630,7 +3622,6 @@ function renderSceneUI(){
   } else if(st.t==="d"){
     scroll.innerHTML=`<span class="novel-speaker" style="font-size:11px;font-weight:700;color:var(--orange);display:block;margin-bottom:4px;animation:fadeIn 0.25s ease-out;">${st.sp}</span><span style="font-size:15px;line-height:1.8;">${st.tx}</span>`;
   } else if(st.t==="c"){
-    // 直前のステップのテキストを探して表示
     let prevTx="";
     for(let pi=sceneState.idx-1;pi>=0;pi--){
       const ps=sceneState.steps[pi];
@@ -3644,7 +3635,7 @@ function renderSceneUI(){
   }
 
   // ボタン制御
-  scroll.onclick=null; // 常にクリア
+  scroll.onclick=null;
   if(st.t==="n"||st.t==="d"){
     const btnLabel=st.btn||"";
     if(btnLabel==="EXPLORE"){
@@ -3653,12 +3644,10 @@ function renderSceneUI(){
         {label:"帰宅する",    fn:"sceneAdvanceToHome()"}
       ]);
     } else {
-      // 通常テキスト: btn値をボタンラベルに使用
       const displayLabel = (btnLabel && btnLabel !== "" && btnLabel !== "…") ? btnLabel : "……";
       cmds.innerHTML=renderSideBtns([{label:displayLabel, fn:"sceneAdvance()"}]);
     }
   } else if(st.t==="c"){
-    // 選択肢
     cmds.innerHTML=renderSideBtns(
       st.choices.map((ch,ci)=>({label:ch.label, fn:"sceneChoose("+ci+")"}))
     );
