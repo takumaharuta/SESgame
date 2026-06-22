@@ -1281,7 +1281,7 @@ function getEnemy(key,month){
     ura_boss:         {name:"【裏ボス】深夜の路上カウンセラー",hp:9999,maxHp:9999,atk:200,expReward:5000,isUraBoss:true},
   };
   const base=E[key]||E.multi;
-  return{...base, phrases:ENEMY_PHRASES[key]||["「……。」"]};
+  return{...base, key:key, phrases:ENEMY_PHRASES[key]||["「……。」"]};
 }
 function getBoss(month){
   const BOSS_PHRASES={
@@ -1313,7 +1313,7 @@ function getBoss(month){
     3: {name:"魔界のグループ会長（最終ボス）",     hp:2000, atk:95, expReward:1500},
   };
   const b=B[month]||B[4];
-  return{name:b.name,hp:b.hp,maxHp:b.hp,atk:b.atk,expReward:b.expReward,isBoss:true,payReward:0,phrases:BOSS_PHRASES[month]||BOSS_PHRASES[4]};
+  return{name:b.name,hp:b.hp,maxHp:b.hp,atk:b.atk,expReward:b.expReward,isBoss:true,payReward:0,key:"boss"+(month||4),phrases:BOSS_PHRASES[month]||BOSS_PHRASES[4]};
 }
 
 // ============================================================
@@ -3779,11 +3779,33 @@ function renderBattle(msg){
   const cmds=document.getElementById("office-cmds");
   // 敵名を色で残量表現（100%→白、50%以下→黄、20%以下→赤）
   const eHpPct=Math.max(0,e.hp/e.maxHp*100);
-  // フロアラベル
+  // フロアラベル＆画像更新（背景はフロアのまま、キャラだけ敵キーから取得）
   const lbl2=document.getElementById("novel-floor-label");
   if(lbl2) lbl2.innerText="戦闘中";
+  // 背景: 現在のフロア画像をそのまま維持しつつキャラを切り替え
+  const battleBgKey=(P.month||4)+"-"+curPhase;
+  const battleBgEntry=SCENE_IMAGES[battleBgKey]||{};
+  const enemyEntry=SCENE_IMAGES[e.key||""]||{};
+  // bgは現フロア画像、charaは敵キーから取得
+  const battleBg=battleBgEntry.bg||null;
+  const battleChara=enemyEntry.chara||null;
+  const area=document.getElementById("novel-img-area");
   const ph2=document.getElementById("novel-img-placeholder");
-  if(ph2) ph2.style.display="none";
+  if(area){
+    if(battleBg){
+      area.style.backgroundImage="url('"+battleBg+"')";
+      area.style.backgroundSize="cover";
+      area.style.backgroundPosition="center";
+      if(ph2) ph2.style.display="none";
+    } else {
+      if(ph2) ph2.style.display="";
+    }
+  }
+  const charaEl=document.getElementById("chara-img");
+  if(charaEl){
+    if(battleChara){charaEl.src=battleChara;charaEl.style.display="block";}
+    else{charaEl.style.display="none";charaEl.src="";}
+  }
   // 敵名ラベル：残量で色変え（白→黄→赤）
   const enemyLbl=document.getElementById("enemy-name-label");
   if(enemyLbl){
