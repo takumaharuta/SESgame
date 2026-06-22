@@ -3599,12 +3599,28 @@ function renderSceneUI(){
     if(lbl) lbl.innerText="街";
     const sk=sceneState.sceneKey||"street";
     updateImgArea(SCENE_IMAGES[sk]?(sk):"street","🏙️");
+    // シーンキーにcharaがあれば表示
+    (function(){
+      const el=document.getElementById("chara-img");
+      if(!el) return;
+      const url=(SCENE_IMAGES[sceneState.sceneKey||""]||{}).chara||null;
+      if(url){el.src=url;el.style.display="block";}
+      else{el.style.display="none";el.src="";}
+    })();
   } else {
     const floors=getMonthFloors(P.month||4);
     const _f=floors[curPhase-1];
     if(lbl&&_f) lbl.innerText=(P.month||4)+"-"+curPhase+" "+_f.name;
     const sk=sceneState.sceneKey||(P.month||4)+"-"+curPhase;
     updateImgArea(SCENE_IMAGES[sk]?sk:(P.month||4)+"-"+curPhase, _f?(_f.icon||"🏢"):"🏢");
+    // シーンキーにcharaがあれば表示
+    (function(){
+      const el=document.getElementById("chara-img");
+      if(!el) return;
+      const url=(SCENE_IMAGES[sceneState.sceneKey||""]||{}).chara||null;
+      if(url){el.src=url;el.style.display="block";}
+      else{el.style.display="none";el.src="";}
+    })();
   }
 
   // テキスト表示（cステップの場合は直前のn/dを表示）
