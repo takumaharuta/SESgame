@@ -1730,6 +1730,7 @@ function showStreetResult(text){
 
 // シーン終了後・探索後の遷移を一元管理
 function navigateAfterScene(ctx){
+  playSE("endure"); // シナリオ終了 = 耐えた
   if(ctx==="street"){
     // 街に戻る
     showScreen("office-screen");
@@ -1985,7 +1986,7 @@ function handleFieldEvent(ev){
     if(it){P.inventory.push({...it});showFieldResult(ev.text||"");}
     return;
   }
-  if(ev.type==="scene"){startScene(ev.key,()=>navigateAfterScene("field"),"field");return;}
+  if(ev.type==="scene"){playSE("scene_start");startScene(ev.key,()=>navigateAfterScene("field"),"field");return;}
   if(ev.type==="sendol_gift"){
     if(P.gotSendolGift){exploreFloor();return;}
     P.gotSendolGift=true;
@@ -2096,6 +2097,7 @@ function goBack(){
   }
 }
 function showMonthClear(enemy){
+  playSE("stage_clear");
   showScreen("office-screen");
   updateHeader("office");
   const month=P.month||4;
@@ -2229,11 +2231,13 @@ function getCardReward(enemy){
 // 使い方: コメントを外してURLを入れるだけ
 // ============================================================
 const SE_SOUNDS={
-  // "damage":       "https://takumaharuta.github.io/SESgame/sounds/damage.mp3",
-  // "endure":       "https://takumaharuta.github.io/SESgame/sounds/endure.mp3",
-  // "battle_start": "https://takumaharuta.github.io/SESgame/sounds/battle_start.mp3",
-  // "treasure":     "https://takumaharuta.github.io/SESgame/sounds/treasure.mp3",
-  // "levelup":      "https://takumaharuta.github.io/SESgame/sounds/levelup.mp3",
+  // "scene_start":  "https://takumaharuta.github.io/SESgame/sounds/scene_start.mp3",  // シーン開始
+  // "damage":       "https://takumaharuta.github.io/SESgame/sounds/damage.mp3",       // ダメージ
+  // "endure":       "https://takumaharuta.github.io/SESgame/sounds/endure.mp3",       // 耐えた
+  // "battle_start": "https://takumaharuta.github.io/SESgame/sounds/battle_start.mp3", // 戦闘開始
+  // "treasure":     "https://takumaharuta.github.io/SESgame/sounds/treasure.mp3",     // 宝箱発見
+  // "stage_clear":  "https://takumaharuta.github.io/SESgame/sounds/stage_clear.mp3",  // ステージクリア
+  // "levelup":      "https://takumaharuta.github.io/SESgame/sounds/levelup.mp3",      // レベルアップ
 };
 function playSE(key){
   const url=SE_SOUNDS[key];
