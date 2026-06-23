@@ -963,7 +963,8 @@ function buildEventTable(month,phase){
     const p4={
       4: [ // 廊下（宝箱フロア）
         {w:20,type:"next"},
-        {w:20,type:"next"},
+        {w:25,type:"treasure"},
+        {w:15,type:"next"},
         {w:20,type:"flavor",text:"人が多い。目的の部屋まで辿り着けるだろうか。"},
         {w:20,type:"damage",val:10,text:"知らない先輩に呼び止められて説教された。理由は教えてもらえなかった。"},
         {w:20,type:"scene",key:"kyuto_room"},
@@ -1845,12 +1846,13 @@ showScreen("office-screen");
       :renderSideBtns([{label:"ボスに立ち向かう",fn:"enterBossFloor()"},{label:"← 戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}]);
     // phase1はなし（ボスは7なので常に戻るあり）
   } else if(f.type==="treasure"){
+    // 宝箱フロアも通常と同じく探索ボタンを表示（宝箱は探索で発見）
     const tKey=(P.month||4)+"-"+curPhase;
-    const opened=!!(P.exploredPhases&&P.exploredPhases[tKey]);
-    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${atmos}\n\n${opened?"（宝箱はすでに開けた）":"何やら宝箱が見える。自分にだけ見えているようだ。"}</span>`;
+    const treasureOpened=!!(P.exploredPhases&&P.exploredPhases[tKey+"_treasure"]);
+    const atmosText=treasureOpened?atmos+"\n\n（宝箱はすでに開けた）":atmos;
+    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${atmosText}</span>`;
     const treasureBtns=[];
     if(alreadyCleared) treasureBtns.push({label:"次へ進む →",fn:"passPhase()"});
-    if(!opened) treasureBtns.push({label:"宝箱を開ける",fn:"openTreasure()"});
     treasureBtns.push({label:"探索する",fn:"exploreFloor()"});
     if(curPhase>1) treasureBtns.push({label:"← 戻る",fn:"goBack()"});
     treasureBtns.push({label:"帰宅する",fn:"goHome()"});
@@ -1881,13 +1883,21 @@ function passPhase(){
   if(curPhase>getMonthFloors(P.month||4).length){nextMonth();return;}
   showFieldExploreMenu();
 }
+function showTreasureFound(){
+  showScreen("office-screen");
+  updateHeader("office");
+  const scroll=document.getElementById("office-scroll");
+  const cmds=document.getElementById("office-cmds");
+  scroll.innerHTML=`<span style="font-size:15px;line-height:1.9;animation:fadeIn 0.3s;">廊下の隅に、見慣れない箱が置いてある。\n\n誰かが忘れていったのか、それとも自分だけに見えているのか。\n\n📦 宝箱を発見した！</span>`;
+  cmds.innerHTML=renderSideBtns([
+    {label:"宝箱を開ける 📦", fn:"openTreasure()"},
+    {label:"無視して進む",    fn:"showFieldExploreMenu()"},
+  ]);
+}
 function openTreasure(){
-  const f=getMonthFloors(P.month||4)[curPhase-1];
-  if(!f||f.type!=="treasure")return;
   const tKey=(P.month||4)+"-"+curPhase;
   if(!P.exploredPhases)P.exploredPhases={};
-  if(P.exploredPhases[tKey]){showFieldExploreMenu();return;}
-  P.exploredPhases[tKey]=true;
+  P.exploredPhases[tKey+"_treasure"]=true;
   const item=TREASURE_ITEMS[tKey];
   const scroll=document.getElementById("office-scroll");
   const cmds=document.getElementById("office-cmds");
@@ -1898,7 +1908,11 @@ function openTreasure(){
   } else {
     scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">宝箱を開けた……\n\n中には何も入っていなかった。\nでも少しだけ気持ちが楽になった気がした。</span>`;
   }
-  cmds.innerHTML=renderSideBtns([{label:"次へ進む →",fn:"passPhase()"},{label:"← 戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}]);
+  cmds.innerHTML=renderSideBtns([
+    {label:"引き続き探索する", fn:"showFieldExploreMenu()"},
+    {label:"次へ進む →",      fn:"passPhase()"},
+    {label:"帰宅する",        fn:"goHome()"},
+  ]);
 }
 function exploreFloor(){
   if(!P.exploredPhases) P.exploredPhases={};
@@ -1915,8 +1929,18 @@ function exploreFloor(){
 }
 
 function handleFieldEvent(ev){
-  if(ev.type==="next"){
-    advancePhase();return;
+  if(ev.type==="next"){advancePhase();return;}
+  if(ev.type==="treasure"){
+    const tKey=(P.month||4)+"-"+curPhase;
+    const opened=!!(P.exploredPhases&&P.exploredPhases[tKey+"_treasure"]);
+    if(opened){
+      const table=buildEventTable(P.month||4,curPhase).filter(e=>e.type!=="treasure");
+      const ev2=weightedRandom(table);
+      handleFieldEvent(ev2);
+      return;
+    }
+    showTreasureFound();
+    return;
   }
   if(ev.type==="flavor"){
     showFieldResult(ev.text||"");return;
