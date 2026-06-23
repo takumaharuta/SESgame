@@ -2013,11 +2013,10 @@ showScreen("office-screen");
       :renderSideBtns([{label:"ボスに立ち向かう",fn:"enterBossFloor()"},{label:"← 戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}]);
   } else if(f&&f.type==="treasure"){
     const tKey2=(P.month||4)+"-"+curPhase;
-    const opened2=!!(P.exploredPhases&&P.exploredPhases[tKey2]);
-    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${atmos}\n\n${opened2?"（宝箱はすでに開けた）":"何やら宝箱が見える。自分にだけ見えているようだ。"}</span>`;
+    const opened2=!!(P.exploredPhases&&P.exploredPhases[tKey2+"_treasure"]);
+    scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${atmos}${opened2?"\n\n（宝箱はすでに開けた）":""}</span>`;
     const tBtns=[];
     if(alreadyCleared) tBtns.push({label:"次へ進む →",fn:"passPhase()"});
-    if(!opened2) tBtns.push({label:"宝箱を開ける",fn:"openTreasure()"});
     tBtns.push({label:"探索する",fn:"exploreFloor()"});
     if(curPhase>1) tBtns.push({label:"← 戻る",fn:"goBack()"});
     tBtns.push({label:"帰宅する",fn:"goHome()"});
