@@ -1801,7 +1801,11 @@ function showIntrospection(){
   document.getElementById("shop-cmds").innerHTML=`<button class="btn btn-secondary" onclick="goHome()">← やめておく</button>`;
 }
 function startIntrospectionBattle(name,hp,atk,exp){
-  P.enemy={name:name,hp:hp,maxHp:hp,atk:atk,expReward:exp,isTrauma:true};
+  // nameからキーを生成（SCENE_IMAGESのキーと対応）
+  // 例: "初月の残業幻影" → "trauma_1" のようなキーを設定
+  // シンプルにnameをそのままkeyとして使い、SCENE_IMAGESにも同名で登録できる
+  const introKey="introspection_"+name.replace(/\s/g,"_");
+  P.enemy={name:name,hp:hp,maxHp:hp,atk:atk,expReward:exp,isTrauma:true,key:introKey};
   P.battleLog=[];P.battleCtx="home";
   showScreen("office-screen");renderBattle(name+"と向き合う。");
 }
@@ -1888,6 +1892,7 @@ function showTreasureFound(){
   updateHeader("office");
   const scroll=document.getElementById("office-scroll");
   const cmds=document.getElementById("office-cmds");
+  playSE("treasure");
   scroll.innerHTML=`<span style="font-size:15px;line-height:1.9;animation:fadeIn 0.3s;">廊下の隅に、見慣れない箱が置いてある。\n\n誰かが忘れていったのか、それとも自分だけに見えているのか。\n\n📦 宝箱を発見した！</span>`;
   cmds.innerHTML=renderSideBtns([
     {label:"宝箱を開ける 📦", fn:"openTreasure()"},
@@ -1957,6 +1962,7 @@ function handleFieldEvent(ev){
     }
     const val=ev.val||0;
     P.hp=Math.max(0,P.hp-val);
+    if(val>0) playSE("damage");
     updateHeader("office");
     showHpFlash(-val);
     if(P.hp<=0){triggerDeath();return;}
@@ -2158,6 +2164,7 @@ function enterEnemyFloor(){
   const enemy=getEnemy(key,P.month||4);
   P.enemy=enemy;P.battleCtx="field";
   clearBattleEnemyBlock();
+  playSE("battle_start");
   renderBattle(""+enemy.name+"が現れた！");
 }
 function enterBossFloor(){
@@ -2211,6 +2218,32 @@ function getCardReward(enemy){
 
 // 画像差し込みマップ（後から画像URLを設定する）
 // キー: シーンkey or フェーズ識別子 (例: "4-1", "chikan", "home")
+// ============================================================
+// 🔊 SE_SOUNDS — 効果音URLをここに設定するだけで反映されます
+// キー一覧:
+//   "damage"  → ダメージを受けた時
+//   "endure"  → ダメージなしで耐えた時（シナリオをクリア）
+//   "battle_start" → 戦闘開始時
+//   "treasure"     → 宝箱発見時
+//   "levelup"      → レベルアップ時
+// 使い方: コメントを外してURLを入れるだけ
+// ============================================================
+const SE_SOUNDS={
+  // "damage":       "https://takumaharuta.github.io/SESgame/sounds/damage.mp3",
+  // "endure":       "https://takumaharuta.github.io/SESgame/sounds/endure.mp3",
+  // "battle_start": "https://takumaharuta.github.io/SESgame/sounds/battle_start.mp3",
+  // "treasure":     "https://takumaharuta.github.io/SESgame/sounds/treasure.mp3",
+  // "levelup":      "https://takumaharuta.github.io/SESgame/sounds/levelup.mp3",
+};
+function playSE(key){
+  const url=SE_SOUNDS[key];
+  if(!url) return;
+  try{
+    const audio=new Audio(url);
+    audio.volume=0.7;
+    audio.play().catch(()=>{});
+  }catch(e){}
+}
 // ============================================================
 // 🖼️ SCENE_IMAGES — ここにURLを入れるだけで画像が反映されます
 // 各キーに { bg:"背景URL", chara:"キャラURL" } を設定
@@ -3912,6 +3945,7 @@ function doBattle(type){
   if(e.hp>0){
     const eDmg=Math.max(1,e.atk-myDef);
     P.hp=Math.max(0,(P.hp||0)-eDmg);
+    if(eDmg>0) playSE("damage");
     showHpFlash(-eDmg);
     // 敵の攻撃セリフをランダム表示
     if(e.phrases&&e.phrases.length){
