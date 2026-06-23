@@ -1924,7 +1924,7 @@ function exploreFloor(){
     if(P.hp<=0){triggerDeath();return;}
   }
   let table=buildEventTable(P.month||4,curPhase);
-  // 次へ進むボタンが既に出ている場合はnextを除外（探索でうっかり次に進まないように）
+  // 次へ進むボタンが既に出ている場合はnextを除外
   if(curPhase<maxPhase){
     table=table.filter(e=>e.type!=="next");
   }
