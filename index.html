@@ -243,7 +243,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 .drawer-inv-scroll::-webkit-scrollbar{width:3px;}
 .drawer-inv-scroll::-webkit-scrollbar-thumb{background:#1e2d45;border-radius:2px;}
 
-
 /* DICE MODAL */
 #dice-modal{position:absolute;inset:0;background:rgba(0,0,0,0.88);z-index:100;display:none;flex-direction:column;justify-content:center;align-items:center;padding:20px;}
 #dice-modal.active{display:flex;}
@@ -693,7 +692,6 @@ function getFloorAtmos(month,phase){
 // choiceは choices:[{label, steps:[...]}]
 // effectはゲーム効果だけ
 
-
 // 物思いにふける：月ごとにアンロックされる敵
 function getIntrospectionEnemies(month){
   const all=[
@@ -730,7 +728,7 @@ function startSceneWithMonth(key, afterFn, ctx, month){
   // 月ごとにダメージ値を動的に上書きしたSCENESを使う
   const def=SCENES[key];
   if(!def){if(afterFn)afterFn();return;}
-  const dmg=getMonthDmg(month||P.month||4);
+  const dmg=getMonthDmg(month||curM());
   // ディープコピーしてダメージ値を置換
   const patched=JSON.parse(JSON.stringify(def));
   function patchSteps(steps){
@@ -1322,6 +1320,7 @@ function getBoss(month){
 // ============================================================
 let S={evalCards:0,unlockedJobs:["intern"],selectedJobId:"intern",closet:[]};
 let _battleLock=false;
+const curM=()=>P.month||4; // P.month||4のヘルパー
 let P={};
 let curPhase=1;
 let maxPhase=0;
@@ -1640,7 +1639,7 @@ function goHome(){
   const scroll=document.getElementById("office-scroll");
   const cmds=document.getElementById("office-cmds");
   const msgs=["ドアの外は魔界。この部屋の中だけが唯一の安全地帯……のはずだ。","ベッドに倒れ込む。天井のシミが今日も変わらずある。","静かだ。会社の怒号が耳鳴りのように残っている。","冷蔵庫を開けた。昨日の残りのご飯があった。","窓の外は夜だった。自分がいなくても街は動いている。"];
-  scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${msgs[(P.month||4)%msgs.length]}</span>`;
+  scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${msgs[(curM())%msgs.length]}</span>`;
   cmds.innerHTML=renderSideBtns([
     {label:"オフィスへ向かう",fn:"goToOffice()"},
     {label:"街に繰り出す",fn:"goToStreet()"},
@@ -1662,8 +1661,7 @@ function takeNap(){
 // STREET
 // ============================================================
 function goToStreet(){
-  showScreen("office-screen");
-  updateHeader("street");
+  showOffice("street");
   const lbl=document.getElementById("novel-floor-label");
   if(lbl) lbl.innerText="街";
   updateImgArea("street","🏙️");
@@ -1714,8 +1712,7 @@ function doStreetExplore(){
 }
 
 function showStreetResult(text){
-  showScreen("office-screen");
-  updateHeader("street");
+  showOffice("street");
   const lbl=document.getElementById("novel-floor-label");
   if(lbl) lbl.innerText="街";
   updateImgArea("street","🏙️");
@@ -1751,7 +1748,6 @@ function navigateAfterScene(ctx){
 showFieldExploreMenu();
   }
 }
-
 
 // doStreetExplore (removed duplicate)
 
@@ -1792,7 +1788,7 @@ function closetToInv(idx){const it=S.closet.splice(idx,1)[0];P.inventory.push(it
 function showIntrospection(){
   showScreen("shop-screen");updateHeader("home");
   updateImgArea("introspection","🧘");
-  const enemies=getIntrospectionEnemies(P.month||4);
+  const enemies=getIntrospectionEnemies(curM());
   const btns=enemies.map(e=>`<button class="btn btn-danger" onclick="startIntrospectionBattle('${e.name}',${e.hp},${e.atk},${e.expReward})" style="min-height:44px;padding:9px 12px;margin-bottom:8px;">${e.name}<span class="btn-sub">HP:${e.hp} / ATK:${e.atk}</span></button>`).join("");
   document.getElementById("shop-scroll").innerHTML=`
     <div style="font-size:17px;font-weight:900;margin-bottom:10px;">物思いにふける</div>
@@ -1805,7 +1801,7 @@ function startIntrospectionBattle(name,hp,atk,exp){
   // nameからキーを生成（SCENE_IMAGESのキーと対応）
   // 例: "初月の残業幻影" → "trauma_1" のようなキーを設定
   // シンプルにnameをそのままkeyとして使い、SCENE_IMAGESにも同名で登録できる
-  const introKey="introspection_"+name.replace(/\s/g,"_");
+  const introKey="introspection_"+name.replace(/ /g,"_");
   P.enemy={name:name,hp:hp,maxHp:hp,atk:atk,expReward:exp,isTrauma:true,key:introKey};
   P.battleLog=[];P.battleCtx="home";
   showScreen("office-screen");renderBattle(name+"と向き合う。");
@@ -1817,9 +1813,8 @@ function startIntrospectionBattle(name,hp,atk,exp){
 function goToOffice(){curPhase=1;showScreen("office-screen");updateBusyMode();renderFloor();}
 
 function renderFloor(){
-showScreen("office-screen");
-  updateHeader("office");
-  const floors=getMonthFloors(P.month||4);
+showOffice("office");
+  const floors=getMonthFloors(curM());
   const f=floors[curPhase-1];
   if(!f){return;}
   const alreadyCleared=curPhase<maxPhase; // nextを引いて次フェーズに進んだ時のみtrue
@@ -1830,12 +1825,12 @@ showScreen("office-screen");
   const enemyLbl=document.getElementById("enemy-name-label");
 
   // 画像エリア更新
-  if(lbl) lbl.innerText=(P.month||4)+"-"+curPhase+" "+f.name;
+  if(lbl) lbl.innerText=(curM())+"-"+curPhase+" "+f.name;
   if(enemyLbl) enemyLbl.style.display="none";
-  updateImgArea((P.month||4)+"-"+curPhase, f.icon||"🏢");
+  updateImgArea((curM())+"-"+curPhase, f.icon||"🏢");
 
   // 雰囲気テキスト（全フロアタイプで共通）
-  const atmos=getFloorAtmos(P.month||4,curPhase);
+  const atmos=getFloorAtmos(curM(),curPhase);
 
   // 繁忙期警告はtoastで
   if((P.month||0)===6){
@@ -1852,7 +1847,7 @@ showScreen("office-screen");
     // phase1はなし（ボスは7なので常に戻るあり）
   } else if(f.type==="treasure"){
     // 宝箱フロアも通常と同じく探索ボタンを表示（宝箱は探索で発見）
-    const tKey=(P.month||4)+"-"+curPhase;
+    const tKey=(curM())+"-"+curPhase;
     const treasureOpened=!!(P.exploredPhases&&P.exploredPhases[tKey+"_treasure"]);
     const atmosText=treasureOpened?atmos+"\n\n（宝箱はすでに開けた）":atmos;
     scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${atmosText}</span>`;
@@ -1885,12 +1880,11 @@ showScreen("office-screen");
 
 function passPhase(){
   curPhase++;
-  if(curPhase>getMonthFloors(P.month||4).length){nextMonth();return;}
+  if(curPhase>getMonthFloors(curM()).length){nextMonth();return;}
   showFieldExploreMenu();
 }
 function showTreasureFound(){
-  showScreen("office-screen");
-  updateHeader("office");
+  showOffice("office");
   const scroll=document.getElementById("office-scroll");
   const cmds=document.getElementById("office-cmds");
   playSE("treasure");
@@ -1901,7 +1895,7 @@ function showTreasureFound(){
   ]);
 }
 function openTreasure(){
-  const tKey=(P.month||4)+"-"+curPhase;
+  const tKey=(curM())+"-"+curPhase;
   if(!P.exploredPhases)P.exploredPhases={};
   P.exploredPhases[tKey+"_treasure"]=true;
   const item=TREASURE_ITEMS[tKey];
@@ -1922,14 +1916,14 @@ function openTreasure(){
 }
 function exploreFloor(){
   if(!P.exploredPhases) P.exploredPhases={};
-  P.exploredPhases[(P.month||4)+"-"+curPhase]=true;
+  P.exploredPhases[(curM())+"-"+curPhase]=true;
   // maxPhaseはadvancePhase（next到達時）のみ更新する
   if((P.month||0)===6){
     const pen=Math.max(1,3-Math.floor((P.stm||0)/8));
     P.hp=Math.max(0,P.hp-pen);updateHeader("office");
     if(P.hp<=0){triggerDeath();return;}
   }
-  let table=buildEventTable(P.month||4,curPhase);
+  let table=buildEventTable(curM(),curPhase);
   // 次へ進むボタンが既に出ている場合はnextを除外
   if(curPhase<maxPhase){
     table=table.filter(e=>e.type!=="next");
@@ -1941,10 +1935,10 @@ function exploreFloor(){
 function handleFieldEvent(ev){
   if(ev.type==="next"){advancePhase();return;}
   if(ev.type==="treasure"){
-    const tKey=(P.month||4)+"-"+curPhase;
+    const tKey=(curM())+"-"+curPhase;
     const opened=!!(P.exploredPhases&&P.exploredPhases[tKey+"_treasure"]);
     if(opened){
-      const table=buildEventTable(P.month||4,curPhase).filter(e=>e.type!=="treasure");
+      const table=buildEventTable(curM(),curPhase).filter(e=>e.type!=="treasure");
       const ev2=weightedRandom(table);
       handleFieldEvent(ev2);
       return;
@@ -1999,9 +1993,8 @@ function handleFieldEvent(ev){
 
 // シーン終了後：フロアに戻らず探索メニューを再表示
 function showFieldExploreMenu(){
-showScreen("office-screen");
-  updateHeader("office");
-  const floors=getMonthFloors(P.month||4);
+showOffice("office");
+  const floors=getMonthFloors(curM());
   const f=floors[curPhase-1];
   const alreadyCleared=curPhase<maxPhase; // nextを引いて次フェーズに進んだ時のみtrue
   const isBossFloor=f&&f.type==="boss";
@@ -2009,13 +2002,13 @@ showScreen("office-screen");
   const scroll=document.getElementById("office-scroll");
   const cmds=document.getElementById("office-cmds");
   const lbl=document.getElementById("novel-floor-label");
-  if(lbl&&f) lbl.innerText=(P.month||4)+"-"+curPhase+" "+f.name;
+  if(lbl&&f) lbl.innerText=(curM())+"-"+curPhase+" "+f.name;
   const _el=document.getElementById("enemy-name-label");
   if(_el) _el.style.display="none";
-  updateImgArea((P.month||4)+"-"+curPhase, f?(f.icon||"🏢"):"🏢");
+  updateImgArea((curM())+"-"+curPhase, f?(f.icon||"🏢"):"🏢");
 
   // フロアの雰囲気テキスト
-  const atmos=f?getFloorAtmos(P.month||4,curPhase):"";
+  const atmos=f?getFloorAtmos(curM(),curPhase):"";
 
   if(isBossFloor){
     scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${atmos}</span>`;
@@ -2023,7 +2016,7 @@ showScreen("office-screen");
       ?renderSideBtns([{label:"次の月へ →",fn:"passPhase()"},{label:"再挑戦",fn:"enterBossFloor()"},{label:"← 戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}])
       :renderSideBtns([{label:"ボスに立ち向かう",fn:"enterBossFloor()"},{label:"← 戻る",fn:"goBack()"},{label:"帰宅する",fn:"goHome()"}]);
   } else if(f&&f.type==="treasure"){
-    const tKey2=(P.month||4)+"-"+curPhase;
+    const tKey2=(curM())+"-"+curPhase;
     const opened2=!!(P.exploredPhases&&P.exploredPhases[tKey2+"_treasure"]);
     scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${atmos}${opened2?"\n\n（宝箱はすでに開けた）":""}</span>`;
     const tBtns=[];
@@ -2052,25 +2045,23 @@ showScreen("office-screen");
   }
 }
 
-
 // フロアイベント結果をノベルボックスに表示
 function showFieldResult(text){
-  showScreen("office-screen");
-  updateHeader("office");
+  showOffice("office");
   const scroll=document.getElementById("office-scroll");
   const cmds=document.getElementById("office-cmds");
   // floor label 更新
-  const floors=getMonthFloors(P.month||4);
+  const floors=getMonthFloors(curM());
   const f=floors[curPhase-1];
   const lbl=document.getElementById("novel-floor-label");
-  if(lbl&&f) lbl.innerText=(P.month||4)+"-"+curPhase+" "+f.name;
-  updateImgArea((P.month||4)+"-"+curPhase, f?(f.icon||"🏢"):"🏢");
+  if(lbl&&f) lbl.innerText=(curM())+"-"+curPhase+" "+f.name;
+  updateImgArea((curM())+"-"+curPhase, f?(f.icon||"🏢"):"🏢");
   // フェードインアニメーション（同じテキストでも変化を視覚的に表現）
   scroll.innerHTML="";
   requestAnimationFrame(function(){
     scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;white-space:pre-wrap;animation:fadeIn 0.3s ease-out;">${text}</span>`;
   });
-  const _floors=getMonthFloors(P.month||4);
+  const _floors=getMonthFloors(curM());
   const _hasNext=curPhase<_floors.length;
   const _alreadyCleared=curPhase<maxPhase; // nextを引いて次フェーズに進んだことがある場合のみ
   const _btns=[];
@@ -2096,11 +2087,15 @@ function goBack(){
     goHome();
   }
 }
+// showScreen("office-screen") + updateHeader() の共通ヘルパー
+function showOffice(ctx){
+  showScreen("office-screen");
+  updateHeader(ctx||"office");
+}
 function showMonthClear(enemy){
   playSE("stage_clear");
-  showScreen("office-screen");
-  updateHeader("office");
-  const month=P.month||4;
+  showOffice("office");
+  const month=curM();
   const pay=enemy.payReward||curJob().pay||0;
   const lbl=document.getElementById("novel-floor-label");
   if(lbl) lbl.innerText=month+"月 クリア！";
@@ -2131,7 +2126,7 @@ function showMonthClear(enemy){
 }
 function monthClearGoHome(){
   const order=[4,5,6,7,8,9,10,11,12,1,2,3];
-  const curIdx=order.indexOf(P.month||4);
+  const curIdx=order.indexOf(curM());
   if(curIdx>=0&&curIdx<order.length-1){
     P.month=order[curIdx+1];
     curPhase=1;maxPhase=0;P.exploredPhases={};
@@ -2144,13 +2139,13 @@ function monthClearGoHome(){
 function advancePhase(){
   curPhase++;
   if(curPhase>maxPhase)maxPhase=curPhase; // curPhase++後に更新→「到達済み最大フェーズ」が正しく記録される
-  if(curPhase>getMonthFloors(P.month||4).length){nextMonth();return;}
+  if(curPhase>getMonthFloors(curM()).length){nextMonth();return;}
   showFieldExploreMenu();
 }
 function nextMonth(){
   // 月の順序：4→5→...→12→1→2→3→クリア
   const order=[4,5,6,7,8,9,10,11,12,1,2,3];
-  const curIdx=order.indexOf(P.month||4);
+  const curIdx=order.indexOf(curM());
   if(curIdx>=0&&curIdx<order.length-1){
     P.month=order[curIdx+1];
   } else {
@@ -2163,18 +2158,18 @@ function nextMonth(){
 }
 function enterEnemyFloor(){
   const key=window._pendingEnemyKey||"multi";
-  const enemy=getEnemy(key,P.month||4);
+  const enemy=getEnemy(key,curM());
   P.enemy=enemy;P.battleCtx="field";
   clearBattleEnemyBlock();
   playSE("battle_start");
   renderBattle(""+enemy.name+"が現れた！");
 }
 function enterBossFloor(){
-  const boss=getBoss(P.month||4);
+  const boss=getBoss(curM());
   boss.payReward=curJob().pay;
   P.enemy=boss;P.battleCtx="field";
   clearBattleEnemyBlock();
-  toast(""+(P.month||4)+"月のボスが現れた！",2500);
+  toast(""+(curM())+"月のボスが現れた！",2500);
   renderBattle("🚨【BOSS】"+boss.name+"が立ちはだかった！");
 }
 
@@ -2211,7 +2206,7 @@ function getCardReward(enemy){
   if(!enemy) return 0;
   if(enemy.isUraBoss) return CARD_REWARDS.ura;
   if(enemy.isBoss){
-    const m=P.month||4;
+    const m=curM();
     const key="boss"+m;
     return CARD_REWARDS[key]||3;
   }
@@ -2220,6 +2215,26 @@ function getCardReward(enemy){
 
 // 画像差し込みマップ（後から画像URLを設定する）
 // キー: シーンkey or フェーズ識別子 (例: "4-1", "chikan", "home")
+// ============================================================
+// 📐 CHARA_SIZES — キャラクターごとの表示サイズ設定
+// w=幅, h=高さ, fit=object-fit, pos=object-position
+// ============================================================
+const CHARA_SIZES={
+  "default":  {w:"calc(100% - 145px)", h:"100%", fit:"cover",    pos:"top center"},
+  "multi":    {w:"calc(100% - 145px)", h:"100%", fit:"cover",    pos:"top center"},
+  "otsubone": {w:"calc(100% - 145px)", h:"100%", fit:"cover",    pos:"top center"},
+  "kijin":    {w:"calc(100% - 145px)", h:"100%", fit:"cover",    pos:"top center"},
+  "chikan":   {w:"45%",               h:"85%",  fit:"contain",  pos:"bottom center"},
+};
+function applyCharaStyle(el, key){
+  const s=CHARA_SIZES[key]||CHARA_SIZES["default"];
+  el.style.width=s.w;
+  el.style.height=s.h;
+  el.style.objectFit=s.fit;
+  el.style.objectPosition=s.pos;
+  el.style.left="0";
+  el.style.transform="none";
+}
 // ============================================================
 // 🔊 SE_SOUNDS — 効果音URLをここに設定するだけで反映されます
 // キー一覧:
@@ -3670,10 +3685,10 @@ function renderSceneUI(){
     if(lbl) lbl.innerText="街";
     updateImgArea("street","🏙️");
   } else {
-    const floors=getMonthFloors(P.month||4);
+    const floors=getMonthFloors(curM());
     const _f=floors[curPhase-1];
-    if(lbl&&_f) lbl.innerText=(P.month||4)+"-"+curPhase+" "+_f.name;
-    updateImgArea((P.month||4)+"-"+curPhase, _f?(_f.icon||"🏢"):"🏢");
+    if(lbl&&_f) lbl.innerText=(curM())+"-"+curPhase+" "+_f.name;
+    updateImgArea((curM())+"-"+curPhase, _f?(_f.icon||"🏢"):"🏢");
   }
 
   // キャラクター: シーンキーにcharaがあれば表示、なければ非表示
@@ -3681,7 +3696,7 @@ function renderSceneUI(){
     const el=document.getElementById("chara-img");
     if(!el) return;
     const url=(SCENE_IMAGES[sceneState.sceneKey||""]||{}).chara||null;
-    if(url){el.src=url;el.style.display="block";}
+    if(url){el.src=url;applyCharaStyle(el,sceneState.sceneKey||"default");el.style.display="block";}
     else{el.style.display="none";el.src="";}
   })();
 
@@ -3827,7 +3842,7 @@ function applySceneEffect(eff){
   if(eff.sp&&Number(eff.sp)>0){P.sp=Math.min(100,(P.sp||0)+Number(eff.sp));updateHeader("office");}
   if(eff.item){const it=all.find(i=>i.id===eff.item);if(it)P.inventory.push({...it});}
   if(eff.battle){
-    const enemy=getEnemy(eff.battle,P.month||4);
+    const enemy=getEnemy(eff.battle,curM());
     P.enemy=enemy;P.battleLog=[];
     P.battleCtx=sceneState?sceneState.ctx:"field";
     renderBattle(eff.tx||"戦闘開始！");
@@ -3844,8 +3859,7 @@ function endScene(){
 // BATTLE
 // ============================================================
 function renderBattle(msg){
-  showScreen("office-screen");
-  updateHeader("battle");
+  showOffice("battle");
   const job=curJob();const e=P.enemy;
   if(!e)return;
   const canSkill=(P.sp||0)>=job.skillCost;
@@ -3861,7 +3875,7 @@ function renderBattle(msg){
   if(ph2) ph2.style.display="none";
   // 背景はフロア画像キープ、キャラは敵キーから取得して表示
   (function(){
-    const bgEntry=SCENE_IMAGES[(P.month||4)+"-"+curPhase]||{};
+    const bgEntry=SCENE_IMAGES[(curM())+"-"+curPhase]||{};
     const charaEntry=SCENE_IMAGES[e.key||""]||{};
     const area=document.getElementById("novel-img-area");
     if(area&&bgEntry.bg){
@@ -3871,7 +3885,7 @@ function renderBattle(msg){
     }
     const charaEl=document.getElementById("chara-img");
     if(charaEl){
-      if(charaEntry.chara){charaEl.src=charaEntry.chara;charaEl.style.display="block";}
+      if(charaEntry.chara){charaEl.src=charaEntry.chara;applyCharaStyle(charaEl,e.key||"default");charaEl.style.display="block";}
       else{charaEl.style.display="none";charaEl.src="";}
     }
   })();
@@ -3974,7 +3988,7 @@ function doBattle(type){
     if(e.isBoss){P.payWallet=(P.payWallet||0)+(e.payReward||curJob().pay);payMsg="\n💰 月末給与 "+(e.payReward||curJob().pay)+"万円 獲得！";}
     const isTrauma=e.isTrauma,isUraBoss=e.isUraBoss,isBoss=e.isBoss;
     // 評価カード付与
-    const enemyKey=e.isBoss?(P.month||4)+"boss":e.isUraBoss?"ura":(e.name||"enemy"+Math.random());
+    const enemyKey=e.isBoss?(curM())+"boss":e.isUraBoss?"ura":(e.name||"enemy"+Math.random());
     const isFirstClear=!P.clearedEnemies[enemyKey];
     let cardGain=0;
     if(isBoss||isUraBoss){
