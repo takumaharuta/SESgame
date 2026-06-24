@@ -94,9 +94,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 .irow-name{font-weight:700;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .irow-desc{font-size:10px;color:var(--sub);}
 .ibtn{background:var(--blue);color:#fff;border:none;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;}
+.ibtn.unlock{background:#27ae60;color:#fff;box-shadow:0 0 8px rgba(39,174,96,0.5);}
 .ibtn:active{opacity:0.8;}
 .ibtn.warn{background:var(--orange);}
-.ibtn.dis{background:#1c2a40;color:var(--sub);cursor:not-allowed;}
+.ibtn.dis{background:#1c2a40;color:#555e6b;cursor:not-allowed;}
 
 /* CLOSET 2-col */
 .closet-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
@@ -303,7 +304,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
       <h1>SES魔界サバイバル</h1>
       <p>〜 評価の時期が来た 〜</p>
     </div>
-    <div class="eval-box">社内評価カード: <span id="eval-count">0</span> 枚</div>
+    <div class="eval-box">社内評価カード: <span id="eval-count">0</span> 枚<br><span style="font-size:11px;color:var(--sub);font-weight:400;">※ カードは消費されません。累積枚数で役職が解放されます。</span></div>
     <div class="sec">役職解放・選択</div>
     <div id="job-list"></div>
   </div>
@@ -1477,7 +1478,7 @@ function renderJobList(){
     var job=JOBS[ji];
     var unlocked=S.unlockedJobs.indexOf(job.id)>=0;
     var selected=S.selectedJobId===job.id;
-    var canBuy=!unlocked&&S.evalCards>=job.cost;
+    var canBuy=!unlocked&&S.evalCards>=job.cost; // 累積枚数で判定（消費しない）
     var card=document.createElement("div");
     card.className="card"+(selected?" selected":"")+(unlocked?"":" locked");
     var titleDiv=document.createElement("div");titleDiv.className="card-title";titleDiv.innerText=job.name;
@@ -1492,7 +1493,7 @@ function renderJobList(){
       btn.innerText=selected?"選択中":"選択";
       (function(jid){btn.onclick=function(){selectJob(jid);};})(job.id);
     } else {
-      btn.className="ibtn"+(canBuy?"":" dis");
+      btn.className="ibtn"+(canBuy?" unlock":" dis");
       btn.innerText=canBuy?"解放":"不足";
       if(canBuy){(function(jid,jcost){btn.onclick=function(){unlockJob(jid,jcost);};})(job.id,job.cost);}
     }
@@ -1506,7 +1507,8 @@ function renderJobList(){
 function selectJob(id){S.selectedJobId=id;saveS();renderJobList();}
 function unlockJob(id,cost){
   if(S.evalCards<cost)return;
-  S.evalCards-=cost;S.unlockedJobs.push(id);S.selectedJobId=id;
+  // 累積解放方式：カードを消費せず解放のみ
+  S.unlockedJobs.push(id);S.selectedJobId=id;
   saveS();renderJobList();document.getElementById("eval-count").innerText=S.evalCards;
   toast("「"+getJob(id).name+"」を解放！");
 }
@@ -2304,7 +2306,6 @@ const SCENE_IMAGES={
   "7-3":  { bg:"https://takumaharuta.github.io/SESgame/images/taxi.jpg" },
   "7-4":  { bg:"https://takumaharuta.github.io/SESgame/images/reception_luxury.jpg" },
   "7-5":  { bg:"https://takumaharuta.github.io/SESgame/images/meeting_luxury.jpg" },
-  "7-6":  { bg:"https://takumaharuta.github.io/SESgame/images/station.jpg" },
   "7-7":  { bg:"https://takumaharuta.github.io/SESgame/images/executive_room.jpg" },
 
   // --- 8月〜3月 通勤電車 ---
