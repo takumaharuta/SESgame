@@ -271,6 +271,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 .scene-tx-cur{font-size:15px;line-height:1.8;white-space:pre-wrap;}
 .scene-choice-header{font-size:11px;color:var(--sub);text-align:center;margin-bottom:4px;padding-top:4px;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+@keyframes tapBlink{0%,100%{opacity:0.3;}50%{opacity:1;}}
 
 </style>
 </head>
@@ -301,8 +302,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 
 <!-- TITLE -->
 <div id="title-screen" class="screen active">
-  <!-- スプラッシュ画面 -->
-  <div id="title-splash" style="display:flex;flex-direction:column;height:100%;justify-content:center;align-items:center;">
+  <!-- 真っ黒タップ画面 -->
+  <div id="title-tap" style="display:flex;flex-direction:column;height:100%;justify-content:center;align-items:center;background:#000;cursor:pointer;" onclick="showTitleMain()">
+    <div style="text-align:center;">
+      <div style="font-size:13px;color:#555;letter-spacing:3px;animation:tapBlink 1.5s ease-in-out infinite;">TAP TO START</div>
+    </div>
+  </div>
+  <!-- タイトルメイン画面 -->
+  <div id="title-main" style="display:none;flex-direction:column;height:100%;">
     <div class="scroll" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;">
       <div class="title-logo" style="padding:30px 0 20px;text-align:center;">
         <h1>SES魔界サバイバル</h1>
@@ -1501,17 +1508,26 @@ function preloadImages(){
 }
 function renderTitle(){
   showScreen("title-screen");updateHeader("title");
-  // スプラッシュを表示、役職選択は隠す
-  document.getElementById("title-splash").style.display="flex";
+  // 常にタップ画面から開始
+  document.getElementById("title-tap").style.display="flex";
+  document.getElementById("title-main").style.display="none";
   document.getElementById("title-jobselect").style.display="none";
   document.getElementById("eval-count").innerText=S.evalCards;
   renderJobList();
 }
 
-function showJobSelect(){
-  // STARTボタン押下：BGM開始（ユーザー操作後なので再生可能）＋役職選択へ
+function showTitleMain(){
+  // タップ → BGM開始 → タイトルメイン表示
   startTitleBGM();
-  document.getElementById("title-splash").style.display="none";
+  document.getElementById("title-tap").style.display="none";
+  document.getElementById("title-main").style.display="flex";
+  document.getElementById("title-main").style.flexDirection="column";
+  document.getElementById("title-main").style.height="100%";
+}
+
+function showJobSelect(){
+  // STARTボタン → 役職選択へ（BGMは継続）
+  document.getElementById("title-main").style.display="none";
   document.getElementById("title-jobselect").style.display="flex";
   document.getElementById("title-jobselect").style.flexDirection="column";
   document.getElementById("title-jobselect").style.height="100%";
@@ -4268,7 +4284,18 @@ function triggerDeath(){
     ?`<div style="color:var(--sub);font-size:12px;">空（何も引き継げなかった）</div>`
     :S.closet.map(i=>`<div class="irow"><div class="irow-name">${i.name}</div><span class="badge b-green">引き継ぎ</span></div>`).join("");
 }
-function backToTitle(){renderTitle();}
+function backToTitle(){
+  showScreen("title-screen");updateHeader("title");
+  document.getElementById("eval-count").innerText=S.evalCards;
+  renderJobList();
+  // タップ画面スキップ→タイトルメインへ直接＋BGM再開
+  document.getElementById("title-tap").style.display="none";
+  document.getElementById("title-main").style.display="flex";
+  document.getElementById("title-main").style.flexDirection="column";
+  document.getElementById("title-main").style.height="100%";
+  document.getElementById("title-jobselect").style.display="none";
+  startTitleBGM();
+}
 function oneYearClear(){
   showScreen("go-screen");S.evalCards+=10;saveS();
   document.getElementById("go-title").innerText="1年間のサバイバル完遂！";
