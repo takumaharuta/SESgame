@@ -73,8 +73,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 /* CARDS */
 .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px;margin-bottom:7px;}
 .card.selected{border-color:var(--orange);box-shadow:0 0 8px rgba(224,120,32,0.3);}
-.card.locked{opacity:0.5;}
-.card.locked .ibtn.unlock{opacity:2.0;filter:brightness(1.8);}
+.card.locked{opacity:1.0;}
+.card.locked .card-title,.card.locked .card-desc{opacity:0.45;}
+.card.locked .ibtn.dis{opacity:0.45;}
 .card-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
 .card-title{font-size:13px;font-weight:700;margin-bottom:3px;}
 .card-desc{font-size:11px;color:var(--sub);margin-bottom:4px;line-height:1.5;}
