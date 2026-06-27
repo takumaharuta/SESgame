@@ -94,7 +94,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 .irow-name{font-weight:700;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .irow-desc{font-size:10px;color:var(--sub);}
 .ibtn{background:var(--blue);color:#fff;border:none;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;}
-.ibtn.unlock{background:#27ae60;color:#fff;box-shadow:0 0 8px rgba(39,174,96,0.5);}
+.ibtn.unlock{background:#2ecc71;color:#fff;box-shadow:0 0 10px rgba(46,204,113,0.7);border:1px solid #27ae60;}
 .ibtn:active{opacity:0.8;}
 .ibtn.warn{background:var(--orange);}
 .ibtn.dis{background:#1c2a40;color:#555e6b;cursor:not-allowed;}
@@ -304,12 +304,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
       <h1>SES魔界サバイバル</h1>
       <p>〜 評価の時期が来た 〜</p>
     </div>
-    <div class="eval-box">社内評価カード: <span id="eval-count">0</span> 枚<br><span style="font-size:11px;color:var(--sub);font-weight:400;">※ カードは消費されません。累積枚数で役職が解放されます。</span></div>
-    <div class="sec">役職解放・選択</div>
+    <div class="eval-box">社内評価カード: <span id="eval-count">0</span> 枚<br><span style="font-size:11px;color:var(--sub);font-weight:400;">※ カードは消費されません。累積枚数で「前職」が解放されます。</span></div>
+    <div class="sec">前職選択（新入社員として入社する中身を選ぶ）</div>
     <div id="job-list"></div>
   </div>
   <div class="cmds">
-    <button class="btn btn-primary" onclick="startRun()">配属先（魔界オフィス）へ出勤する</button>
+    <button class="btn btn-primary" onclick="startRun()">新入社員として魔界オフィスへ出勤する</button>
   </div>
 </div>
 
@@ -1564,7 +1564,7 @@ function confirmDice(){
 // 広告システム（1時間3回まで）
 const AD_LIMIT=3;
 const AD_WINDOW=60*60*1000; // 1時間
-const AD_REWARD=1000; // 1000枚/回
+const AD_REWARD=6; // 6枚/回
 
 function getAdState(){
   try{
@@ -1777,7 +1777,7 @@ function showCloset(){
     const isEquip=it.type==="equip";
     const isEq=isEquip&&P.equippedId===it.id;
     const equipBtn=(!fromCloset&&isEquip)
-      ?`<button class="closet-move-btn${isEq?" warn":""}" style="margin-bottom:3px;" onclick="equipItem(${i})">${isEq?"✓ 装備中":"装備する"}</button>`
+      ?`<button class="closet-move-btn${isEq?" warn":""}" style="margin-bottom:3px;" onclick="equipItem('${it.id}')">${isEq?"✓ 装備中":"装備する"}</button>`
       :"";
     return `
     <div class="closet-item">
@@ -1802,12 +1802,13 @@ function showCloset(){
     </div>`;
   document.getElementById("shop-cmds").innerHTML=`<button class="btn btn-secondary" onclick="goHome()">← 自宅に戻る</button>`;
 }
-function equipItem(idx){
-  const it=(P.inventory||[])[idx];
+function equipItem(itemId){
+  const it=(P.inventory||[]).find(i=>i.id===itemId);
   if(!it||it.type!=="equip")return;
-  P.equippedId=(P.equippedId===it.id)?null:it.id; // 同じなら外す
+  const wasEq=(P.equippedId===itemId);
+  P.equippedId=wasEq?null:itemId; // 同じなら外す
   saveP();showCloset();
-  toast(P.equippedId===it.id?"「"+it.name+"」を装備！":"装備を外した");
+  toast(wasEq?"装備を外した":"「"+it.name+"」を装備！");
 }
 function invToCloset(idx){const it=P.inventory.splice(idx,1)[0];if(P.equippedId===it.id)P.equippedId=null;S.closet.push(it);saveS();showCloset();}
 function closetToInv(idx){const it=S.closet.splice(idx,1)[0];P.inventory.push(it);saveS();showCloset();}
