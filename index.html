@@ -301,17 +301,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 
 <!-- TITLE -->
 <div id="title-screen" class="screen active">
-  <div class="scroll">
-    <div class="title-logo" style="padding:14px 0 10px;">
-      <h1>SES魔界サバイバル</h1>
-      <p>〜 評価の時期が来た 〜</p>
+  <!-- スプラッシュ画面 -->
+  <div id="title-splash" style="display:flex;flex-direction:column;height:100%;justify-content:center;align-items:center;">
+    <div class="scroll" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;">
+      <div class="title-logo" style="padding:30px 0 20px;text-align:center;">
+        <h1>SES魔界サバイバル</h1>
+        <p>〜 評価の時期が来た 〜</p>
+      </div>
+      <div style="margin-top:20px;font-size:12px;color:var(--sub);text-align:center;line-height:1.8;">
+        魔界に紛れ込んだSES営業マン。<br>理不尽な現場、炎上案件、謎の上司。<br>生き残れるか？
+      </div>
     </div>
-    <div class="eval-box">社内評価カード: <span id="eval-count">0</span> 枚<br><span style="font-size:11px;color:var(--sub);font-weight:400;">※ カードは消費されません。累積枚数で「前職」が解放されます。</span></div>
-    <div class="sec">前職選択（新入社員として入社する中身を選ぶ）</div>
-    <div id="job-list"></div>
+    <div class="cmds">
+      <button class="btn btn-primary" onclick="showJobSelect()">▶ START</button>
+    </div>
   </div>
-  <div class="cmds">
-    <button class="btn btn-primary" onclick="startRun()">新入社員として魔界オフィスへ出勤する</button>
+  <!-- 役職選択画面 -->
+  <div id="title-jobselect" style="display:none;flex-direction:column;height:100%;">
+    <div class="scroll">
+      <div class="title-logo" style="padding:14px 0 10px;">
+        <h1>SES魔界サバイバル</h1>
+        <p>〜 評価の時期が来た 〜</p>
+      </div>
+      <div class="eval-box">社内評価カード: <span id="eval-count">0</span> 枚<br><span style="font-size:11px;color:var(--sub);font-weight:400;">※ カードは消費されません。累積枚数で「前職」が解放されます。</span></div>
+      <div class="sec">前職選択（新入社員として入社する中身を選ぶ）</div>
+      <div id="job-list"></div>
+    </div>
+    <div class="cmds">
+      <button class="btn btn-primary" onclick="startRun()">新入社員として魔界オフィスへ出勤する</button>
+    </div>
   </div>
 </div>
 
@@ -1483,9 +1501,20 @@ function preloadImages(){
 }
 function renderTitle(){
   showScreen("title-screen");updateHeader("title");
-  startTitleBGM(); // タイトルBGM開始
+  // スプラッシュを表示、役職選択は隠す
+  document.getElementById("title-splash").style.display="flex";
+  document.getElementById("title-jobselect").style.display="none";
   document.getElementById("eval-count").innerText=S.evalCards;
   renderJobList();
+}
+
+function showJobSelect(){
+  // STARTボタン押下：BGM開始（ユーザー操作後なので再生可能）＋役職選択へ
+  startTitleBGM();
+  document.getElementById("title-splash").style.display="none";
+  document.getElementById("title-jobselect").style.display="flex";
+  document.getElementById("title-jobselect").style.flexDirection="column";
+  document.getElementById("title-jobselect").style.height="100%";
 }
 function renderJobList(){
   var el=document.getElementById("job-list");
