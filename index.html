@@ -279,7 +279,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 <div id="app">
 
 <!-- HEADER -->
-<div id="header">
+<div id="header" style="display:none;">
   <div class="hdr-left">
     <div class="hdr-lv" id="hdr-lv">役職を選んで出勤せよ</div>
   </div>
@@ -1399,6 +1399,12 @@ function updateBusyMode(){
   document.getElementById("app").classList.toggle("lategame",m>=10||(m>=1&&m<=3));
 }
 function updateHeader(ctx){
+  const header=document.getElementById("header");
+  if(ctx==="title"){
+    if(header) header.style.display="none";
+    return;
+  }
+  if(header) header.style.display="";
   const job=curJob();
   let phaseText="SES魔界サバイバル",lvText=job?job.name:"";
   if(ctx==="home"){phaseText="🏡 自宅";lvText="Lv."+(P.level||1)+" "+(job?job.name:"");}
