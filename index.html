@@ -1805,12 +1805,13 @@ function showCloset(){
   document.getElementById("shop-cmds").innerHTML=`<button class="btn btn-secondary" onclick="goHome()">← 自宅に戻る</button>`;
 }
 function equipItem(itemId){
-  const it=(P.inventory||[]).find(i=>i.id===itemId);
-  if(!it||it.type!=="equip")return;
+  // 手荷物とクローゼット両方から名前を探す（表示用）
+  const allItems=[...(P.inventory||[]),...(S.closet||[])];
+  const it=allItems.find(i=>i.id===itemId);
   const wasEq=(S.equippedId===itemId);
-  S.equippedId=wasEq?null:itemId; // 同じなら外す
-  saveP();showCloset();
-  toast(wasEq?"装備を外した":"「"+it.name+"」を装備！");
+  S.equippedId=wasEq?null:itemId;
+  saveS();showCloset();
+  toast(wasEq?"装備を外した":"「"+(it?it.name:itemId)+"」を装備！");
 }
 function invToCloset(idx){const it=P.inventory.splice(idx,1)[0];if(S.equippedId===it.id)S.equippedId=null;S.closet.push(it);saveS();showCloset();}
 function closetToInv(idx){const it=S.closet.splice(idx,1)[0];P.inventory.push(it);saveS();showCloset();}
