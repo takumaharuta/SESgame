@@ -2022,7 +2022,7 @@ function handleFieldEvent(ev){
     }
     const val=ev.val||0;
     P.hp=Math.max(0,P.hp-val);
-    if(val>0) playSE("damage");
+    if(val>0) playSE("slap"); // シナリオ・フィールドダメージ
     updateHeader("office");
     showHpFlash(-val);
     if(P.hp<=0){triggerDeath();return;}
@@ -2322,6 +2322,8 @@ const SE_SOUNDS={
   "gameover":     "https://takumaharuta.github.io/SESgame/sounds/gameover.mp3",     // ゲームオーバー
   "click":        "https://takumaharuta.github.io/SESgame/sounds/click.mp3",        // ボタンクリック
   "bgm_title":    "https://takumaharuta.github.io/SESgame/sounds/bgm_title.mp3",    // タイトルBGM
+  "slap":         "https://takumaharuta.github.io/SESgame/sounds/slap.mp3",         // シナリオダメージ（自分が受ける）
+  "punch":        "https://takumaharuta.github.io/SESgame/sounds/punch.mp3",        // 戦闘で敵にダメージを与える
 };
 let _currentSceneSE=null; // シナリオ中の再生中SE管理
 let _titleBGM=null;       // タイトルBGM管理
@@ -4028,7 +4030,7 @@ function applySceneEffect(eff){
     P.hp=Math.max(0,(P.hp||0)-dmg);
     updateHeader("office");
     showHpFlash(-dmg);
-    playSE("scene_fail"); // シナリオ失敗ダメージ
+    playSE("slap"); // シナリオ失敗ダメージ
   }
   // 所持金減少
   if(eff.isCoinLoss&&eff.coinLoss>0){
@@ -4147,25 +4149,25 @@ function doBattle(type){
     e.hp=Math.max(0,e.hp-dmg);
     const spGain=8;P.sp=Math.min(100,(P.sp||0)+spGain); // FCS廃止：SP固定
     showEnemyDmg(dmg);
+    playSE("punch"); // 敵へダメージ
     logText="🎲["+dice+"](×"+mult+") → "+dmg+"ダメージ / SP+"+spGain;
   } else if(type==="skill"){
     if((P.sp||0)<job.skillCost){toast("SPが足りない！");return;}
     P.sp=Math.max(0,(P.sp||0)-job.skillCost);
     if(job.id==="intern"){P.hp=Math.min(P.maxHp,(P.hp||0)+25);logText="メンタル+25回復";}
-    else if(job.id==="staff"){const d=40;e.hp=Math.max(0,e.hp-d);showEnemyDmg(d);logText="💥 固定40ダメージ！";}
-    else if(job.id==="leader"){const d=50;e.hp=Math.max(0,e.hp-d);showEnemyDmg(d);P.sp=Math.min(100,(P.sp||0)+15);logText="💥 50ダメージ！SP+15";}
-    else if(job.id==="manager"){const d=50;e.hp=Math.max(0,e.hp-d);showEnemyDmg(d);P.nextAtkBonus=300;logText="💥 50ダメージ！次ターン+300%";}
-    else if(job.id==="bucho"){const d=Math.floor(e.hp*0.3);e.hp=Math.max(0,e.hp-d);showEnemyDmg(d);P.sp=Math.min(100,(P.sp||0)+30);logText="💥 残HP30%カット("+d+")";}
-    else if(job.id==="exec"){const d=100;e.hp=Math.max(0,e.hp-d);showEnemyDmg(d);P.hp=Math.min(P.maxHp,(P.hp||0)+100);logText="💥 100ダメージ！HP+100";}
-    else if(job.id==="ceo"){const d=Math.floor(e.hp/2);e.hp-=d;showEnemyDmg(d);P.nextAtkBonus=300;P.hp=Math.min(P.maxHp,(P.hp||0)+100);logText="💥 HP半分カット("+d+")+HP+100";}
-    else if(job.id==="cleaner"){const d=999;e.hp=Math.max(0,e.hp-d);showEnemyDmg(Math.min(d,e.maxHp));logText="💥 強制廃棄！999ダメージ！";}
+    else if(job.id==="staff"){const d=40;e.hp=Math.max(0,e.hp-d);showEnemyDmg(d);playSE("punch");logText="💥 固定40ダメージ！";}
+    else if(job.id==="leader"){const d=50;e.hp=Math.max(0,e.hp-d);showEnemyDmg(d);playSE("punch");P.sp=Math.min(100,(P.sp||0)+15);logText="💥 50ダメージ！SP+15";}
+    else if(job.id==="manager"){const d=50;e.hp=Math.max(0,e.hp-d);showEnemyDmg(d);playSE("punch");P.nextAtkBonus=300;logText="💥 50ダメージ！次ターン+300%";}
+    else if(job.id==="bucho"){const d=Math.floor(e.hp*0.3);e.hp=Math.max(0,e.hp-d);showEnemyDmg(d);playSE("punch");P.sp=Math.min(100,(P.sp||0)+30);logText="💥 残HP30%カット("+d+")";}
+    else if(job.id==="exec"){const d=100;e.hp=Math.max(0,e.hp-d);showEnemyDmg(d);playSE("punch");P.hp=Math.min(P.maxHp,(P.hp||0)+100);logText="💥 100ダメージ！HP+100";}
+    else if(job.id==="ceo"){const d=Math.floor(e.hp/2);e.hp-=d;showEnemyDmg(d);playSE("punch");P.nextAtkBonus=300;P.hp=Math.min(P.maxHp,(P.hp||0)+100);logText="💥 HP半分カット("+d+")+HP+100";}
+    else if(job.id==="cleaner"){const d=999;e.hp=Math.max(0,e.hp-d);showEnemyDmg(Math.min(d,e.maxHp));playSE("punch");logText="💥 強制廃棄！999ダメージ！";}
   }
   let enemyPhrase="";
   let resultMsg=logText;
   if(e.hp>0){
     const eDmg=Math.max(1,e.atk-myDef);
     P.hp=Math.max(0,(P.hp||0)-eDmg);
-    if(eDmg>0) playSE("damage");
     showHpFlash(-eDmg);
     // 敵の攻撃セリフをランダム表示
     if(e.phrases&&e.phrases.length){
