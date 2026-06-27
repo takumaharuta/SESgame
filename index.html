@@ -698,18 +698,18 @@ function getFloorAtmos(month,phase){
 // 物思いにふける：月ごとにアンロックされる敵
 function getIntrospectionEnemies(month){
   const all=[
-    {month:4, name:"初月の残業幻影",         hp:120, maxHp:120, atk:20, def:5,  expReward:150},
-    {month:5, name:"理不尽な納期の怨念",     hp:160, maxHp:160, atk:25, def:8,  expReward:200},
-    {month:6, name:"繁忙期メール爆弾の亡霊", hp:200, maxHp:200, atk:30, def:12, expReward:300},
-    {month:7, name:"役員報告失敗の記憶",     hp:400, maxHp:400, atk:40, def:18, expReward:400},
-    {month:8, name:"お盆返上の呪い",         hp:550, maxHp:550, atk:48, def:22, expReward:500},
-    {month:9, name:"予算未達の悪夢",         hp:1000,maxHp:1000,atk:35, def:28, expReward:600},
-    {month:10,name:"人事評価Dの烙印",        hp:750, maxHp:750, atk:55, def:30, expReward:700},
-    {month:11,name:"期末の亡霊",             hp:700, maxHp:700, atk:58, def:32, expReward:800},
-    {month:12,name:"年末締切の亡者",         hp:800, maxHp:800, atk:70, def:35, expReward:900},
-    {month:1, name:"新年計画の呪縛",         hp:1000,maxHp:1000,atk:78, def:40, expReward:1000},
-    {month:2, name:"決算前夜の悪夢",         hp:2000,maxHp:2000,atk:100,def:50, expReward:2000},
-    {month:3, name:"一年の後悔の結晶",       hp:8000,maxHp:8000,atk:150,def:80, expReward:5000},
+    {month:4, name:"初月の残業幻影",         hp:120, maxHp:120, atk:20, expReward:150},
+    {month:5, name:"理不尽な納期の怨念",     hp:160, maxHp:160, atk:25, expReward:200},
+    {month:6, name:"繁忙期メール爆弾の亡霊", hp:200, maxHp:200, atk:30, expReward:300},
+    {month:7, name:"役員報告失敗の記憶",     hp:400, maxHp:400, atk:40, expReward:400},
+    {month:8, name:"お盆返上の呪い",         hp:550, maxHp:550, atk:48, expReward:500},
+    {month:9, name:"予算未達の悪夢",         hp:1000,maxHp:1000,atk:35, expReward:600},
+    {month:10,name:"人事評価Dの烙印",        hp:750, maxHp:750, atk:55, expReward:700},
+    {month:11,name:"期末の亡霊",             hp:700, maxHp:700, atk:58, expReward:800},
+    {month:12,name:"年末締切の亡者",         hp:800, maxHp:800, atk:70, expReward:900},
+    {month:1, name:"新年計画の呪縛",         hp:1000,maxHp:1000,atk:78, expReward:1000},
+    {month:2, name:"決算前夜の悪夢",         hp:2000,maxHp:2000,atk:100,expReward:2000},
+    {month:3, name:"一年の後悔の結晶",       hp:8000,maxHp:8000,atk:150,expReward:5000},
   ];
   // 月の順序：4〜12、1〜3
   const order=[4,5,6,7,8,9,10,11,12,1,2,3];
@@ -1263,25 +1263,24 @@ function getEnemy(key,month){
     ura_boss:      ["「あなたは本当に大丈夫ですか」","「その顔、限界ですよね」","「逃げていいんですよ」"],
   };
   const E={
-    // def: プレイヤーの攻撃から差し引かれる防御値
-    multi:            {name:"マルチ勧誘員",             hp:37,  maxHp:37,  atk:12, def:2,  expReward:25},
-    otsubone:         {name:"お局ババア",               hp:51,  maxHp:51,  atk:14, def:3,  expReward:35},
-    engineer_mori:    {name:"経歴もりもりエンジニア（濱家さん）",hp:60,maxHp:60,atk:17,def:4,expReward:40},
-    tebayako:         {name:"手柄横取り同僚・松本",      hp:55,  maxHp:55,  atk:16, def:3,  expReward:35},
-    client_trouble:   {name:"クレーム顧客",             hp:65,  maxHp:65,  atk:18, def:5,  expReward:45},
-    hr_trouble:       {name:"採用トラブル人材",          hp:65,  maxHp:65,  atk:18, def:5,  expReward:45},
-    cio_angry:        {name:"激怒するCIO・橋本さん",    hp:85,  maxHp:85,  atk:20, def:7,  expReward:60},
-    rival_sales:      {name:"競合他社マウント営業・川崎",hp:100, maxHp:100, atk:22, def:8,  expReward:70},
-    yamada:           {name:"失踪エンジニア・山田",      hp:115, maxHp:115, atk:24, def:10, expReward:80},
-    yakuza:           {name:"借金取り立て屋",            hp:300, maxHp:300, atk:31, def:15, expReward:90},
-    legal_cold:       {name:"冷徹な法務担当・岡本さん", hp:380, maxHp:380, atk:35, def:20, expReward:100},
-    other_agent:      {name:"他社エージェント営業・木下さん",hp:400,maxHp:400,atk:38,def:22,expReward:110},
-    pawahara_leader:  {name:"パワハラ現場リーダー・安井さん",hp:480,maxHp:480,atk:42,def:25,expReward:120},
-    scout_rival:      {name:"ライバル企業のスカウト男",  hp:520, maxHp:520, atk:50, def:28, expReward:160},
-    audit_person:     {name:"会計監査担当・真鍋さん",    hp:500, maxHp:500, atk:48, def:27, expReward:150},
-    consultant_scout: {name:"引き抜きの首謀者（元コンサル）",hp:600,maxHp:600,atk:55,def:32,expReward:180},
-    naitei_group:     {name:"内定者の群れ",              hp:600, maxHp:600, atk:50, def:30, expReward:200},
-    ura_boss:         {name:"【裏ボス】深夜の路上カウンセラー",hp:9999,maxHp:9999,atk:200,def:50,expReward:5000,isUraBoss:true},
+    multi:            {name:"マルチ勧誘員",             hp:37,  maxHp:37,  atk:12, expReward:25},
+    otsubone:         {name:"お局ババア",               hp:51,  maxHp:51,  atk:14, expReward:35},
+    engineer_mori:    {name:"経歴もりもりエンジニア（濱家さん）",hp:60,maxHp:60,atk:17,expReward:40},
+    tebayako:         {name:"手柄横取り同僚・松本",      hp:55,  maxHp:55,  atk:16, expReward:35},
+    client_trouble:   {name:"クレーム顧客",             hp:65,  maxHp:65,  atk:18, expReward:45},
+    hr_trouble:       {name:"採用トラブル人材",          hp:65,  maxHp:65,  atk:18, expReward:45},
+    cio_angry:        {name:"激怒するCIO・橋本さん",    hp:85,  maxHp:85,  atk:20, expReward:60},
+    rival_sales:      {name:"競合他社マウント営業・川崎",hp:100, maxHp:100, atk:22, expReward:70},
+    yamada:           {name:"失踪エンジニア・山田",      hp:115, maxHp:115, atk:24, expReward:80},
+    yakuza:           {name:"借金取り立て屋",            hp:300, maxHp:300, atk:31, expReward:90},
+    legal_cold:       {name:"冷徹な法務担当・岡本さん", hp:380, maxHp:380, atk:35, expReward:100},
+    other_agent:      {name:"他社エージェント営業・木下さん",hp:400,maxHp:400,atk:38,expReward:110},
+    pawahara_leader:  {name:"パワハラ現場リーダー・安井さん",hp:480,maxHp:480,atk:42,expReward:120},
+    scout_rival:      {name:"ライバル企業のスカウト男",  hp:520, maxHp:520, atk:50, expReward:160},
+    audit_person:     {name:"会計監査担当・真鍋さん",    hp:500, maxHp:500, atk:48, expReward:150},
+    consultant_scout: {name:"引き抜きの首謀者（元コンサル）",hp:600,maxHp:600,atk:55,expReward:180},
+    naitei_group:     {name:"内定者の群れ",              hp:600, maxHp:600, atk:50, expReward:200},
+    ura_boss:         {name:"【裏ボス】深夜の路上カウンセラー",hp:9999,maxHp:9999,atk:200,expReward:5000,isUraBoss:true},
   };
   const base=E[key]||E.multi;
   return{...base, key:key, phrases:ENEMY_PHRASES[key]||["「……。」"]};
@@ -4014,7 +4013,6 @@ function doBattle(type){
     const mult=dice<=2?0.5:dice>=5?1.5:1.0;
     let dmg=Math.floor(myAtk*mult);
     if(P.nextAtkBonus>0){dmg=Math.floor(dmg*(1+P.nextAtkBonus/100));P.nextAtkBonus=0;}
-    dmg=Math.max(1,dmg-(e.def||0)); // 敵のdef分を差し引く（最低1）
     e.hp=Math.max(0,e.hp-dmg);
     const spGain=8;P.sp=Math.min(100,(P.sp||0)+spGain); // FCS廃止：SP固定
     showEnemyDmg(dmg);
