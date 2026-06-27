@@ -1341,14 +1341,14 @@ function loadS(){const d=localStorage.getItem("ses_v9_save");if(d)try{S=JSON.par
 function getJob(id){return JOBS.find(j=>j.id===id);}
 function curJob(){return getJob(S.selectedJobId);}
 function equipBonus(){
-  let atk=0,def=0,mnt=0,lck=0,stm=0,fcs=0;
-  (P.inventory||[]).forEach(i=>{
-    if(i.type==="equip"){
-      atk+=i.atk||0;def+=i.def||0;mnt+=i.mnt||0;
-      lck+=i.lck||0;stm+=i.stm||0;fcs+=i.fcs||0;
-    }
-  });
-  return{atk,def,mnt,lck,stm,fcs};
+  let atk=0,def=0,mnt=0,lck=0;
+  // 装備は1つのみ（P.equippedIdで管理）
+  const equipped=(P.inventory||[]).find(i=>i.type==="equip"&&i.id===P.equippedId);
+  if(equipped){
+    atk+=equipped.atk||0;def+=equipped.def||0;mnt+=equipped.mnt||0;
+    lck+=equipped.lck||0;
+  }
+  return{atk,def,mnt,lck};
 }
 function weightedRandom(table){
   const total=table.reduce((a,t)=>a+t.w,0);let r=Math.random()*total;
@@ -1402,8 +1402,8 @@ function openDrawer(){
   // --- ステータス ---
   const eb=equipBonus();
   const STAT_KEYS=[
-    {k:"atk",n:"話術(ATK)"},{k:"def",n:"根性(DEF)"},{k:"mnt",n:"精神(MNT)"},
-    {k:"lck",n:"運(LCK)"},  {k:"stm",n:"体力(STM)"},{k:"fcs",n:"集中(FCS)"},
+    {k:"atk",n:"話術(ATK)"},{k:"def",n:"根性(DEF)"},{k:"mnt",n:"精神力(MNT)"},
+    {k:"lck",n:"運(LCK)"},
   ];
   const grid=document.getElementById("drawer-stats");grid.innerHTML="";
   STAT_KEYS.forEach(s=>{
@@ -1426,9 +1426,15 @@ function openDrawer(){
     inv.innerHTML=`<div style="color:var(--sub);font-size:12px;padding:4px 0;">空っぽ</div>`;
   }else{
     inv.innerHTML=(P.inventory||[]).map((it,i)=>{
-      const itBtn=(it.type==="use"||it.type==="sp")
-        ?'<button class="ibtn" onclick="useItemFromDrawer('+i+')">使う</button>'
-        :'<span style="font-size:10px;color:var(--cyan);">装備中</span>';
+      let itBtn;
+      if(it.type==="use"||it.type==="sp"){
+        itBtn='<button class="ibtn" onclick="useItemFromDrawer('+i+')">使う</button>';
+      }else if(it.type==="equip"){
+        const isEq=(P.equippedId===it.id);
+        itBtn=isEq
+          ?'<span style="font-size:10px;color:var(--cyan);">装備中</span>'
+          :'<span style="font-size:10px;color:var(--sub);">未装備</span>';
+      }else{itBtn='';}
       return '<div class="irow"><div class="irow-info"><div class="irow-name">'+it.name+'</div><div class="irow-desc">'+(it.desc||"")+'</div></div>'+itBtn+'</div>';
     }).join("");
   }
@@ -1439,12 +1445,17 @@ function openDrawer(){
 function allocPoint(stat,delta){
   const pts=P.pendingPoints||0;
   if(delta>0&&pts<=0)return;
-  if(delta<0&&(P[stat]||0)<=0)return; // 0未満にはしない（元の値からは引かない）
+  if(delta<0&&(P[stat]||0)<=0)return;
   P[stat]=(P[stat]||0)+delta;
   P.pendingPoints=(pts-delta);
   if(P.pendingPoints<0)P.pendingPoints=0;
+  // MNT変更時はmaxHp/hpも連動（1対1）
+  if(stat==="mnt"){
+    P.maxHp=(P.maxHp||0)+delta;
+    P.hp=Math.min(P.maxHp,Math.max(1,(P.hp||0)+delta));
+  }
   updateHeader("office");
-  openDrawer(); // 再レンダリング
+  openDrawer();
 }
 function closeDrawer(){document.getElementById("stat-drawer").classList.remove("open");}
 function closeDrawerOutside(e){if(e.target===document.getElementById("stat-drawer"))closeDrawer();}
@@ -1519,12 +1530,12 @@ function unlockJob(id,cost){
 function startRun(){rerollsLeft=2;rollStats();document.getElementById("dice-modal").classList.add("active");}
 function rollStats(){
   const job=curJob();
-  pendingDiceStats={atk:rollDice(job.diceAtk),def:rollDice(job.diceDef),mnt:rollDice(job.diceMnt),lck:rollDice(job.diceLck),stm:rollDice(job.diceStm),fcs:rollDice(job.diceFcs)};
+  pendingDiceStats={atk:rollDice(job.diceAtk),def:rollDice(job.diceDef),mnt:rollDice(job.diceMnt),lck:rollDice(job.diceLck)};
   renderDiceModal();
 }
 function renderDiceModal(){
   const s=pendingDiceStats;
-  const defs=[{k:"atk",n:"話術(ATK)",d:"攻撃・交渉力"},{k:"def",n:"根性(DEF)",d:"防御・耐久力"},{k:"mnt",n:"精神力(MNT)",d:"HP補正"},{k:"lck",n:"運(LCK)",d:"選択肢・乱数"},{k:"stm",n:"体力(STM)",d:"繁忙期軽減"},{k:"fcs",n:"集中(FCS)",d:"SP回収量"}];
+  const defs=[{k:"atk",n:"話術(ATK)",d:"攻撃・交渉力"},{k:"def",n:"根性(DEF)",d:"防御・耐久力"},{k:"mnt",n:"精神力(MNT)",d:"精神力=HP"},{k:"lck",n:"運(LCK)",d:"判定・乱数"}];
   const grid=document.getElementById("dice-grid");grid.innerHTML="";
   defs.forEach(d=>{const v=s[d.k];const cls=v<=6?"dv-low":v<=12?"dv-mid":"dv-high";const el=document.createElement("div");el.className="dice-item";el.innerHTML=`<div class="dice-item-name">${d.n}</div><div class="dice-item-val ${cls}">${v}</div><div class="dice-item-desc">${d.d}</div>`;grid.appendChild(el);});
   const total=Object.values(s).reduce((a,v)=>a+v,0);
@@ -1536,7 +1547,7 @@ function rerollDice(){if(rerollsLeft<=0)return;rerollsLeft--;rollStats();}
 function confirmDice(){
   const job=curJob();const s=pendingDiceStats;
   P={level:1,exp:0,hp:job.hp+s.mnt,maxHp:job.hp+s.mnt,sp:0,
-     atk:s.atk,def:s.def,mnt:s.mnt,lck:s.lck,stm:s.stm,fcs:s.fcs,
+     atk:s.atk,def:s.def,mnt:s.mnt,lck:s.lck,stm:0,fcs:0,
      payWallet:0,month:4,inventory:[],enemy:null,battleLog:[],nextAtkBonus:0,
      clearedEnemies:{},battleCtx:"field"};
   curPhase=1;maxPhase=0;
@@ -1760,12 +1771,20 @@ function showCloset(){
   showScreen("shop-screen");updateHeader("home");
   const cItems=S.closet;
   const iItems=P.inventory||[];
-  const makeClosetItem=(it,i,fromCloset)=>`
+  const makeClosetItem=(it,i,fromCloset)=>{
+    const isEquip=it.type==="equip";
+    const isEq=isEquip&&P.equippedId===it.id;
+    const equipBtn=(!fromCloset&&isEquip)
+      ?`<button class="closet-move-btn${isEq?" warn":""}" style="margin-bottom:3px;" onclick="equipItem(${i})">${isEq?"✓ 装備中":"装備する"}</button>`
+      :"";
+    return `
     <div class="closet-item">
       <div class="closet-item-name">${it.name}</div>
       <div style="font-size:10px;color:var(--sub);margin-bottom:5px;">${it.desc||""}</div>
+      ${equipBtn}
       <button class="closet-move-btn${fromCloset?" warn":""}" onclick="${fromCloset?`closetToInv(${i})`:`invToCloset(${i})`}">${fromCloset?"→ 手荷物へ":"← 預ける"}</button>
     </div>`;
+  };
   document.getElementById("shop-scroll").innerHTML=`
     <div style="font-size:17px;font-weight:900;margin-bottom:6px;">クローゼット整理</div>
     <div style="font-size:11px;color:var(--sub);margin-bottom:10px;">クローゼット＝死亡後も残る。手荷物＝死亡でロスト。</div>
@@ -1781,7 +1800,14 @@ function showCloset(){
     </div>`;
   document.getElementById("shop-cmds").innerHTML=`<button class="btn btn-secondary" onclick="goHome()">← 自宅に戻る</button>`;
 }
-function invToCloset(idx){const it=P.inventory.splice(idx,1)[0];S.closet.push(it);saveS();showCloset();}
+function equipItem(idx){
+  const it=(P.inventory||[])[idx];
+  if(!it||it.type!=="equip")return;
+  P.equippedId=(P.equippedId===it.id)?null:it.id; // 同じなら外す
+  saveP();showCloset();
+  toast(P.equippedId===it.id?"「"+it.name+"」を装備！":"装備を外した");
+}
+function invToCloset(idx){const it=P.inventory.splice(idx,1)[0];if(P.equippedId===it.id)P.equippedId=null;S.closet.push(it);saveS();showCloset();}
 function closetToInv(idx){const it=S.closet.splice(idx,1)[0];P.inventory.push(it);saveS();showCloset();}
 
 // ============================================================
@@ -1836,7 +1862,7 @@ showOffice("office");
 
   // 繁忙期警告はtoastで
   if((P.month||0)===6){
-    const pen=Math.max(1,3-Math.floor((P.stm||0)/8));
+    const pen=1; // STM廃止：繁忙期ペナルティ固定
     toast("繁忙期：探索ごとにメンタル-"+pen);
   }
 
@@ -1921,7 +1947,7 @@ function exploreFloor(){
   P.exploredPhases[(curM())+"-"+curPhase]=true;
   // maxPhaseはadvancePhase（next到達時）のみ更新する
   if((P.month||0)===6){
-    const pen=Math.max(1,3-Math.floor((P.stm||0)/8));
+    const pen=1; // STM廃止：繁忙期ペナルティ固定
     P.hp=Math.max(0,P.hp-pen);updateHeader("office");
     if(P.hp<=0){triggerDeath();return;}
   }
@@ -2823,7 +2849,7 @@ const SCENES={
       {t:"n",tx:"ビルの受付が最新のタッチパネル機になっている。操作が異常に分かりづらく、後ろに他社の営業の長蛇の列ができてきた。",btn:"操作する"},
       {t:"c",choices:[
         {label:"冷静にガイドを読み切る",steps:[
-          {t:"r",stat:"fcs",threshold:7,
+          {t:"r",stat:"lck",threshold:7,
            ok:[{t:"n",tx:"一発で入館証を発行できた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"エラー音が鳴り響く。後ろのスーツの男性に舌打ちされる。",btn:"EXPLORE"},{t:"e",damage:15}]
           }
@@ -2909,7 +2935,7 @@ const SCENES={
       {t:"n",tx:"未読メールの中に、「緊急・重要」と書かれた見慣れないパートナー企業からのメール。",btn:"開く"},
       {t:"c",choices:[
         {label:"内容を精査して即座に返信する",steps:[
-          {t:"r",stat:"fcs",threshold:9,
+          {t:"r",stat:"lck",threshold:9,
            ok:[{t:"n",tx:"他社に奪われかけていたエンジニアの予定を押さえることに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"添付ファイルのウイルスを誤って開き、パソコンがフリーズした。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
@@ -2930,7 +2956,7 @@ const SCENES={
       {t:"n",tx:"洗面所の鏡に映った自分の顔を見る。完全に目の下が黒くなっている。",btn:"見つめる"},
       {t:"c",choices:[
         {label:"強く頬を叩いて気合を入れ直す",steps:[
-          {t:"r",stat:"stm",threshold:9,
+          {t:"r",stat:"lck",threshold:9,
            ok:[{t:"n",tx:"アドレナリンが出て、最後の力を振り絞る元気が湧いた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"自分の叩いた痛さで余計に頭がクラクラしてきた。",btn:"EXPLORE"},{t:"e",damage:14}]
           }
@@ -2969,7 +2995,7 @@ const SCENES={
       {t:"n",tx:"これから謝罪訪問で準備があるのに。",btn:"…"},
       {t:"c",choices:[
         {label:"観念してSlackに打ち込む",steps:[
-          {t:"r",stat:"fcs",threshold:12,
+          {t:"r",stat:"lck",threshold:12,
            ok:[{t:"n",tx:"上司のヒステリーをいなすことに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"画面を見すぎて激しく車酔いした。吐き気が止まらない。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
@@ -3034,7 +3060,7 @@ const SCENES={
       {t:"n",tx:"……幻聴か？",btn:"…"},
       {t:"c",choices:[
         {label:"木を激しく蹴る",steps:[
-          {t:"r",stat:"stm",threshold:14,
+          {t:"r",stat:"lck",threshold:14,
            ok:[{t:"n",tx:"セミは飛び去り、ただの幻聴だと自分を落ち着かせた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"蹴った衝撃で大量のセミが一斉に自分に向かって飛び、周囲に恥をかいた。",btn:"EXPLORE"},{t:"e",damage:18}]
           }
@@ -3137,7 +3163,7 @@ const SCENES={
       {t:"n",tx:"説得に応じたと思った瞬間、山田さんが寝巻き姿のまま全力疾走で逃亡！",btn:"「待ってください！」"},
       {t:"c",choices:[
         {label:"全力疾走で追いかける",steps:[
-          {t:"r",stat:"stm",threshold:16,
+          {t:"r",stat:"lck",threshold:16,
            ok:[{t:"n",tx:"角を曲がった山田さんの背中を見失わずに追尾。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"完全に息が切れて足がもつれ、転倒。山田さんを見失った。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
@@ -3229,7 +3255,7 @@ const SCENES={
           }
         ]},
         {label:"「直接交渉して落とし所を探します」と請け負う",steps:[
-          {t:"r",stat:"fcs",threshold:23,
+          {t:"r",stat:"lck",threshold:23,
            ok:[{t:"d",sp:"上司",tx:"「おう、お前が泥を被れよ」と最悪の交渉へ向かう許可を得た。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"「お前にそんな高度な交渉ができるわけないだろ」と書類を奪われ、査定を下げられた。",btn:"EXPLORE"},{t:"e",damage:24}]
           }
@@ -3266,7 +3292,7 @@ const SCENES={
       {t:"n",tx:"現地へ向かうタクシーの中。心臓のバクバクが止まらず、呼吸が浅くなる。",btn:"深呼吸する"},
       {t:"c",choices:[
         {label:"深く深呼吸して回収の優先順位を整理する",steps:[
-          {t:"r",stat:"fcs",threshold:26,
+          {t:"r",stat:"lck",threshold:26,
            ok:[{t:"n",tx:"頭が冴え、現地の貸与PCや書類の回収手順をシミュレートできた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"パニックで過呼吸気味になり、タクシーのシートで完全にへたり込んだ。",btn:"EXPLORE"},{t:"e",damage:25}]
           }
@@ -3287,7 +3313,7 @@ const SCENES={
       {t:"n",tx:"裁判所に提出するための債権金額の書類を、正確に作成しなければならない。1円のミスも許されない。",btn:"作業する"},
       {t:"c",choices:[
         {label:"徹夜で稼働ログと請求書データを全て照合する",steps:[
-          {t:"r",stat:"fcs",threshold:26,
+          {t:"r",stat:"lck",threshold:26,
            ok:[{t:"d",sp:"弁護士",tx:"「これならすぐに手続きに移れる」と褒められた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"弁護士",tx:"「これでは受理されません」と突き返された。",btn:"EXPLORE"},{t:"e",damage:25}]
           }
@@ -3330,7 +3356,7 @@ const SCENES={
       {t:"n",tx:"労基からの電話を切った瞬間、周囲の街灯がすべて真っ赤な赤色灯に変化し、「お前は有罪だ」という文字が街頭ビジョンに躍る。",btn:"…幻覚か"},
       {t:"c",choices:[
         {label:"「これはただの幻覚だ！」と大声で叫んで走る",steps:[
-          {t:"r",stat:"stm",threshold:28,
+          {t:"r",stat:"lck",threshold:28,
            ok:[{t:"n",tx:"身体を激しく動かすことで幻覚を払いのけた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"サイレンの音が大きくなりすぎて頭痛が激化し、その場にうずくまる。",btn:"EXPLORE"},{t:"e",damage:26}]
           }
@@ -3358,7 +3384,7 @@ const SCENES={
           }
         ]},
         {label:"証拠のスクリーンショットを保存して法務に回す",steps:[
-          {t:"r",stat:"fcs",threshold:30,
+          {t:"r",stat:"lck",threshold:30,
            ok:[{t:"n",tx:"冷静に法的手段の準備を進めることに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"画面を見つめすぎて怒りが爆発し、スマホの画面にヒビを入れた。",btn:"EXPLORE"},{t:"e",damage:28}]
           }
@@ -3400,7 +3426,7 @@ const SCENES={
           }
         ]},
         {label:"単価アップの条件交渉をストレートに提示する",steps:[
-          {t:"r",stat:"fcs",threshold:30,
+          {t:"r",stat:"lck",threshold:30,
            ok:[{t:"n",tx:"上司から事前に引き出した予算枠を提示し、ギリギリで引き留めに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"エンジニア",tx:"「あっちは有給消化100%なんで、話になりません」と鼻で笑われた。",btn:"EXPLORE"},{t:"e",damage:28}]
           }
@@ -3611,7 +3637,7 @@ const SCENES={
           }
         ]},
         {label:"証拠のスクリーンショットを無言で保存し、法務に回す",steps:[
-          {t:"r",stat:"fcs",threshold:30,
+          {t:"r",stat:"lck",threshold:30,
            ok:[{t:"n",tx:"冷静に法的手段の準備を進めることに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"画面を見つめすぎて怒りが爆発し、スマホの画面を強く叩きすぎてヒビを入れた。",btn:"EXPLORE"},{t:"e",damage:28}]
           }
@@ -3986,7 +4012,7 @@ function doBattle(type){
     let dmg=Math.floor(myAtk*mult);
     if(P.nextAtkBonus>0){dmg=Math.floor(dmg*(1+P.nextAtkBonus/100));P.nextAtkBonus=0;}
     e.hp=Math.max(0,e.hp-dmg);
-    const spGain=8+Math.floor((P.fcs||0)/5);P.sp=Math.min(100,(P.sp||0)+spGain);
+    const spGain=8;P.sp=Math.min(100,(P.sp||0)+spGain); // FCS廃止：SP固定
     showEnemyDmg(dmg);
     logText="🎲["+dice+"](×"+mult+") → "+dmg+"ダメージ / SP+"+spGain;
   } else if(type==="skill"){
