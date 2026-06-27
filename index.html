@@ -2287,6 +2287,7 @@ const SE_SOUNDS={
   // "treasure":     "https://takumaharuta.github.io/SESgame/sounds/treasure.mp3",     // 宝箱発見
   // "stage_clear":  "https://takumaharuta.github.io/SESgame/sounds/stage_clear.mp3",  // ステージクリア
   // "levelup":      "https://takumaharuta.github.io/SESgame/sounds/levelup.mp3",      // レベルアップ
+  // "scene_fail":   "https://takumaharuta.github.io/SESgame/sounds/scene_fail.mp3",   // シナリオ失敗
 };
 function playSE(key){
   const url=SE_SOUNDS[key];
@@ -3936,6 +3937,7 @@ function applySceneEffect(eff){
     P.hp=Math.max(0,(P.hp||0)-dmg);
     updateHeader("office");
     showHpFlash(-dmg);
+    playSE("scene_fail"); // シナリオ失敗ダメージ
   }
   // 所持金減少
   if(eff.isCoinLoss&&eff.coinLoss>0){
