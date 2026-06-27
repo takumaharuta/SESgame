@@ -1323,7 +1323,7 @@ function getBoss(month){
 // ============================================================
 // STATE
 // ============================================================
-let S={evalCards:0,unlockedJobs:["intern"],selectedJobId:"intern",closet:[]};
+let S={evalCards:0,unlockedJobs:["intern"],selectedJobId:"intern",closet:[],equippedId:null};
 let _battleLock=false;
 const curM=()=>P.month||4; // P.month||4のヘルパー
 let P={};
@@ -1346,8 +1346,8 @@ function getJob(id){return JOBS.find(j=>j.id===id);}
 function curJob(){return getJob(S.selectedJobId);}
 function equipBonus(){
   let atk=0,def=0,mnt=0,lck=0;
-  // 装備は1つのみ（P.equippedIdで管理）
-  const equipped=(P.inventory||[]).find(i=>i.type==="equip"&&i.id===P.equippedId);
+  // 装備は1つのみ（S.equippedIdで管理）
+  const equipped=(P.inventory||[]).find(i=>i.type==="equip"&&i.id===S.equippedId);
   if(equipped){
     atk+=equipped.atk||0;def+=equipped.def||0;mnt+=equipped.mnt||0;
     lck+=equipped.lck||0;
@@ -1434,7 +1434,7 @@ function openDrawer(){
       if(it.type==="use"||it.type==="sp"){
         itBtn='<button class="ibtn" onclick="useItemFromDrawer('+i+')">使う</button>';
       }else if(it.type==="equip"){
-        const isEq=(P.equippedId===it.id);
+        const isEq=(S.equippedId===it.id);
         itBtn=isEq
           ?'<span style="font-size:10px;color:var(--cyan);">装備中</span>'
           :'<span style="font-size:10px;color:var(--sub);">未装備</span>';
@@ -1777,7 +1777,7 @@ function showCloset(){
   const iItems=P.inventory||[];
   const makeClosetItem=(it,i,fromCloset)=>{
     const isEquip=it.type==="equip";
-    const isEq=isEquip&&P.equippedId===it.id;
+    const isEq=isEquip&&S.equippedId===it.id;
     const equipBtn=(!fromCloset&&isEquip)
       ?`<button class="closet-move-btn${isEq?" warn":""}" style="margin-bottom:3px;" onclick="equipItem('${it.id}')">${isEq?"✓ 装備中":"装備する"}</button>`
       :"";
@@ -1807,12 +1807,12 @@ function showCloset(){
 function equipItem(itemId){
   const it=(P.inventory||[]).find(i=>i.id===itemId);
   if(!it||it.type!=="equip")return;
-  const wasEq=(P.equippedId===itemId);
-  P.equippedId=wasEq?null:itemId; // 同じなら外す
+  const wasEq=(S.equippedId===itemId);
+  S.equippedId=wasEq?null:itemId; // 同じなら外す
   saveP();showCloset();
   toast(wasEq?"装備を外した":"「"+it.name+"」を装備！");
 }
-function invToCloset(idx){const it=P.inventory.splice(idx,1)[0];if(P.equippedId===it.id)P.equippedId=null;S.closet.push(it);saveS();showCloset();}
+function invToCloset(idx){const it=P.inventory.splice(idx,1)[0];if(S.equippedId===it.id)S.equippedId=null;S.closet.push(it);saveS();showCloset();}
 function closetToInv(idx){const it=S.closet.splice(idx,1)[0];P.inventory.push(it);saveS();showCloset();}
 
 // ============================================================
