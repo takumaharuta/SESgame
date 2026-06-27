@@ -1483,6 +1483,7 @@ function preloadImages(){
 }
 function renderTitle(){
   showScreen("title-screen");updateHeader("title");
+  startTitleBGM(); // タイトルBGM開始
   document.getElementById("eval-count").innerText=S.evalCards;
   renderJobList();
 }
@@ -1556,6 +1557,7 @@ function confirmDice(){
      clearedEnemies:{},battleCtx:"field"};
   curPhase=1;maxPhase=0;
   document.getElementById("dice-modal").classList.remove("active");
+  stopTitleBGM(); // タイトルBGM停止
   goHome();
 }
 
@@ -2289,8 +2291,11 @@ const SE_SOUNDS={
   "levelup":      "https://takumaharuta.github.io/SESgame/sounds/levelup.mp3",      // レベルアップ
   "scene_fail":   "https://takumaharuta.github.io/SESgame/sounds/scene_fail.mp3",   // シナリオ失敗
   "gameover":     "https://takumaharuta.github.io/SESgame/sounds/gameover.mp3",     // ゲームオーバー
+  "click":        "https://takumaharuta.github.io/SESgame/sounds/click.mp3",        // ボタンクリック
+  "bgm_title":    "https://takumaharuta.github.io/SESgame/sounds/bgm_title.mp3",    // タイトルBGM
 };
 let _currentSceneSE=null; // シナリオ中の再生中SE管理
+let _titleBGM=null;       // タイトルBGM管理
 
 function playSE(key){
   const url=SE_SOUNDS[key];
@@ -2324,6 +2329,34 @@ function stopSceneSE(){
     _currentSceneSE=null;
   }
 }
+
+function startTitleBGM(){
+  if(_titleBGM) return; // すでに再生中なら何もしない
+  const url=SE_SOUNDS["bgm_title"];
+  if(!url) return;
+  try{
+    const audio=new Audio(url);
+    audio.volume=0.5;
+    audio.loop=true;
+    audio.play().catch(()=>{});
+    _titleBGM=audio;
+  }catch(e){}
+}
+
+function stopTitleBGM(){
+  if(_titleBGM){
+    _titleBGM.pause();
+    _titleBGM.currentTime=0;
+    _titleBGM=null;
+  }
+}
+
+// 全ボタンにクリックSEをグローバル設定
+document.addEventListener("click",function(e){
+  if(e.target.tagName==="BUTTON"||e.target.closest("button")){
+    playSE("click");
+  }
+});
 // ============================================================
 // 🖼️ SCENE_IMAGES — ここにURLを入れるだけで画像が反映されます
 // 各キーに { bg:"背景URL", chara:"キャラURL" } を設定
