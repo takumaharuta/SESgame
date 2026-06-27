@@ -1744,7 +1744,7 @@ function showStreetResult(text){
 
 // シーン終了後・探索後の遷移を一元管理
 function navigateAfterScene(ctx){
-  playSE("endure"); // シナリオ終了 = 耐えた
+  stopSceneSE(); // シナリオ終了時にSEを止める
   if(ctx==="street"){
     // 街に戻る
     showScreen("office-screen");
@@ -2014,7 +2014,7 @@ function handleFieldEvent(ev){
     if(it){P.inventory.push({...it});showFieldResult(ev.text||"");}
     return;
   }
-  if(ev.type==="scene"){playSE("scene_start");startScene(ev.key,()=>navigateAfterScene("field"),"field");return;}
+  if(ev.type==="scene"){playSceneSE("scene_start");startScene(ev.key,()=>navigateAfterScene("field"),"field");return;}
   if(ev.type==="sendol_gift"){
     if(P.gotSendolGift){exploreFloor();return;}
     P.gotSendolGift=true;
@@ -2290,6 +2290,8 @@ const SE_SOUNDS={
   "scene_fail":   "https://takumaharuta.github.io/SESgame/sounds/scene_fail.mp3",   // シナリオ失敗
   "gameover":     "https://takumaharuta.github.io/SESgame/sounds/gameover.mp3",     // ゲームオーバー
 };
+let _currentSceneSE=null; // シナリオ中の再生中SE管理
+
 function playSE(key){
   const url=SE_SOUNDS[key];
   if(!url) return;
@@ -2297,7 +2299,30 @@ function playSE(key){
     const audio=new Audio(url);
     audio.volume=0.7;
     audio.play().catch(()=>{});
+    return audio;
   }catch(e){}
+  return null;
+}
+
+function playSceneSE(key){
+  // シナリオ用SE：前のSEを止めてから再生
+  stopSceneSE();
+  const url=SE_SOUNDS[key];
+  if(!url) return;
+  try{
+    const audio=new Audio(url);
+    audio.volume=0.7;
+    audio.play().catch(()=>{});
+    _currentSceneSE=audio;
+  }catch(e){}
+}
+
+function stopSceneSE(){
+  if(_currentSceneSE){
+    _currentSceneSE.pause();
+    _currentSceneSE.currentTime=0;
+    _currentSceneSE=null;
+  }
 }
 // ============================================================
 // 🖼️ SCENE_IMAGES — ここにURLを入れるだけで画像が反映されます
@@ -3880,6 +3905,7 @@ function sceneAdvanceToHome(){
       break;
     }
   }
+  stopSceneSE(); // シナリオ終了時にSEを止める
   sceneState=null;
   goHome();
 }
@@ -3890,8 +3916,10 @@ function sceneChoose(ci){
   if(!st||st.t!=="c")return;
   const chosen=st.choices[ci];
   if(!chosen)return;
-  // choiceのstepsを直接展開（ラベルnarrationは不要）
+  // 選択肢を押した瞬間：scene_startを止めてendure or scene_failを再生
   const chosenSteps=JSON.parse(JSON.stringify(chosen.steps));
+  const hasDamage=chosenSteps.some(s=>s.t==="e"&&Number(s.damage)>0);
+  playSceneSE(hasDamage?"scene_fail":"endure");
   sceneState.steps.splice(sceneState.idx,1,...chosenSteps);
   runSceneStep();
 }
