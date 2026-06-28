@@ -1897,7 +1897,13 @@ function startIntrospectionBattle(name,hp,atk,exp){
 // ============================================================
 // OFFICE
 // ============================================================
-function goToOffice(){curPhase=1;showScreen("office-screen");updateBusyMode();renderFloor();}
+function goToOffice(){
+  if(P.yearCleared){
+    toast("今月はもうオフィスに向かう必要はない。");
+    return;
+  }
+  curPhase=1;showScreen("office-screen");updateBusyMode();renderFloor();
+}
 
 function renderFloor(){
 showOffice("office");
@@ -4314,10 +4320,13 @@ function backToTitle(){
 }
 function oneYearClear(){
   showScreen("go-screen");S.evalCards+=10;saveS();
+  P.yearCleared=true; // 1年クリアフラグ
   document.getElementById("go-title").innerText="1年間のサバイバル完遂！";
   document.getElementById("go-title").style.color="var(--green)";
   document.getElementById("go-panel").innerText="魔界オフィスでの12ヶ月を生き抜いた！\n\n社内評価カード +10枚 獲得！";
   document.getElementById("go-closet").innerHTML=`<div style="color:var(--green);font-weight:700;text-align:center;padding:12px;">1年サバイバル達成</div>`;
+  // ボタンを「自宅に帰る」に変更
+  document.querySelector("#go-screen .cmds").innerHTML=`<button class="btn btn-success" onclick="goHome()">自宅に帰る</button>`;
 }
 </script>
 </body>
