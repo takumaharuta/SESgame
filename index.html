@@ -205,6 +205,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 .scene-narr{font-size:12px;color:var(--sub);line-height:1.6;white-space:pre-wrap;margin-bottom:8px;font-style:italic;}
 
 /* TITLE */
+#title-main{background-size:cover;background-position:center;background-repeat:no-repeat;position:relative;}
+#title-main::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,0.55);z-index:0;}
+#title-main .scroll,#title-main .cmds{position:relative;z-index:1;}
 .title-logo h1{font-size:24px;font-weight:900;letter-spacing:2px;background:linear-gradient(135deg,#e03030,#d4a820,#e07820);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;}
 .title-logo p{font-size:11px;color:var(--red);font-weight:700;letter-spacing:1px;text-align:center;margin-top:3px;}
 .eval-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 14px;text-align:center;font-size:13px;margin-bottom:12px;}
@@ -1506,6 +1509,8 @@ function useItemFromDrawer(idx){
 // ============================================================
 window.onload=function(){loadS();preloadImages();renderTitle();};
 function preloadImages(){
+  // タイトル背景を先読み
+  if(TITLE_BG_IMAGE){new Image().src=TITLE_BG_IMAGE;}
   // SCENE_IMAGESに登録された全画像をゲーム起動時に先読み
   Object.values(SCENE_IMAGES).forEach(function(entry){
     if(entry.bg){new Image().src=entry.bg;}
@@ -1519,6 +1524,10 @@ function renderTitle(){
   document.getElementById("title-main").style.display="none";
   document.getElementById("title-jobselect").style.display="none";
   document.getElementById("eval-count").innerText=S.evalCards;
+  // タイトル背景画像の反映
+  if(TITLE_BG_IMAGE){
+    document.getElementById("title-main").style.backgroundImage="url('"+TITLE_BG_IMAGE+"')";
+  }
   renderJobList();
 }
 
@@ -2416,6 +2425,12 @@ document.addEventListener("click",function(e){
     playSE("click");
   }
 });
+// ============================================================
+// 🖼️ TITLE_BG_IMAGE — タイトル画面(「SES魔界サバイバル」)の背景URLをここに入れる
+// 空文字("")のままなら背景画像なし(従来通りの黒背景)
+// ============================================================
+const TITLE_BG_IMAGE="https://takumaharuta.github.io/SESgame/images/title_bg.jpg";
+
 // ============================================================
 // 🖼️ SCENE_IMAGES — ここにURLを入れるだけで画像が反映されます
 // 各キーに { bg:"背景URL", chara:"キャラURL" } を設定
