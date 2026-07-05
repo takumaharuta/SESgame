@@ -205,7 +205,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 .scene-narr{font-size:12px;color:var(--sub);line-height:1.6;white-space:pre-wrap;margin-bottom:8px;font-style:italic;}
 
 /* TITLE */
-#title-main{background-size:cover;background-position:center;background-repeat:no-repeat;position:relative;}
+#title-main{background-size:cover;background-position:center;background-repeat:no-repeat;position:relative;opacity:0;transition:opacity 1.4s ease;}
 #title-main::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,0.72);z-index:0;}
 #title-main .scroll,#title-main .cmds{position:relative;z-index:1;}
 .title-logo h1{font-size:24px;font-weight:900;letter-spacing:2px;background:linear-gradient(135deg,#e03030,#d4a820,#e07820);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.9));}
@@ -1532,12 +1532,20 @@ function renderTitle(){
 }
 
 function showTitleMain(){
-  // タップ → BGM開始 → タイトルメイン表示
+  // タップ → BGM開始 → タイトルメイン表示（真っ暗からフェードイン）
   startTitleBGM();
   document.getElementById("title-tap").style.display="none";
-  document.getElementById("title-main").style.display="flex";
-  document.getElementById("title-main").style.flexDirection="column";
-  document.getElementById("title-main").style.height="100%";
+  const tm=document.getElementById("title-main");
+  tm.style.display="flex";
+  tm.style.flexDirection="column";
+  tm.style.height="100%";
+  tm.style.opacity="0";
+  void tm.offsetWidth; // reflowを強制してtransitionを効かせる
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      tm.style.opacity="1";
+    });
+  });
 }
 
 function showJobSelect(){
@@ -4359,11 +4367,19 @@ function backToTitle(){
   showScreen("title-screen");updateHeader("title");
   document.getElementById("eval-count").innerText=S.evalCards;
   renderJobList();
-  // タップ画面スキップ→タイトルメインへ直接＋BGM再開
+  // タップ画面スキップ→タイトルメインへ直接＋BGM再開（真っ暗からフェードイン）
   document.getElementById("title-tap").style.display="none";
-  document.getElementById("title-main").style.display="flex";
-  document.getElementById("title-main").style.flexDirection="column";
-  document.getElementById("title-main").style.height="100%";
+  const tm=document.getElementById("title-main");
+  tm.style.display="flex";
+  tm.style.flexDirection="column";
+  tm.style.height="100%";
+  tm.style.opacity="0";
+  void tm.offsetWidth;
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      tm.style.opacity="1";
+    });
+  });
   document.getElementById("title-jobselect").style.display="none";
   startTitleBGM();
 }
