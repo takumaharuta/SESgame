@@ -1346,7 +1346,7 @@ function getBoss(month){
     3: {name:"魔界のグループ会長（最終ボス）",     hp:2000, atk:95, expReward:1500},
   };
   const b=B[month]||B[4];
-  return{name:b.name,hp:b.hp,maxHp:b.hp,atk:b.atk,expReward:b.expReward,isBoss:true,payReward:0,phrases:BOSS_PHRASES[month]||BOSS_PHRASES[4]};
+  return{name:b.name,hp:b.hp,maxHp:b.hp,atk:b.atk,expReward:b.expReward,isBoss:true,payReward:0,phrases:BOSS_PHRASES[month]||BOSS_PHRASES[4],key:"boss"+month};
 }
 
 // ============================================================
@@ -2583,15 +2583,16 @@ const SCENE_IMAGES={
   "ura_boss": { chara:"https://takumaharuta.github.io/SESgame/images/chara_ura_boss.webp" }, // 深夜の路上カウンセラー（裏ボス）
 
   // --- NPCキャラクター（シナリオイベント）---
-  "takano":             { chara:"https://takumaharuta.github.io/SESgame/images/chara_takano.webp" },             // 鷹野常務（elevator_event）
-  "tadokoro":           { chara:"https://takumaharuta.github.io/SESgame/images/chara_tadokoro.webp" },           // 田所さん（kyuto_room）
-  "tanaka":             { chara:"https://takumaharuta.github.io/SESgame/images/chara_tanaka.webp" },             // 田中・元同僚（corridor_event）
-  "kikuchi":            { chara:"https://takumaharuta.github.io/SESgame/images/chara_kikuchi.webp" },            // 顧問・菊地さん（kaishoku_info）
-  "obasan":             { chara:"https://takumaharuta.github.io/SESgame/images/chara_obasan.webp" },             // おばあさん（apartment_granny）
-  "yakuza_man":         { chara:"https://takumaharuta.github.io/SESgame/images/chara_yakuza_man.webp" },         // 強面の男（yakuza_talk）
-  "roujin":             { chara:"https://takumaharuta.github.io/SESgame/images/chara_roujin.webp" },             // 謎の老人・占い師（street_fortune）
-  "street_suspicious":  { chara:"https://takumaharuta.github.io/SESgame/images/chara_street_suspicious.webp" },  // 謎のスーツ男（street_stalker）
-  "wakamono":           { chara:"https://takumaharuta.github.io/SESgame/images/chara_wakamono.webp" },           // 内定式帰りの若者（naitei_voice）
+  // ※キーは「シーンID」に合わせる必要があるため、キャラ名ではなくシーンキーで登録
+  "elevator_event":    { chara:"https://takumaharuta.github.io/SESgame/images/chara_takano.webp" },             // 鷹野常務
+  "kyuto_room":        { chara:"https://takumaharuta.github.io/SESgame/images/chara_tadokoro.webp" },           // 田所さん
+  "corridor_event":    { chara:"https://takumaharuta.github.io/SESgame/images/chara_tanaka.webp" },             // 田中・元同僚
+  "kaishoku_info":     { chara:"https://takumaharuta.github.io/SESgame/images/chara_kikuchi.webp" },            // 顧問・菊地さん
+  "apartment_granny":  { chara:"https://takumaharuta.github.io/SESgame/images/chara_obasan.webp" },             // おばあさん
+  "yakuza_talk":       { chara:"https://takumaharuta.github.io/SESgame/images/chara_yakuza_man.webp" },         // 強面の男
+  "street_fortune":    { chara:"https://takumaharuta.github.io/SESgame/images/chara_roujin.webp" },             // 謎の老人・占い師
+  "street_stalker":    { chara:"https://takumaharuta.github.io/SESgame/images/chara_street_suspicious.webp" },  // 謎のスーツ男
+  "naitei_voice":      { chara:"https://takumaharuta.github.io/SESgame/images/chara_wakamono.webp" },           // 内定式帰りの若者
 };
 
 // 画像エリアを更新（画像があれば表示、なければプレースホルダー）
