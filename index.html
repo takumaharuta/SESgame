@@ -432,28 +432,28 @@ const JOBS=[
   // maxLv: 低役職ほど高い（成長余地大）/ 高役職は最初から強いが伸びしろ少
   // lvPointPer: レベルアップ時のポイント付与数
   {id:"intern",  name:"新入社員",    cost:0,  hp:60, pay:5,  badge:"b-cyan",  maxLv:30, lvPointPer:1,
-   diceAtk:"2d4+2", diceDef:"2d4+2", diceMnt:"2d4+2", diceLck:"2d4+2",
+   diceAtk:"2d4+2", diceDef:"2d4+2", diceMnt:"2d4+2",
    normalName:"全力平謝り",          skillName:"ロジハラ耐え",      skillCost:30,skillDesc:"メンタル+25回復",desc:"右も左もわからない魔界の最下級奴隷。"},
   {id:"staff",   name:"平社員",      cost:20, hp:75, pay:15, badge:"b-cyan",  maxLv:25, lvPointPer:1,
-   diceAtk:"2d4+3", diceDef:"2d4+3", diceMnt:"2d4+3", diceLck:"2d4+3",
+   diceAtk:"2d4+3", diceDef:"2d4+3", diceMnt:"2d4+3",
    normalName:"一般論ディベート",     skillName:"エビデンスアタック",skillCost:40,skillDesc:"敵に40固定ダメージ",desc:"多少の理不尽には耐えられる一般兵。"},
   {id:"leader",  name:"リーダー",    cost:50, hp:90, pay:25, badge:"b-gold",  maxLv:20, lvPointPer:1,
-   diceAtk:"2d6+10",diceDef:"2d6+8", diceMnt:"2d6+8", diceLck:"2d6+6",
+   diceAtk:"2d6+10",diceDef:"2d6+8", diceMnt:"2d6+8",
    normalName:"進捗管理キック",       skillName:"サビ残命令",        skillCost:50,skillDesc:"敵45ダメージ＋SP+15",desc:"後輩の愚痴という精神攻撃をさばく中間層。"},
   {id:"manager", name:"マネージャー",cost:100,hp:105,pay:30, badge:"b-gold",  maxLv:15, lvPointPer:1,
-   diceAtk:"2d6+15",diceDef:"2d6+12",diceMnt:"2d6+12",diceLck:"2d6+8",
+   diceAtk:"2d6+15",diceDef:"2d6+12",diceMnt:"2d6+12",
    normalName:"KPI圧迫面談",         skillName:"予算削減命令",      skillCost:45,skillDesc:"敵50ダメージ＋次ターン+30%",desc:"数字に追われ部下にも追われる管理職の亡霊。"},
   {id:"bucho",   name:"部長",        cost:150,hp:130,pay:50, badge:"b-purple",maxLv:10, lvPointPer:1,
-   diceAtk:"2d6+20",diceDef:"2d6+18",diceMnt:"2d6+18",diceLck:"2d6+12",
+   diceAtk:"2d6+20",diceDef:"2d6+18",diceMnt:"2d6+18",
    normalName:"役員報告プレッシャー", skillName:"部署丸ごと粛清",   skillCost:55,skillDesc:"敵HP30%減＋SP全回収",desc:"会議と報告書の間で魂を売り続けた生き残り。"},
   {id:"exec",    name:"執行役員",    cost:200,hp:160,pay:44, badge:"b-purple",maxLv:7,  lvPointPer:1,
-   diceAtk:"2d6+25",diceDef:"2d6+22",diceMnt:"2d6+22",diceLck:"2d6+15",
+   diceAtk:"2d6+25",diceDef:"2d6+22",diceMnt:"2d6+22",
    normalName:"株主への説明責任",     skillName:"緊急役員会議召集",  skillCost:55,skillDesc:"敵60ダメージ＋SP+20",desc:"取締役一歩手前。責任だけが増え続ける哀れな存在。"},
   {id:"ceo",     name:"代表取締役",  cost:300,hp:200,pay:85, badge:"b-red",   maxLv:5,  lvPointPer:1,
-   diceAtk:"3d6+30",diceDef:"3d6+28",diceMnt:"3d6+28",diceLck:"3d6+20",
+   diceAtk:"3d6+30",diceDef:"3d6+28",diceMnt:"3d6+28",
    normalName:"経営理念の唱和",       skillName:"不採算部門カット",  skillCost:60,skillDesc:"敵HPを半分にする",desc:"全責任の呪いを背負う魔界の支配者。"},
   {id:"cleaner", name:"清掃員",      cost:500,hp:300,pay:5,  badge:"b-red",   maxLv:3,  lvPointPer:1,
-   diceAtk:"2d4+116",diceDef:"2d4+8",diceMnt:"2d4+8",diceLck:"2d4+8",
+   diceAtk:"2d4+116",diceDef:"2d4+8",diceMnt:"2d4+8",
    normalName:"濡れモップ掛け",       skillName:"強制ゴミ廃棄",     skillCost:20,skillDesc:"敵に120の絶大ダメージ",desc:"【最強】給与は最低。しかし全ての理不尽を無言で消し去る。"}
 ];
 
@@ -1369,6 +1369,28 @@ function rollDice(str){
   const[left,base]=str.split("+");const[num,sides]=left.split("d").map(Number);
   let s=0;for(let i=0;i<num;i++)s+=Math.floor(Math.random()*sides)+1;return s+(base?+base:0);
 }
+// ============================================================
+// シナリオ判定（rステップ）：ステータス値÷30 の確率で成功
+// ============================================================
+function statCheckSuccess(){
+  const val=P.lck||0;
+  const chance=Math.max(0,Math.min(1,val/30));
+  return Math.random()<chance;
+}
+// rステップを再帰的に解決し、n/d/eなどの実ステップだけの配列に展開する
+// （選択直後のSE判定と実際の進行で判定がズレないよう、1回のみ乱数を引く）
+function resolveRSteps(steps){
+  const result=[];
+  (steps||[]).forEach(s=>{
+    if(s.t==="r"){
+      const success=statCheckSuccess();
+      result.push(...resolveRSteps(success?s.ok:s.ng));
+    } else {
+      result.push(s);
+    }
+  });
+  return result;
+}
 function saveS(){localStorage.setItem("ses_v9_save",JSON.stringify(S));}
 function loadS(){const d=localStorage.getItem("ses_v9_save");if(d)try{S=JSON.parse(d);}catch(e){}}
 function getJob(id){return JOBS.find(j=>j.id===id);}
@@ -1629,7 +1651,7 @@ function unlockJob(id,cost){
 function startRun(){rerollsLeft=2;rollStats();document.getElementById("dice-modal").classList.add("active");}
 function rollStats(){
   const job=curJob();
-  pendingDiceStats={atk:rollDice(job.diceAtk),def:rollDice(job.diceDef),mnt:rollDice(job.diceMnt),lck:rollDice(job.diceLck)};
+  pendingDiceStats={atk:rollDice(job.diceAtk),def:rollDice(job.diceDef),mnt:rollDice(job.diceMnt),lck:rollDice("1d6+4")};
   renderDiceModal();
 }
 function renderDiceModal(){
@@ -2676,7 +2698,7 @@ const SCENES={
       {t:"c",choices:[
         {label:"弁明する",steps:[
           {t:"n",tx:"喉の奥から、かすれた声が出た。",btn:"俺は触ってない！"},
-          {t:"r",stat:"atk",threshold:5,
+          {t:"r",stat:"lck",
            ok:[
              {t:"n",tx:"別の乗客が証言してくれた。無事解放される。",btn:"EXPLORE"},
              {t:"e",damage:0}
@@ -2689,7 +2711,7 @@ const SCENES={
         ]},
         {label:"黙って次の駅で降りる",steps:[
           {t:"n",tx:"何も言わずにドアの方へ移動した。",btn:"人をかき分ける"},
-          {t:"r",stat:"lck",threshold:5,
+          {t:"r",stat:"lck",
            ok:[
              {t:"n",tx:"追われることなく逃げ切った。",btn:"EXPLORE"},
              {t:"e",damage:0}
@@ -2720,7 +2742,7 @@ const SCENES={
       {t:"c",choices:[
         {label:"静かに語りかける",steps:[
           {t:"n",tx:"なるべく低い声で、ゆっくり言った。",btn:"落ち着いてください"},
-          {t:"r",stat:"atk",threshold:5,
+          {t:"r",stat:"lck",
            ok:[
              {t:"n",tx:"無言で手が離れた。",btn:"EXPLORE"},
              {t:"e",damage:0}
@@ -2733,7 +2755,7 @@ const SCENES={
           }
         ]},
         {label:"振り払う",steps:[
-          {t:"r",stat:"def",threshold:5,
+          {t:"r",stat:"lck",
            ok:[
              {t:"n",tx:"うまく脱出できた。",btn:"EXPLORE"},
              {t:"e",damage:0}
@@ -2762,7 +2784,7 @@ const SCENES={
       {t:"c",choices:[
         {label:"明るく答える",steps:[
           {t:"d",sp:"自分",tx:"「はい。非常に充実しています。」",btn:"…"},
-          {t:"r",stat:"atk",threshold:11,
+          {t:"r",stat:"lck",
            ok:[
              {t:"d",sp:"鷹野常務",tx:"「そうか。顔に出てるな。」",btn:"…"},
              {t:"n",tx:"フロアに着いた。常務は何も言わず降りていった。なぜか少し、背筋が伸びた気がした。",btn:"EXPLORE"},
@@ -2778,7 +2800,7 @@ const SCENES={
         {label:"正直に答える",steps:[
           {t:"d",sp:"自分",tx:"「正直に言うと、かなり厳しい状況が続いています。」",btn:"…"},
           {t:"n",tx:"常務が初めてこちらを向いた。",btn:"…"},
-          {t:"r",stat:"lck",threshold:9,
+          {t:"r",stat:"lck",
            ok:[
              {t:"d",sp:"鷹野常務",tx:"「そうか。……少し考える。」",btn:"…"},
              {t:"n",tx:"何を考えるのかはわからない。でも、聞いてもらえた。",btn:"EXPLORE"},
@@ -2811,7 +2833,7 @@ const SCENES={
       {t:"c",choices:[
         {label:"笑って返す",steps:[
           {t:"d",sp:"自分",tx:"「まあ、なんとかやってます。」",btn:"…"},
-          {t:"r",stat:"atk",threshold:8,
+          {t:"r",stat:"lck",
            ok:[
              {t:"d",sp:"田所さん",tx:"「そうですよね。私も最近バタバタしてて。」",btn:"…"},
              {t:"n",tx:"少し話が弾んだ。それだけのことなのに、やけに救われた気がした。",btn:"EXPLORE"},
@@ -2826,7 +2848,7 @@ const SCENES={
         ]},
         {label:"話を振る",steps:[
           {t:"d",sp:"自分",tx:"「田所さんはどうですか？」",btn:"…"},
-          {t:"r",stat:"lck",threshold:7,
+          {t:"r",stat:"lck",
            ok:[
              {t:"d",sp:"田所さん",tx:"「実は私も、ちょっとしんどくて……」",btn:"…"},
              {t:"n",tx:"思いがけず打ち明けてくれた。自分だけじゃないとわかって、少し楽になった。",btn:"EXPLORE"},
@@ -2858,7 +2880,7 @@ const SCENES={
       {t:"c",choices:[
         {label:"明るく声をかける",steps:[
           {t:"d",sp:"自分",tx:"「久しぶり！元気そうじゃないか。」",btn:"…"},
-          {t:"r",stat:"atk",threshold:9,
+          {t:"r",stat:"lck",
            ok:[
              {t:"d",sp:"田中",tx:"「……ええ、まあ。今は別の会社で。あなたはまだここにいるんですね。」",btn:"…"},
              {t:"d",sp:"田中",tx:"「……すごいと思います。本当に。」",btn:"…"},
@@ -2873,7 +2895,7 @@ const SCENES={
           }
         ]},
         {label:"気づかないフリをする",steps:[
-          {t:"r",stat:"lck",threshold:8,
+          {t:"r",stat:"lck",
            ok:[
              {t:"n",tx:"目が合う直前に視線を外した。田中も、同じことをした。二人とも、気づかなかったことにした。",btn:"EXPLORE"},
              {t:"e",damage:0}
@@ -2908,7 +2930,7 @@ const SCENES={
         ]},
         {label:"リンクを開く",steps:[
           {t:"n",tx:"タップした。",btn:"…"},
-          {t:"r",stat:"lck",threshold:10,
+          {t:"r",stat:"lck",
            ok:[
              {t:"n",tx:"……取引先の新しいポータルサイトだった。「登録特典：SPドリンク1本贈呈」",btn:"EXPLORE"},
              {t:"e",item:"sp_drink"}
@@ -2956,7 +2978,7 @@ const SCENES={
       {t:"c",choices:[
         {label:"もう一件かける",steps:[
           {t:"n",tx:"次のリスト。株式会社△△。",btn:"…"},
-          {t:"r",stat:"atk",threshold:10,
+          {t:"r",stat:"lck",
            ok:[
              {t:"d",sp:"相手（女性）",tx:"「少しだけお話を聞きましょうか。」",btn:"…"},
              {t:"n",tx:"アポが取れた。初めて今日、誰かに話を聞いてもらえた。",btn:"EXPLORE"},
@@ -2992,7 +3014,7 @@ const SCENES={
           {t:"e",damage:0,isCoinLoss:true,coinLoss:5}
         ]},
         {label:"振り返る",steps:[
-          {t:"r",stat:"atk",threshold:12,
+          {t:"r",stat:"lck",
            ok:[
              {t:"n",charaKey:"street_stalker_suit",tx:"スーツ姿の男だった。目が合うと、男は苦笑いをした。",btn:"…"},
              {t:"d",sp:"謎のスーツ男",charaKey:"street_stalker_suit",tx:"「あ、実はですね。うちのサービスに興味はございませんか。」",btn:"呆れる"},
@@ -3008,7 +3030,7 @@ const SCENES={
           }
         ]},
         {label:"全力で走る",steps:[
-          {t:"r",stat:"def",threshold:8,
+          {t:"r",stat:"lck",
            ok:[
              {t:"n",tx:"追いかけてこなかった。自宅まで走り切った。謎の達成感がある。",btn:"EXPLORE"},
              {t:"e",heal:15}
@@ -3032,7 +3054,7 @@ const SCENES={
       {t:"c",choices:[
         {label:"手を差し出す",steps:[
           {t:"n",tx:"老人が手相を見始めた。異様に長い沈黙が続く。",btn:"待つ"},
-          {t:"r",stat:"lck",threshold:10,
+          {t:"r",stat:"lck",
            ok:[
              {t:"d",sp:"老人",tx:"「……あなたは強くなれる。今夜、その力が宿る。」",btn:"…"},
              {t:"n",tx:"何かが体の中で動いた気がした。気のせいかもしれない。",btn:"EXPLORE"},
@@ -3062,7 +3084,7 @@ const SCENES={
       {t:"c",choices:[
         {label:"扉を開ける",steps:[
           {t:"n",tx:"扉に手をかけた。ゆっくりと引いた。",btn:"引く"},
-          {t:"r",stat:"lck",threshold:13,
+          {t:"r",stat:"lck",
            ok:[
              {t:"n",tx:"中は、高級会員制レストランだった。",btn:"目を疑う"},
              {t:"d",sp:"支配人",tx:"「あ、本日のご予約の方ですね。どうぞ。」",btn:"違うとは言えない"},
@@ -3092,13 +3114,13 @@ const SCENES={
       {t:"n",tx:"スマホの地図アプリの調子が悪い。地図がぐるぐる回って取引先の場所がわからない。",btn:"焦る"},
       {t:"c",choices:[
         {label:"通行人に道を聞く",steps:[
-          {t:"r",stat:"atk",threshold:7,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"丁寧に教えてもらい、最短ルートが判明した。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"「急いでるので」と冷たくあしらわれ、声を出すのが怖くなった。",btn:"EXPLORE"},{t:"e",damage:15}]
           }
         ]},
         {label:"直感で歩く",steps:[
-          {t:"r",stat:"lck",threshold:7,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"なんと目の前に目的のビルが現れた。運が良い。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"完全に逆方向の住宅街に迷い込み、体力を激しく消耗した。",btn:"EXPLORE"},{t:"e",damage:15}]
           }
@@ -3113,13 +3135,13 @@ const SCENES={
       {t:"n",tx:"ビルの受付が最新のタッチパネル機になっている。操作が異常に分かりづらく、後ろに他社の営業の長蛇の列ができてきた。",btn:"操作する"},
       {t:"c",choices:[
         {label:"冷静にガイドを読み切る",steps:[
-          {t:"r",stat:"lck",threshold:7,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"一発で入館証を発行できた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"エラー音が鳴り響く。後ろのスーツの男性に舌打ちされる。",btn:"EXPLORE"},{t:"e",damage:15}]
           }
         ]},
         {label:"警備員をインターホンで呼ぶ",steps:[
-          {t:"r",stat:"atk",threshold:7,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"手動で通してもらう。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"「画面の通りに操作してください」と突っぱねられる。",btn:"EXPLORE"},{t:"e",damage:12}]
           }
@@ -3134,13 +3156,13 @@ const SCENES={
       {t:"n",tx:"エンジニアの濱家さんがスマホゲーム（ツメツメ）をしていてこちらの話を聞かない。面接前なのに。",btn:"…"},
       {t:"c",choices:[
         {label:"「面接前なので一旦やめましょうか」",steps:[
-          {t:"r",stat:"atk",threshold:7,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"濱家さん",tx:"「そうですよね、すみません」と真面目な顔になった。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"完全に無視されてゲームを続けられた。",btn:"EXPLORE"},{t:"e",damage:15}]
           }
         ]},
         {label:"「ツメツメ、おもしろいですよね！」",steps:[
-          {t:"r",stat:"lck",threshold:7,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"話が盛り上がり、濱家さんとの距離が縮まった。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"濱家さん",tx:"「あ、はい」とだけ言われ、さらに気まずい空間になった。",btn:"EXPLORE"},{t:"e",damage:15}]
           }
@@ -3156,13 +3178,13 @@ const SCENES={
       {t:"n",tx:"どこからその自信がくるのか。",btn:"…"},
       {t:"c",choices:[
         {label:"「実績を出してから交渉しましょう」と諭す",steps:[
-          {t:"r",stat:"atk",threshold:7,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"濱家さん",tx:"「確かにそうですね、頑張ります」",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"濱家さん",tx:"「エージェントのくせに交渉力ないな！」",btn:"EXPLORE"},{t:"e",damage:15}]
           }
         ]},
         {label:"一旦様子を見る",steps:[
-          {t:"r",stat:"lck",threshold:7,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"追撃メッセージは来なかった。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"濱家さん",tx:"「無視ですか？不誠実ですね」と追い討ちが来た。",btn:"EXPLORE"},{t:"e",damage:15}]
           }
@@ -3178,13 +3200,13 @@ const SCENES={
       {t:"n",tx:"エレベーターホール横の自販機で、エナジードリンクを買おうとしたら売り切れ。",btn:"がっくりする"},
       {t:"c",choices:[
         {label:"激安炭酸水を飲む",steps:[
-          {t:"r",stat:"lck",threshold:9,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"強炭酸が喉に刺さり、一瞬だけ頭がシャキッとした。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"炭酸が強すぎてお腹を下し、トイレに引きこもる羽目になった。",btn:"EXPLORE"},{t:"e",damage:14}]
           }
         ]},
         {label:"冷たい水で目を覚ます",steps:[
-          {t:"r",stat:"mnt",threshold:9,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"冷たさが体に染み渡り、少しだけ落ち着きを取り戻した。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"自分がひどく惨めな存在に思えてきて、涙が出そうになった。",btn:"EXPLORE"},{t:"e",damage:14}]
           }
@@ -3199,13 +3221,13 @@ const SCENES={
       {t:"n",tx:"未読メールの中に、「緊急・重要」と書かれた見慣れないパートナー企業からのメール。",btn:"開く"},
       {t:"c",choices:[
         {label:"内容を精査して即座に返信する",steps:[
-          {t:"r",stat:"lck",threshold:9,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"他社に奪われかけていたエンジニアの予定を押さえることに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"添付ファイルのウイルスを誤って開き、パソコンがフリーズした。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
         ]},
         {label:"翌朝一番に対応する",steps:[
-          {t:"r",stat:"lck",threshold:9,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"ただの誤送信メールだった。無視して正解だった。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"翌朝には案件が他社に流れており、機会損失として上司に怒鳴られた。",btn:"EXPLORE"},{t:"e",damage:14}]
           }
@@ -3220,13 +3242,13 @@ const SCENES={
       {t:"n",tx:"洗面所の鏡に映った自分の顔を見る。完全に目の下が黒くなっている。",btn:"見つめる"},
       {t:"c",choices:[
         {label:"強く頬を叩いて気合を入れ直す",steps:[
-          {t:"r",stat:"lck",threshold:9,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"アドレナリンが出て、最後の力を振り絞る元気が湧いた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"自分の叩いた痛さで余計に頭がクラクラしてきた。",btn:"EXPLORE"},{t:"e",damage:14}]
           }
         ]},
         {label:"冷たい水で顔を洗う",steps:[
-          {t:"r",stat:"mnt",threshold:9,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"一瞬だけスッキリして、作業に戻る心の余裕ができた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"水が耳に入り、不快感と耳鳴りが止まらなくなった。",btn:"EXPLORE"},{t:"e",damage:14}]
           }
@@ -3243,7 +3265,7 @@ const SCENES={
       {t:"n",tx:"自腹だが、一縷の望みをかけて会社名にするか。",btn:"…"},
       {t:"c",choices:[
         {label:"会社名で切ってもらう",steps:[
-          {t:"r",stat:"atk",threshold:12,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"後日、経理の人が「今回だけ特別に経費にする」と認めてくれた。奇跡。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"上司に「自分でやらかした損害を会社に回すな」と激怒され、領収書を破られた。所持金-10万円。",btn:"EXPLORE"},{t:"e",damage:0,isCoinLoss:true,coinLoss:10}]
           }
@@ -3259,13 +3281,13 @@ const SCENES={
       {t:"n",tx:"これから謝罪訪問で準備があるのに。",btn:"…"},
       {t:"c",choices:[
         {label:"観念してSlackに打ち込む",steps:[
-          {t:"r",stat:"lck",threshold:12,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"上司のヒステリーをいなすことに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"画面を見すぎて激しく車酔いした。吐き気が止まらない。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
         ]},
         {label:"「乗車中のため到着後報告します」と無視",steps:[
-          {t:"r",stat:"mnt",threshold:12,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"上司が静かになった。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"即座に電話がかかってきて、車内で怒鳴り散らされた。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
@@ -3280,13 +3302,13 @@ const SCENES={
       {t:"n",tx:"セキュリティチェックが異常に厳しく、不審者扱いされ中に入らせてもらえない。",btn:"交渉する"},
       {t:"c",choices:[
         {label:"正当性を毅然と主張する",steps:[
-          {t:"r",stat:"atk",threshold:12,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"なんとか確認が取れ、中に入ることができた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"「アポなしの立ち入りは認められません」と完全に排除された。",btn:"EXPLORE"},{t:"e",damage:16}]
           }
         ]},
         {label:"先方の担当に直接電話する",steps:[
-          {t:"r",stat:"lck",threshold:12,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"担当が降りてきてくれてゲートを通過。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"担当も怒っているのか電話に出ない。さらに焦る。",btn:"EXPLORE"},{t:"e",damage:16}]
           }
@@ -3302,13 +3324,13 @@ const SCENES={
       {t:"d",sp:"上司（着電）",tx:"「お盆も動いてるか。売上状況はどうだ」",btn:"応答する"},
       {t:"c",choices:[
         {label:"「新規の仕込みを進めています」とハキハキ答える",steps:[
-          {t:"r",stat:"atk",threshold:14,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"上司",tx:"「お盆明けに期待してるぞ」と電話が切れた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"「行動が遅い。お盆のうちにアポを詰めろ」と路上で説教。",btn:"EXPLORE"},{t:"e",damage:18}]
           }
         ]},
         {label:"「出るしかなくて…」と弱音を漏らす",steps:[
-          {t:"r",stat:"lck",threshold:14,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"上司",tx:"「…まあ、今の時期はみんなきついな」と少し同情された。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"上司",tx:"「お盆を言い訳にするな。休んでる競合を抜け」と怒鳴られる。",btn:"EXPLORE"},{t:"e",damage:18}]
           }
@@ -3324,13 +3346,13 @@ const SCENES={
       {t:"n",tx:"……幻聴か？",btn:"…"},
       {t:"c",choices:[
         {label:"木を激しく蹴る",steps:[
-          {t:"r",stat:"lck",threshold:14,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"セミは飛び去り、ただの幻聴だと自分を落ち着かせた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"蹴った衝撃で大量のセミが一斉に自分に向かって飛び、周囲に恥をかいた。",btn:"EXPLORE"},{t:"e",damage:18}]
           }
         ]},
         {label:"耳を塞いで立ち去る",steps:[
-          {t:"r",stat:"def",threshold:14,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"気味の悪い場所からスムーズに離脱した。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"歩いても歩いても、頭の中でセミの声が響き渡り続ける。",btn:"EXPLORE"},{t:"e",damage:18}]
           }
@@ -3345,13 +3367,13 @@ const SCENES={
       {t:"d",sp:"顧問・菊地さん（酔い気味）",tx:"「君、この仕事向いてると思うか？」",btn:"…"},
       {t:"c",choices:[
         {label:"「はい、向いていると思います」",steps:[
-          {t:"r",stat:"atk",threshold:14,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"菊地さん",tx:"「そうか。じゃあ続けなさい」と杯を傾けた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"菊地さん",tx:"「顔が嘘をついてるぞ」と見透かされた。",btn:"EXPLORE"},{t:"e",damage:18}]
           }
         ]},
         {label:"「正直、最近わからなくなってきて」",steps:[
-          {t:"r",stat:"lck",threshold:14,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"菊地さん",tx:"「そういう時期は大事だ。考え続けなさい」",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"菊地さん",tx:"「それを言うなら辞めなさい。迷いは仕事に出る」",btn:"EXPLORE"},{t:"e",damage:18}]
           }
@@ -3367,13 +3389,13 @@ const SCENES={
       {t:"d",sp:"上司（着電）",tx:"「予算、厳しそうだな」",btn:"…"},
       {t:"c",choices:[
         {label:"「なんとか数字を作ります」と言い切る",steps:[
-          {t:"r",stat:"atk",threshold:16,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"上司",tx:"「期待している」とだけ言われ、電話が切れた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"「具体的には？」とエントランスで15分詰められる。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
         ]},
         {label:"「現場の不条理を正直に報告する」",steps:[
-          {t:"r",stat:"lck",threshold:16,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"上司",tx:"「…一度、上で実態を調査する」と意外な言葉が出た。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"上司",tx:"「言い訳をするタイミングが遅すぎる」と一蹴された。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
@@ -3389,7 +3411,7 @@ const SCENES={
       {t:"d",sp:"上司",tx:"「山田の件、今どうなってる？」",btn:"…"},
       {t:"c",choices:[
         {label:"「今向かっています」と答える",steps:[
-          {t:"r",stat:"atk",threshold:16,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"上司",tx:"「早急に対応しろ。クライアントへの報告も頼む」",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"「なんでもっと早く動かなかったんだ！」と詰められた。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
@@ -3408,7 +3430,7 @@ const SCENES={
       {t:"n",tx:"インターホンを連打していると、隣室のドアが開いておばあさんが顔を出した。",btn:"頭を下げる"},
       {t:"c",choices:[
         {label:"「山田という方のご様子を知りませんか」",steps:[
-          {t:"r",stat:"atk",threshold:16,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"おばあさん",tx:"「この頃ずっと部屋にいるみたいだよ。物音はするから生きてると思う」",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"おばあさん",tx:"「知りません」とドアを閉められた。",btn:"EXPLORE"},{t:"e",damage:10}]
           }
@@ -3427,13 +3449,13 @@ const SCENES={
       {t:"n",tx:"説得に応じたと思った瞬間、山田さんが寝巻き姿のまま全力疾走で逃亡！",btn:"「待ってください！」"},
       {t:"c",choices:[
         {label:"全力疾走で追いかける",steps:[
-          {t:"r",stat:"lck",threshold:16,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"角を曲がった山田さんの背中を見失わずに追尾。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"完全に息が切れて足がもつれ、転倒。山田さんを見失った。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
         ]},
         {label:"「警察を呼びますよ！」と大声で脅す",steps:[
-          {t:"r",stat:"atk",threshold:16,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"その言葉に怯えたのか、山田さんが一瞬立ち止まった。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"近隣住民に「うるさい！」と窓から怒鳴られ、怯んだ隙に逃げられた。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
@@ -3449,13 +3471,13 @@ const SCENES={
       {t:"d",sp:"常駐先（着電）",tx:"「エンジニアの〇〇さん、連絡つかないけど何か知ってます？」",btn:"…"},
       {t:"c",choices:[
         {label:"「体調不良で本日お休みです」と嘘をつく",steps:[
-          {t:"r",stat:"lck",threshold:20,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"担当者",tx:"「分かりました、お大事に」と信じてもらい、時間を稼いだ。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"担当者",tx:"「いや、さっき本人から会社に文句のメール来ましたよ？」と嘘がバレた。",btn:"EXPLORE"},{t:"e",damage:22}]
           }
         ]},
         {label:"「トラブル対応で連絡を試みています」と伝える",steps:[
-          {t:"r",stat:"atk",threshold:20,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"担当者",tx:"「すぐに詳細を報告してください」と、ギリギリのラインで繋ぎ止めた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"「御社の管理はどうなってるんだ」と電話口で10分怒鳴られる。",btn:"EXPLORE"},{t:"e",damage:22}]
           }
@@ -3470,13 +3492,13 @@ const SCENES={
       {t:"d",sp:"強面の男",tx:"「兄ちゃん、あいつ探してんの？」",btn:"…"},
       {t:"c",choices:[
         {label:"「はい、会社の用事です」と毅然と答える",steps:[
-          {t:"r",stat:"atk",threshold:20,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"男は「へえ」と言って、それ以上凄んでこなかった。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"「生意気な口利くなよ」と胸ぐらを掴まれそうになり、すくみ上がる。",btn:"EXPLORE"},{t:"e",damage:22}]
           }
         ]},
         {label:"無言で軽く会釈して距離を取る",steps:[
-          {t:"r",stat:"def",threshold:20,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"男は興味を失ったのか、タバコを吐き捨てて立ち去った。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"逃げ腰なのがバレ、「オイ待てよ」としつこく付きまとわれた。",btn:"EXPLORE"},{t:"e",damage:22}]
           }
@@ -3491,13 +3513,13 @@ const SCENES={
       {t:"n",tx:"薄暗いアパートの通路。コンクリートの壁から、じわりと赤黒い染みが広がり、「未達、未達、未達」という文字を形作っていく。",btn:"…幻覚か？"},
       {t:"c",choices:[
         {label:"「ただの雨漏りのシミだ」と自己暗示をかける",steps:[
-          {t:"r",stat:"mnt",threshold:20,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"冷静さを取り戻し、視界を正常に戻した。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"シミがさらに広がり、自分の足元が沈んでいく幻覚を見る。",btn:"EXPLORE"},{t:"e",damage:22}]
           }
         ]},
         {label:"指で文字をバツ印で上書きする",steps:[
-          {t:"r",stat:"atk",threshold:20,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"幻覚を自分の意志で打ち破り、壁はただの汚れたコンクリートに戻った。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"血の文字が衣服に染み付くような強烈な悪寒に襲われ、硬直する。",btn:"EXPLORE"},{t:"e",damage:22}]
           }
@@ -3513,13 +3535,13 @@ const SCENES={
       {t:"d",sp:"上司",tx:"「おい、あの基本契約、早くハンコ貰ってこいよ」",btn:"…"},
       {t:"c",choices:[
         {label:"「上限なし条項はリスクが高すぎます」と法務の意見を伝える",steps:[
-          {t:"r",stat:"atk",threshold:23,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"上司",tx:"「チッ、法務は頭が硬いな。一回俺から話すわ」と上司が引き取った。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"「そんなのリスクヘッジして事故らなきゃいいだけだろ！」と怒鳴られる。",btn:"EXPLORE"},{t:"e",damage:24}]
           }
         ]},
         {label:"「直接交渉して落とし所を探します」と請け負う",steps:[
-          {t:"r",stat:"lck",threshold:23,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"上司",tx:"「おう、お前が泥を被れよ」と最悪の交渉へ向かう許可を得た。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"「お前にそんな高度な交渉ができるわけないだろ」と書類を奪われ、査定を下げられた。",btn:"EXPLORE"},{t:"e",damage:24}]
           }
@@ -3534,13 +3556,13 @@ const SCENES={
       {t:"n",tx:"「なんとか個別の案件ごとに上限を設定できませんか」と粘る。",btn:"粘る"},
       {t:"c",choices:[
         {label:"過去の取引実績を持ち出して哀願する",steps:[
-          {t:"r",stat:"lck",threshold:23,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"担当者",tx:"「…一度、うちの法務にもう一回だけ聞いてみるわ」",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"担当者",tx:"「うちはボランティアじゃないんで」と冷たく電話を切られた。",btn:"EXPLORE"},{t:"e",damage:24}]
           }
         ]},
         {label:"他社ベンダーの事例を引き合いに出して説得する",steps:[
-          {t:"r",stat:"atk",threshold:23,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"担当者",tx:"「なるほどね、じゃあ特約条項として別紙で巻くか」と一歩前進。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"担当者",tx:"「他所は他所、うちはうち。ルールに従えないなら結構です」",btn:"EXPLORE"},{t:"e",damage:24}]
           }
@@ -3556,13 +3578,13 @@ const SCENES={
       {t:"n",tx:"現地へ向かうタクシーの中。心臓のバクバクが止まらず、呼吸が浅くなる。",btn:"深呼吸する"},
       {t:"c",choices:[
         {label:"深く深呼吸して回収の優先順位を整理する",steps:[
-          {t:"r",stat:"lck",threshold:26,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"頭が冴え、現地の貸与PCや書類の回収手順をシミュレートできた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"パニックで過呼吸気味になり、タクシーのシートで完全にへたり込んだ。",btn:"EXPLORE"},{t:"e",damage:25}]
           }
         ]},
         {label:"会社に電話してパニックのまま報告する",steps:[
-          {t:"r",stat:"atk",threshold:26,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"上司",tx:"「すぐに俺も現地に向かう！」と意外にも動いてくれた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"上司",tx:"「お前何パニくってんだよ！落ち着いてから電話しろ！」と怒鳴られて切られる。",btn:"EXPLORE"},{t:"e",damage:25}]
           }
@@ -3577,13 +3599,13 @@ const SCENES={
       {t:"n",tx:"裁判所に提出するための債権金額の書類を、正確に作成しなければならない。1円のミスも許されない。",btn:"作業する"},
       {t:"c",choices:[
         {label:"徹夜で稼働ログと請求書データを全て照合する",steps:[
-          {t:"r",stat:"lck",threshold:26,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"弁護士",tx:"「これならすぐに手続きに移れる」と褒められた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"弁護士",tx:"「これでは受理されません」と突き返された。",btn:"EXPLORE"},{t:"e",damage:25}]
           }
         ]},
         {label:"自社の経理のベテランに泣きついて手伝ってもらう",steps:[
-          {t:"r",stat:"lck",threshold:26,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"経理の小林さん",tx:"「大変だったね」と一瞬で正確なデータを作ってくれた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"経理の小林さん",tx:"「自分の営業した案件の後始末くらい自分でやりなさい」と冷たく断られた。",btn:"EXPLORE"},{t:"e",damage:25}]
           }
@@ -3599,13 +3621,13 @@ const SCENES={
       {t:"d",sp:"顧客の購買担当",tx:"「補充要員の費用を持たないなら、今月までの売上を全額検収拒否にする」",btn:"…"},
       {t:"c",choices:[
         {label:"「検収規定に違反します」と法律を盾に突っぱねる",steps:[
-          {t:"r",stat:"atk",threshold:28,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"相手が「チッ、分かったよ」と引き下がり、不当な検収拒否を回避。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"担当者",tx:"「生意気なエージェントだな！全面取引停止だ！」と火に油を注いだ。",btn:"EXPLORE"},{t:"e",damage:26}]
           }
         ]},
         {label:"「上層部と確認します」と平謝りして時間を稼ぐ",steps:[
-          {t:"r",stat:"def",threshold:28,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"相手の興奮が冷め、交渉の余地を残したまま自社に戻ることに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"担当者",tx:"「今すぐここでイエスかノーか答えろ！」と退路を断たれた。",btn:"EXPLORE"},{t:"e",damage:26}]
           }
@@ -3620,13 +3642,13 @@ const SCENES={
       {t:"n",tx:"労基からの電話を切った瞬間、周囲の街灯がすべて真っ赤な赤色灯に変化し、「お前は有罪だ」という文字が街頭ビジョンに躍る。",btn:"…幻覚か"},
       {t:"c",choices:[
         {label:"「これはただの幻覚だ！」と大声で叫んで走る",steps:[
-          {t:"r",stat:"lck",threshold:28,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"身体を激しく動かすことで幻覚を払いのけた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"サイレンの音が大きくなりすぎて頭痛が激化し、その場にうずくまる。",btn:"EXPLORE"},{t:"e",damage:26}]
           }
         ]},
         {label:"財布から自社の名刺を取り出し、強く握りしめる",steps:[
-          {t:"r",stat:"atk",threshold:28,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"自社の存在という現実の錨にすがりつくことで、正気を取り戻した。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"名刺の文字すら赤く染まり、「偽装請負」という文字に変形していく。",btn:"EXPLORE"},{t:"e",damage:26}]
           }
@@ -3642,13 +3664,13 @@ const SCENES={
       {t:"n",tx:"先月「家庭の事情で契約終了します」と涙ながらに去っていったエースエンジニアが、競合コンサル会社のHPに「シニアコンサルタント・中途入社！」として満面の笑みで載っている。",btn:"…"},
       {t:"c",choices:[
         {label:"「事実確認のメッセージを送る」",steps:[
-          {t:"r",stat:"atk",threshold:30,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"本人が罪悪感からか「すみません、単価が倍だったんで…」と白状した。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"メッセージは即座に既読無視され、そのままブロックされた。",btn:"EXPLORE"},{t:"e",damage:28}]
           }
         ]},
         {label:"証拠のスクリーンショットを保存して法務に回す",steps:[
-          {t:"r",stat:"lck",threshold:30,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"冷静に法的手段の準備を進めることに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"画面を見つめすぎて怒りが爆発し、スマホの画面にヒビを入れた。",btn:"EXPLORE"},{t:"e",damage:28}]
           }
@@ -3663,13 +3685,13 @@ const SCENES={
       {t:"n",tx:"エレベーターの天井が突然透明になり、上空から自社エンジニアたちの履歴書が顔写真付きでヒラヒラと降ってくる。写真のエンジニアたちが一斉に「さようなら」と口を動かした。",btn:"…"},
       {t:"c",choices:[
         {label:"「全員ただの幻だ」と唱えて目を閉じる",steps:[
-          {t:"r",stat:"mnt",threshold:30,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"精神を完全に内側に集中させ、幻覚を消滅させた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"耳元で「次の退職者は誰でしょう？」という声が響き続ける。",btn:"EXPLORE"},{t:"e",damage:28}]
           }
         ]},
         {label:"幻覚の履歴書を手で叩き落とす",steps:[
-          {t:"r",stat:"def",threshold:30,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"強い拒絶の意志で幻覚を遮断し、エレベーターは元の狭い空間に戻った。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"履歴書が顔に張り付き、窒息しそうな強烈なパニックに陥る。",btn:"EXPLORE"},{t:"e",damage:28}]
           }
@@ -3684,13 +3706,13 @@ const SCENES={
       {t:"n",tx:"明日退職予定のエンジニアに、最後の望みをかけて電話をかける。受話器が重い。",btn:"かける"},
       {t:"c",choices:[
         {label:"これまでの情と重要性を熱く語る",steps:[
-          {t:"r",stat:"atk",threshold:30,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"相手が「そこまで言ってくれるなら、もう一回考え直します」と残留を決定。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"エンジニア",tx:"「そういうウェットな関係が重いんですよね」と冷たく一蹴された。",btn:"EXPLORE"},{t:"e",damage:28}]
           }
         ]},
         {label:"単価アップの条件交渉をストレートに提示する",steps:[
-          {t:"r",stat:"lck",threshold:30,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"上司から事前に引き出した予算枠を提示し、ギリギリで引き留めに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"エンジニア",tx:"「あっちは有給消化100%なんで、話になりません」と鼻で笑われた。",btn:"EXPLORE"},{t:"e",damage:28}]
           }
@@ -3706,13 +3728,13 @@ const SCENES={
       {t:"n",tx:"隣に内定式帰りらしい若者が座った。緊張した顔。1年前の自分だ。",btn:"…"},
       {t:"c",choices:[
         {label:"声をかける",steps:[
-          {t:"r",stat:"atk",threshold:33,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"若者",tx:"「ありがとうございます、頑張ります！」と言われた。何かが報われた気がした。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"不審者を見るような目で見られた。若者は席を立った。",btn:"EXPLORE"},{t:"e",damage:10}]
           }
         ]},
         {label:"うらやましいと思いながら見ている",steps:[
-          {t:"r",stat:"lck",threshold:33,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"その感情が、まだ前を向いている証拠だと気づいた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"羨ましいという感情すら、もう薄れていることに気づいた。",btn:"EXPLORE"},{t:"e",damage:10}]
           }
@@ -3728,13 +3750,13 @@ const SCENES={
       {t:"d",sp:"鷹野常務",tx:"「1年どうだった。来期はどうする」",btn:"…"},
       {t:"c",choices:[
         {label:"「いろいろ学べました。来期も頑張ります」",steps:[
-          {t:"r",stat:"atk",threshold:33,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"鷹野常務",tx:"「そうか。お前なら言うと思ったよ」",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"d",sp:"鷹野常務",tx:"「口先だけの顔をしてるな」と言われた。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
         ]},
         {label:"「正直に話します。全部きつかったです」",steps:[
-          {t:"r",stat:"lck",threshold:33,
+          {t:"r",stat:"lck",
            ok:[{t:"d",sp:"鷹野常務",tx:"常務は静かに微笑んだ。「…そうか。よく耐えたな」この1年で一番救われた言葉だった。",btn:"EXPLORE"},{t:"e",heal:9999}],
            ng:[{t:"d",sp:"鷹野常務",tx:"「それは私に言うことか」と静かに言われた。",btn:"EXPLORE"},{t:"e",damage:15}]
           }
@@ -3768,13 +3790,13 @@ const SCENES={
       {t:"n",tx:"様子がおかしい。幻覚か？",btn:"…"},
       {t:"c",choices:[
         {label:"走って逃げる",steps:[
-          {t:"r",stat:"lck",threshold:33,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"なんだったんだ。気づけばトイレの鏡の前にいた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"知らない人にぶつかる。気づくと先ほどの男は姿を消していた。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
         ]},
         {label:"「何も悪いことはしていない」と踏ん張る",steps:[
-          {t:"r",stat:"atk",threshold:33,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"ふと気づくと、そこに男はいなかった。幻覚だったのだろうか。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"法律違反を犯したのだろうか。この1年やってきたことはなんだったのだろうか。気づくと男はいなくなっていたが、なんとも言えない気持ちになった。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
@@ -3794,7 +3816,7 @@ const SCENES={
           {t:"e",damage:0}
         ]},
         {label:"リンクを開く",steps:[
-          {t:"r",stat:"lck",threshold:8,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"「貴社のSESはグレーだ。今すぐ転職しろ」なんのことだろう？",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"フィッシングサイトだった。情報漏洩の恐れがあると言われた。始末書を書いた。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
@@ -3811,13 +3833,13 @@ const SCENES={
       {t:"n",tx:"ガラガラの車内。向かいに座っている男の顔が、なぜかノイズのように激しくブレて見える。目をこすると、誰もいない。",btn:"…"},
       {t:"c",choices:[
         {label:"疲れているだけだと目を閉じる",steps:[
-          {t:"r",stat:"mnt",threshold:14,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"脳の錯覚として処理し、精神を安定させた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"目を閉じても、耳元で「お前も消えるよ」と囁かれた気がした。",btn:"EXPLORE"},{t:"e",damage:18}]
           }
         ]},
         {label:"隣の車両へ即座に移動する",steps:[
-          {t:"r",stat:"lck",threshold:14,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"何も起きず、平穏な座席に移動できた。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"移動した先の車両の乗客全員が、同じ自分の顔をしていた。",btn:"EXPLORE"},{t:"e",damage:18}]
           }
@@ -3832,13 +3854,13 @@ const SCENES={
       {t:"n",tx:"山田さんの家に向かう車内。ふと見上げると、吊り革が全てぬるぬると動く青い蛇に変わっている。蛇たちが一斉にこちらを向いて「山田は逃げた」と囁いた。",btn:"…"},
       {t:"c",choices:[
         {label:"蛇の頭を掴んで引きちぎる幻覚を脳内で描く",steps:[
-          {t:"r",stat:"atk",threshold:16,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"強い精神力で幻覚を霧散させ、正気を取り戻した。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"蛇が腕に絡みついてくる感覚に襲われ、車内で悲鳴を上げそうになる。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
         ]},
         {label:"座席の下をじっと見つめて無視する",steps:[
-          {t:"r",stat:"mnt",threshold:16,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"視覚情報を遮断し、幻覚の侵食を防ぎ切った。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"足元からも無数の蛇が這い上がってくる錯覚に陥り、パニックになる。",btn:"EXPLORE"},{t:"e",damage:20}]
           }
@@ -3853,13 +3875,13 @@ const SCENES={
       {t:"n",tx:"法務部を出た瞬間、廊下の壁一面から無数の腕が生え、凄まじい勢いで「承認」「却下」のハンコを空中に連打し始める。そのインクの飛沫が顔にかかる気がした。",btn:"…"},
       {t:"c",choices:[
         {label:"「異議あり！」と大声で叫んで突き進む",steps:[
-          {t:"r",stat:"atk",threshold:23,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"幻覚の腕が煙のように消え去り、無事に廊下を突破した。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"ハンコの音が脳内に直接響き渡り、強烈な耳鳴りに襲われる。",btn:"EXPLORE"},{t:"e",damage:24}]
           }
         ]},
         {label:"目を細めて、足元の白線だけを見て歩く",steps:[
-          {t:"r",stat:"def",threshold:23,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"余計な視覚情報をカットし、精神の汚染を防いだ。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"視界全体が真っ赤なハンコの印影で埋め尽くされ、平衡感覚を失う。",btn:"EXPLORE"},{t:"e",damage:24}]
           }
@@ -3874,13 +3896,13 @@ const SCENES={
       {t:"n",tx:"弁護士事務所の窓の外。銀座の街に雪が降り始めるが、よく見ると雪の結晶ではなく、全て「0」という数字が無限に舞い落ちている。触れると頭が冷たく痺れる感覚がした。",btn:"…"},
       {t:"c",choices:[
         {label:"「売上を返せ！」と窓を開けて叫ぶ",steps:[
-          {t:"r",stat:"atk",threshold:26,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"強い衝動で脳の錯覚を吹き飛ばし、外の景色は普通の雪に戻った。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"数字の雪が部屋の中にまで吹き込んできて、自分の身体を白く埋め尽くす幻覚を見る。",btn:"EXPLORE"},{t:"e",damage:25}]
           }
         ]},
         {label:"温かいお茶を飲んで視線をそらす",steps:[
-          {t:"r",stat:"mnt",threshold:26,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"胃を温めることで自律神経を安定させ、幻覚を消去した。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"お茶の湯気すら「00000」という数字の羅列に見えてきて、吐き気が増す。",btn:"EXPLORE"},{t:"e",damage:25}]
           }
@@ -3895,13 +3917,13 @@ const SCENES={
       {t:"n",tx:"先月「家庭の事情で契約終了します」と涙ながらに去っていったエースエンジニアが、競合コンサル会社のHPに「シニアコンサルタント・中途入社！」として満面の笑みで載っている。よく見ると他にも複数名いる。",btn:"…"},
       {t:"c",choices:[
         {label:"即座に本人のLINEに事実確認を送る",steps:[
-          {t:"r",stat:"atk",threshold:30,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"本人が罪悪感からか「すみません、あっちの方が単価倍だったんで…」と白状した。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"メッセージは即座に既読無視され、そのままブロックされた。精神的ダメージが深い。",btn:"EXPLORE"},{t:"e",damage:28}]
           }
         ]},
         {label:"証拠のスクリーンショットを無言で保存し、法務に回す",steps:[
-          {t:"r",stat:"lck",threshold:30,
+          {t:"r",stat:"lck",
            ok:[{t:"n",tx:"冷静に法的手段の準備を進めることに成功。",btn:"EXPLORE"},{t:"e",damage:0}],
            ng:[{t:"n",tx:"画面を見つめすぎて怒りが爆発し、スマホの画面を強く叩きすぎてヒビを入れた。",btn:"EXPLORE"},{t:"e",damage:28}]
           }
@@ -3981,10 +4003,8 @@ function runSceneStep(){
       return;
     }
     if(st.t==="r"){
-      // 判定 → 自動展開してステップ差し替え
-      const lckBonus=st.stat==="lck"?Math.floor((P.lck||0)/5):0;
-      const val=(P[st.stat]||0)+lckBonus;
-      const success=val>=st.threshold;
+      // 判定 → 自動展開してステップ差し替え（ステータス値÷30の確率で成功）
+      const success=statCheckSuccess();
       const resultSteps=JSON.parse(JSON.stringify(success?st.ok:st.ng));
       // 判定結果はコメントボックスに出さない（HPフラッシュで表現）
       sceneState.steps.splice(sceneState.idx,1,...resultSteps);
@@ -4113,11 +4133,14 @@ function sceneChoose(ci){
   if(!st||st.t!=="c")return;
   const chosen=st.choices[ci];
   if(!chosen)return;
-  // 選択肢を押した瞬間：scene_startを止めてendure or scene_failを再生
-  const chosenSteps=JSON.parse(JSON.stringify(chosen.steps));
-  const hasDamage=chosenSteps.some(s=>s.t==="e"&&Number(s.damage)>0);
+  // 選択肢の中身にrステップ（判定）が含まれる場合、ここで一度だけ乱数を引いて確定させる
+  // （以前はこの解決前のsteps配列でSE判定していたため、rを含む分岐は常にhasDamage=falseとなり
+  //   失敗時でも"endure"のSEが鳴ってしまうバグがあった）
+  const rawSteps=JSON.parse(JSON.stringify(chosen.steps));
+  const resolvedSteps=resolveRSteps(rawSteps);
+  const hasDamage=resolvedSteps.some(s=>s.t==="e"&&Number(s.damage)>0);
   playSceneSE(hasDamage?"scene_fail":"endure");
-  sceneState.steps.splice(sceneState.idx,1,...chosenSteps);
+  sceneState.steps.splice(sceneState.idx,1,...resolvedSteps);
   runSceneStep();
 }
 
