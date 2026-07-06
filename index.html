@@ -1672,6 +1672,13 @@ function confirmDice(){
      payWallet:0,month:4,inventory:[],enemy:null,battleLog:[],nextAtkBonus:0,
      clearedEnemies:{},battleCtx:"field"};
   curPhase=1;maxPhase=0;
+  // 「SESの神に祈る」経由の場合、死亡時の所持品・所持金をここで引き継ぐ
+  if(_pendingRevive){
+    P.inventory=_pendingRevive.inventory;
+    P.payWallet=_pendingRevive.payWallet;
+    _pendingRevive=null;
+    toast("🙏 手持ちのアイテムと所持金を引き継いだ！");
+  }
   document.getElementById("dice-modal").classList.remove("active");
   stopTitleBGM(); // タイトルBGM停止
   goHome();
@@ -4393,14 +4400,10 @@ function doBattle(type){
 // DEATH / CLEAR
 // ============================================================
 function triggerDeath(){
-  // リセットされる前の状態を保存（救済処置「SESの神に祈る」用）
+  // リセットされる前の状態を保存（救済処置「SESの神に祈る」用：所持品と所持金のみ引き継ぐ）
   _deathBackup={
     inventory:JSON.parse(JSON.stringify(P.inventory||[])),
-    payWallet:P.payWallet||0,
-    maxHp:P.maxHp||1,
-    month:P.month||4,
-    curPhase:curPhase,
-    maxPhase:maxPhase
+    payWallet:P.payWallet||0
   };
   playSE("gameover");
   showScreen("go-screen");updateHeader("title");
@@ -4439,14 +4442,15 @@ function triggerDeath(){
 function offerRevive(){
   document.getElementById("go-title").innerText="SESの神に祈る";
   document.getElementById("go-title").style.color="var(--yellow)";
-  document.getElementById("go-panel").innerText="崩れ落ちた心の奥に、かすかな光が差し込む。\n\n……まだ、終われない。\n\n（広告視聴が完了すると、手持ちのアイテムと所持金を引き継いだまま復活する）";
+  document.getElementById("go-panel").innerText="崩れ落ちた心の奥に、かすかな光が差し込む。\n\n……まだ、終われない。\n\n（広告視聴が完了すると、手持ちのアイテムと所持金を引き継いだ状態で、最初からやり直せる）";
   document.getElementById("go-closet").innerHTML="";
   document.querySelector("#go-screen .cmds").innerHTML=`
-    <button class="btn btn-success" style="margin-bottom:8px;" onclick="startReviveAd()">視聴して復活する</button>
+    <button class="btn btn-success" style="margin-bottom:8px;" onclick="startReviveAd()">視聴して引き継ぐ</button>
     <button class="btn btn-secondary" onclick="backToTitle()">諦めてタイトルへ戻る</button>`;
 }
 let _reviveAdTimer=null;
 let _reviveAdCount=0;
+let _pendingRevive=null;
 function startReviveAd(){
   document.getElementById("go-panel").innerText="祈りが届き始めている……";
   document.querySelector("#go-screen .cmds").innerHTML=`
@@ -4468,19 +4472,11 @@ function startReviveAd(){
   },1000);
 }
 function finishReviveAd(){
-  if(!_deathBackup){backToTitle();return;}
-  P.inventory=_deathBackup.inventory;
-  P.payWallet=_deathBackup.payWallet;
-  P.maxHp=_deathBackup.maxHp;
-  P.hp=P.maxHp;
-  P.month=_deathBackup.month;
-  curPhase=_deathBackup.curPhase;
-  maxPhase=_deathBackup.maxPhase;
-  P.enemy=null;P.battleLog=[];
+  // その場で復活するのではなく、次の周回（ジョブ選択→ダイス）に所持品と所持金だけを引き継ぐ
+  _pendingRevive=_deathBackup?{inventory:_deathBackup.inventory,payWallet:_deathBackup.payWallet}:null;
   _deathBackup=null;
-  saveS();
   toast("🙏 SESの神の加護を受けた……");
-  goHome();
+  backToTitle();
 }
 function backToTitle(){
   showScreen("title-screen");updateHeader("title");
