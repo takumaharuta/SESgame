@@ -443,13 +443,13 @@ const JOBS=[
   {id:"manager", name:"マネージャー",cost:100,hp:105,pay:30, badge:"b-gold",  maxLv:15, lvPointPer:1,
    diceAtk:"2d6+15",diceDef:"2d6+12",diceMnt:"2d6+12",diceLck:"2d6+8",
    normalName:"KPI圧迫面談",         skillName:"予算削減命令",      skillCost:45,skillDesc:"敵50ダメージ＋次ターン+30%",desc:"数字に追われ部下にも追われる管理職の亡霊。"},
-  {id:"bucho",   name:"部長",        cost:150,hp:130,pay:38, badge:"b-purple",maxLv:10, lvPointPer:1,
+  {id:"bucho",   name:"部長",        cost:150,hp:130,pay:50, badge:"b-purple",maxLv:10, lvPointPer:1,
    diceAtk:"2d6+20",diceDef:"2d6+18",diceMnt:"2d6+18",diceLck:"2d6+12",
    normalName:"役員報告プレッシャー", skillName:"部署丸ごと粛清",   skillCost:55,skillDesc:"敵HP30%減＋SP全回収",desc:"会議と報告書の間で魂を売り続けた生き残り。"},
   {id:"exec",    name:"執行役員",    cost:200,hp:160,pay:44, badge:"b-purple",maxLv:7,  lvPointPer:1,
    diceAtk:"2d6+25",diceDef:"2d6+22",diceMnt:"2d6+22",diceLck:"2d6+15",
    normalName:"株主への説明責任",     skillName:"緊急役員会議召集",  skillCost:55,skillDesc:"敵60ダメージ＋SP+20",desc:"取締役一歩手前。責任だけが増え続ける哀れな存在。"},
-  {id:"ceo",     name:"代表取締役",  cost:300,hp:200,pay:50, badge:"b-red",   maxLv:5,  lvPointPer:1,
+  {id:"ceo",     name:"代表取締役",  cost:300,hp:200,pay:85, badge:"b-red",   maxLv:5,  lvPointPer:1,
    diceAtk:"3d6+30",diceDef:"3d6+28",diceMnt:"3d6+28",diceLck:"3d6+20",
    normalName:"経営理念の唱和",       skillName:"不採算部門カット",  skillCost:60,skillDesc:"敵HPを半分にする",desc:"全責任の呪いを背負う魔界の支配者。"},
   {id:"cleaner", name:"清掃員",      cost:500,hp:300,pay:5,  badge:"b-red",   maxLv:3,  lvPointPer:1,
@@ -1357,6 +1357,7 @@ const curM=()=>P.month||4; // P.month||4のヘルパー
 let P={};
 let curPhase=1;
 let maxPhase=0;
+let _deathBackup=null;
 let rerollsLeft=2;
 let pendingDiceStats=null;
 // シーン進行
@@ -1375,6 +1376,7 @@ function curJob(){return getJob(S.selectedJobId);}
 function equipBonus(){
   let atk=0,def=0,mnt=0,lck=0;
   // 装備は1つのみ（S.equippedIdで管理）
+  if(S.selectedJobId==="ceo"&&S.equippedId==="resign") return{atk,def,mnt,lck}; // 代表取締役は退職届を装備できない
   const equipped=(P.inventory||[]).find(i=>i.type==="equip"&&i.id===S.equippedId);
   if(equipped){
     atk+=equipped.atk||0;def+=equipped.def||0;mnt+=equipped.mnt||0;
@@ -1385,6 +1387,30 @@ function equipBonus(){
 function weightedRandom(table){
   const total=table.reduce((a,t)=>a+t.w,0);let r=Math.random()*total;
   for(const t of table){r-=t.w;if(r<=0)return t;}return table[table.length-1];
+}
+// ============================================================
+// 同一イベント/シナリオの連続発生を抑制する仕組み
+// 「その回」＝フェーズ・月を移動（次へ進む／戻る）しない限り継続するスコープ
+// ============================================================
+let _seenEvents={};
+let _seenEventsScope=null;
+let _streetVisitCount=0;
+function _eventId(e){return (e.type||"")+"|"+(e.key||e.text||"");}
+function pickWeightedEvent(table,scope){
+  if(_seenEventsScope!==scope){_seenEventsScope=scope;_seenEvents={};}
+  const adjusted=table.map(e=>{
+    if(e.type==="next"||e.type==="treasure") return e; // 通過・宝箱は対象外
+    const cnt=_seenEvents[_eventId(e)]||0;
+    if(cnt<=0) return e;
+    const factor=Math.pow(0.3,cnt); // 発生済みは30%ずつに減衰
+    return {...e,w:Math.max(1,Math.round(e.w*factor))};
+  });
+  const chosen=weightedRandom(adjusted);
+  if(chosen.type!=="next"&&chosen.type!=="treasure"){
+    const id=_eventId(chosen);
+    _seenEvents[id]=(_seenEvents[id]||0)+1;
+  }
+  return chosen;
 }
 let _tt=null;
 function toast(msg,dur=2400){
@@ -1588,7 +1614,7 @@ function renderJobList(){
     el.appendChild(card);
   }
 }
-function selectJob(id){S.selectedJobId=id;saveS();renderJobList();}
+function selectJob(id){S.selectedJobId=id;if(id==="ceo"&&S.equippedId==="resign"){S.equippedId=null;toast("代表取締役は責任感のあまり「退職届」を装備できないため、装備を解除した");}saveS();renderJobList();}
 function unlockJob(id,cost){
   if(S.evalCards<cost)return;
   // 累積解放方式：カードを消費せず解放のみ
@@ -1748,6 +1774,7 @@ function takeNap(){
 // STREET
 // ============================================================
 function goToStreet(){
+  _streetVisitCount++;
   showOffice("street");
   const lbl=document.getElementById("novel-floor-label");
   if(lbl) lbl.innerText="街";
@@ -1785,7 +1812,7 @@ function shopBuy(type,idx){
   updateHeader("street");
 }
 function doStreetExplore(){
-  const ev=weightedRandom(STREET_EVENTS);
+  const ev=pickWeightedEvent(STREET_EVENTS,"street-"+_streetVisitCount);
   if(ev.type==="flavor"||ev.type==="nothing"){
     showStreetResult(ev.text);return;
   }
@@ -1848,8 +1875,11 @@ function showCloset(){
   const makeClosetItem=(it,i,fromCloset)=>{
     const isEquip=it.type==="equip";
     const isEq=isEquip&&S.equippedId===it.id;
+    const isResignBlocked=it.id==="resign"&&S.selectedJobId==="ceo";
     const equipBtn=(!fromCloset&&isEquip)
-      ?`<button class="closet-move-btn${isEq?" warn":""}" style="margin-bottom:3px;" onclick="equipItem('${it.id}')">${isEq?"✓ 装備中":"装備する"}</button>`
+      ?(isResignBlocked
+        ?`<div style="font-size:10px;color:var(--sub);margin-bottom:3px;">責任感のあまり、装備することができない…！</div>`
+        :`<button class="closet-move-btn${isEq?" warn":""}" style="margin-bottom:3px;" onclick="equipItem('${it.id}')">${isEq?"✓ 装備中":"装備する"}</button>`)
       :"";
     return `
     <div class="closet-item">
@@ -1875,6 +1905,10 @@ function showCloset(){
   document.getElementById("shop-cmds").innerHTML=`<button class="btn btn-secondary" onclick="goHome()">← 自宅に戻る</button>`;
 }
 function equipItem(itemId){
+  if(itemId==="resign"&&S.selectedJobId==="ceo"){
+    toast("責任感のあまり、装備することができない…！");
+    return;
+  }
   // 手荷物とクローゼット両方から名前を探す（表示用）
   const allItems=[...(P.inventory||[]),...(S.closet||[])];
   const it=allItems.find(i=>i.id===itemId);
@@ -2038,7 +2072,7 @@ function exploreFloor(){
   if(curPhase<maxPhase){
     table=table.filter(e=>e.type!=="next");
   }
-  const ev=weightedRandom(table);
+  const ev=pickWeightedEvent(table,(curM())+"-"+curPhase);
   handleFieldEvent(ev);
 }
 
@@ -2049,7 +2083,7 @@ function handleFieldEvent(ev){
     const opened=!!(P.exploredPhases&&P.exploredPhases[tKey+"_treasure"]);
     if(opened){
       const table=buildEventTable(curM(),curPhase).filter(e=>e.type!=="treasure");
-      const ev2=weightedRandom(table);
+      const ev2=pickWeightedEvent(table,(curM())+"-"+curPhase);
       handleFieldEvent(ev2);
       return;
     }
@@ -2590,7 +2624,10 @@ const SCENE_IMAGES={
   "apartment_granny":  { chara:"https://takumaharuta.github.io/SESgame/images/chara_obasan.webp" },             // おばあさん
   "yakuza_talk":       { chara:"https://takumaharuta.github.io/SESgame/images/chara_yakuza_man.webp" },         // 強面の男
   "street_fortune":    { chara:"https://takumaharuta.github.io/SESgame/images/chara_roujin.webp" },             // 謎の老人・占い師
-  "street_stalker":    { chara:"https://takumaharuta.github.io/SESgame/images/chara_street_suspicious.webp" },  // 謎のスーツ男
+  "street_stalker":      { chara:"https://takumaharuta.github.io/SESgame/images/chara_street_silhouette.webp" }, // 振り返る前：黒塗りで誰だかわからない
+  "street_stalker_suit": { chara:"https://takumaharuta.github.io/SESgame/images/chara_street_suspicious.webp" }, // 振り返り成功：謎のスーツ男
+  "street_stalker_ng":   { chara:"https://takumaharuta.github.io/SESgame/images/chara_street_stranger.webp" },   // 振り返り失敗：別の人物
+  "street_stalker_dog":  { chara:"https://takumaharuta.github.io/SESgame/images/chara_street_dog.webp" },        // 全力で走る失敗：犬だった
   "naitei_voice":      { chara:"https://takumaharuta.github.io/SESgame/images/chara_wakamono.webp" },           // 内定式帰りの若者
 };
 
@@ -2952,20 +2989,20 @@ const SCENES={
           {t:"n",tx:"コンビニに入った。レジの前に立った。",btn:"…"},
           {t:"d",sp:"店員",tx:"「……いらっしゃいませ。何かお探しですか？」",btn:"笑顔を作る"},
           {t:"n",tx:"30分待った。外を確認すると、人影はなかった。ホットスナックを一本買って帰った。",btn:"EXPLORE"},
-          {t:"e",damage:0}
+          {t:"e",damage:0,isCoinLoss:true,coinLoss:5}
         ]},
         {label:"振り返る",steps:[
           {t:"r",stat:"atk",threshold:12,
            ok:[
-             {t:"n",tx:"スーツ姿の男だった。目が合うと、男は苦笑いをした。",btn:"…"},
-             {t:"d",sp:"謎のスーツ男",tx:"「あ、実はですね。うちのサービスに興味はございませんか。」",btn:"呆れる"},
-             {t:"n",tx:"勧誘だった。断ったら、お詫びと言ってドリンクをくれた。",btn:"EXPLORE"},
-             {t:"e",item:"sp_drink"}
+             {t:"n",charaKey:"street_stalker_suit",tx:"スーツ姿の男だった。目が合うと、男は苦笑いをした。",btn:"…"},
+             {t:"d",sp:"謎のスーツ男",charaKey:"street_stalker_suit",tx:"「あ、実はですね。うちのサービスに興味はございませんか。」",btn:"呆れる"},
+             {t:"n",charaKey:"street_stalker_suit",tx:"勧誘だった。断ったら、驚かせたお詫びと言ってドリンクをくれた。",btn:"EXPLORE"},
+             {t:"e",item:"energy"}
            ],
            ng:[
-             {t:"n",tx:"男は立ち止まっていた。目が合った。その目が、笑っていなかった。",btn:"…"},
-             {t:"d",sp:"男（不明）",tx:"「……なんでもない。」",btn:"…"},
-             {t:"n",tx:"走って帰った。翌朝まで眠れなかった。",btn:"EXPLORE"},
+             {t:"n",charaKey:"street_stalker_ng",tx:"男は立ち止まっていた。目が合った。こちらを凝視している",btn:"…"},
+             {t:"d",sp:"男（不明）",charaKey:"street_stalker_ng",tx:"「……。」",btn:"急いで逃げる"},
+             {t:"n",charaKey:"street_stalker_ng",tx:"走って帰った。男の目線が脳裏に焼き付いて離れず、翌朝まで一睡もできなかった。",btn:"EXPLORE"},
              {t:"e",damage:25}
            ]
           }
@@ -2977,7 +3014,7 @@ const SCENES={
              {t:"e",heal:15}
            ],
            ng:[
-             {t:"n",tx:"足がもつれた。転んだ。振り返ると、追いかけてきていたのは犬だった。",btn:"EXPLORE"},
+             {t:"n",charaKey:"street_stalker_dog",tx:"足がもつれた。転んだ。振り返ると、追いかけてきていたのは犬だった。",btn:"EXPLORE"},
              {t:"e",damage:8}
            ]
           }
@@ -3991,8 +4028,8 @@ function renderSceneUI(){
   (function(){
     const el=document.getElementById("chara-img");
     if(!el) return;
-    const url=(SCENE_IMAGES[sceneState.sceneKey||""]||{}).chara||null;
-    if(url){el.src=url;applyCharaStyle(el,sceneState.sceneKey||"default");el.style.display="block";}
+    const url=(SCENE_IMAGES[st.charaKey||sceneState.sceneKey||""]||{}).chara||null;
+    if(url){el.src=url;applyCharaStyle(el,st.charaKey||sceneState.sceneKey||"default");el.style.display="block";}
     else{el.style.display="none";el.src="";}
   })();
 
@@ -4333,6 +4370,15 @@ function doBattle(type){
 // DEATH / CLEAR
 // ============================================================
 function triggerDeath(){
+  // リセットされる前の状態を保存（救済処置「SESの神に祈る」用）
+  _deathBackup={
+    inventory:JSON.parse(JSON.stringify(P.inventory||[])),
+    payWallet:P.payWallet||0,
+    maxHp:P.maxHp||1,
+    month:P.month||4,
+    curPhase:curPhase,
+    maxPhase:maxPhase
+  };
   playSE("gameover");
   showScreen("go-screen");updateHeader("title");
   P.inventory=[];
@@ -4363,6 +4409,55 @@ function triggerDeath(){
   document.getElementById("go-closet").innerHTML=S.closet.length===0
     ?`<div style="color:var(--sub);font-size:12px;">空（何も引き継げなかった）</div>`
     :S.closet.map(i=>`<div class="irow"><div class="irow-name">${i.name}</div><span class="badge b-green">引き継ぎ</span></div>`).join("");
+  document.querySelector("#go-screen .cmds").innerHTML=`
+    <button class="btn btn-success" style="margin-bottom:8px;" onclick="offerRevive()">🙏 SESの神に祈る（広告視聴）<br><span style="font-size:10px;font-weight:400;">※手持ちのアイテムと所持金を引き継ぐ</span></button>
+    <button class="btn btn-danger" onclick="backToTitle()">次の周回へ（タイトルへ戻る）</button>`;
+}
+function offerRevive(){
+  document.getElementById("go-title").innerText="SESの神に祈る";
+  document.getElementById("go-title").style.color="var(--yellow)";
+  document.getElementById("go-panel").innerText="崩れ落ちた心の奥に、かすかな光が差し込む。\n\n……まだ、終われない。\n\n（広告視聴が完了すると、手持ちのアイテムと所持金を引き継いだまま復活する）";
+  document.getElementById("go-closet").innerHTML="";
+  document.querySelector("#go-screen .cmds").innerHTML=`
+    <button class="btn btn-success" style="margin-bottom:8px;" onclick="startReviveAd()">視聴して復活する</button>
+    <button class="btn btn-secondary" onclick="backToTitle()">諦めてタイトルへ戻る</button>`;
+}
+let _reviveAdTimer=null;
+let _reviveAdCount=0;
+function startReviveAd(){
+  document.getElementById("go-panel").innerText="祈りが届き始めている……";
+  document.querySelector("#go-screen .cmds").innerHTML=`
+    <div id="revive-ad-slot-container" style="width:100%;text-align:center;margin-bottom:6px;">
+      <!-- AdSense slot: ここにins要素を貼る -->
+      <!-- <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto"></ins> -->
+      <!-- <script>(adsbygoogle = window.adsbygoogle || []).push({});</script> -->
+    </div>
+    <div style="text-align:center;padding:12px 0;font-size:32px;font-weight:900;color:var(--yellow);" id="revive-ad-countdown">5</div>`;
+  _reviveAdCount=5;
+  _reviveAdTimer=setInterval(function(){
+    _reviveAdCount--;
+    const el=document.getElementById("revive-ad-countdown");
+    if(el) el.innerText=_reviveAdCount;
+    if(_reviveAdCount<=0){
+      clearInterval(_reviveAdTimer);
+      finishReviveAd();
+    }
+  },1000);
+}
+function finishReviveAd(){
+  if(!_deathBackup){backToTitle();return;}
+  P.inventory=_deathBackup.inventory;
+  P.payWallet=_deathBackup.payWallet;
+  P.maxHp=_deathBackup.maxHp;
+  P.hp=P.maxHp;
+  P.month=_deathBackup.month;
+  curPhase=_deathBackup.curPhase;
+  maxPhase=_deathBackup.maxPhase;
+  P.enemy=null;P.battleLog=[];
+  _deathBackup=null;
+  saveS();
+  toast("🙏 SESの神の加護を受けた……");
+  goHome();
 }
 function backToTitle(){
   showScreen("title-screen");updateHeader("title");
