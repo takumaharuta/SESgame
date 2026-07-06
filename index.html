@@ -2153,7 +2153,7 @@ function handleFieldEvent(ev){
     if(it){P.inventory.push({...it});showFieldResult(ev.text||"");}
     return;
   }
-  if(ev.type==="scene"){playSceneSE("scene_start");startScene(ev.key,()=>navigateAfterScene("field"),"field");return;}
+  if(ev.type==="scene"){startScene(ev.key,()=>navigateAfterScene("field"),"field");return;}
   if(ev.type==="sendol_gift"){
     if(P.gotSendolGift){exploreFloor();return;}
     P.gotSendolGift=true;
@@ -2432,6 +2432,11 @@ const SE_SOUNDS={
   "bgm_title":    "https://takumaharuta.github.io/SESgame/sounds/bgm_title.mp3",    // タイトルBGM
   "slap":         "https://takumaharuta.github.io/SESgame/sounds/slap.mp3",         // シナリオダメージ（自分が受ける）
   "punch":        "https://takumaharuta.github.io/SESgame/sounds/punch.mp3",        // 戦闘で敵にダメージを与える
+  "kyuto_room_start": "https://takumaharuta.github.io/SESgame/sounds/kyuto_room_start.mp3", // 田所さん（給湯室）シーン専用の開始SE
+};
+// シーンキーごとに開始SEを上書きしたい場合はここに追加（未指定は共通の"scene_start"）
+const SCENE_START_SE={
+  "kyuto_room": "kyuto_room_start",
 };
 let _currentSceneSE=null; // シナリオ中の再生中SE管理
 let _titleBGM=null;       // タイトルBGM管理
@@ -2849,7 +2854,7 @@ const SCENES={
            ng:[
              {t:"d",sp:"田所さん",tx:"「……そうですか。」",btn:"…"},
              {t:"n",tx:"笑い方がぎこちなかった。田所さんはそのまま給湯室を出ていった。",btn:"EXPLORE"},
-             {t:"e",damage:0}
+             {t:"e",damage:5}
            ]
           }
         ]},
@@ -3966,6 +3971,7 @@ function getSceneEmoji(title){
 function startScene(key, afterFn, ctx){
   const def=SCENES[key];
   if(!def){if(afterFn)afterFn();return;}
+  playSceneSE(SCENE_START_SE[key]||"scene_start"); // シナリオ開始SE（シーン別の上書きがあればそれを優先）
   sceneState={
     steps: JSON.parse(JSON.stringify(def.steps)),
     idx:0,
