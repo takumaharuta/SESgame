@@ -332,9 +332,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
       <div class="title-logo" style="padding:14px 0 10px;">
         <h1>SES魔界サバイバル</h1>
         <p>〜 評価の時期が来た 〜</p>
+        <p style="font-size:11px;color:var(--sub);line-height:1.7;padding:0 10px;">ある日突然、見知らぬSES企業で目を覚ました。前の世界の記憶はあるのに、なぜかここにいる。元の世界に帰るには、この地獄を生き抜くしかないらしい。</p>
       </div>
-      <div class="eval-box">社内評価カード: <span id="eval-count">0</span> 枚<br><span style="font-size:11px;color:var(--sub);font-weight:400;">※ カードは消費されません。累積枚数で「前職」が解放されます。</span></div>
-      <div class="sec">前職選択（新入社員として入社する中身を選ぶ）</div>
+      <div class="eval-box">社内評価カード: <span id="eval-count">0</span> 枚<br><span style="font-size:11px;color:var(--sub);font-weight:400;">※ カードは消費されません。累積枚数で「ここに来るまでの役職」が解放されます。</span></div>
+      <div class="sec">ここに来るまでの役職を選ぶ（気づけばこの姿でSESにいた）</div>
       <div id="job-list"></div>
     </div>
     <div class="cmds">
@@ -382,6 +383,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
     <div id="go-closet"></div>
   </div>
   <div class="cmds"><button class="btn btn-danger" onclick="backToTitle()">次の周回へ（タイトルへ戻る）</button></div>
+</div>
+
+<!-- ENDING SCREEN（裏ボス＝BAR撃破後の真エンディング） -->
+<div id="ending-screen" class="screen">
+  <div id="ending-bg" style="flex:1;position:relative;overflow:hidden;background-size:cover;background-position:center;background-color:#07090f;display:flex;flex-direction:column;justify-content:flex-end;">
+    <div id="ending-box" class="scroll" style="max-height:55%;background:linear-gradient(to top, rgba(7,9,15,0.96), rgba(7,9,15,0.82) 75%, transparent);padding:16px;"></div>
+  </div>
+  <div class="cmds" id="ending-cmds"></div>
 </div>
 
 </div><!-- #screens -->
@@ -1351,7 +1360,7 @@ function getBoss(month){
 // ============================================================
 // STATE
 // ============================================================
-let S={evalCards:0,unlockedJobs:["intern"],selectedJobId:"intern",closet:[],equippedId:null};
+let S={evalCards:0,unlockedJobs:["intern"],selectedJobId:"intern",closet:[],equippedId:null,hasSeenIntro:false,trueEndUnlocked:false,trueEndCleared:false};
 let _battleLock=false;
 const curM=()=>P.month||4; // P.month||4のヘルパー
 let P={};
@@ -1681,7 +1690,13 @@ function confirmDice(){
   }
   document.getElementById("dice-modal").classList.remove("active");
   stopTitleBGM(); // タイトルBGM停止
-  goHome();
+  if(!S.hasSeenIntro){
+    S.hasSeenIntro=true;
+    saveS();
+    startScene("isekai_intro",()=>goHome(),"field");
+  } else {
+    goHome();
+  }
 }
 
 // ============================================================
@@ -2334,6 +2349,7 @@ function nextMonth(){
 }
 function enterEnemyFloor(){
   stopAmbientBGM();
+  P.isTrueEndingBattle=false;
   const key=window._pendingEnemyKey||"multi";
   const enemy=getEnemy(key,curM());
   P.enemy=enemy;P.battleCtx="field";
@@ -2343,6 +2359,7 @@ function enterEnemyFloor(){
 }
 function enterBossFloor(){
   stopAmbientBGM();
+  P.isTrueEndingBattle=false;
   const boss=getBoss(curM());
   boss.payReward=curJob().pay;
   P.enemy=boss;P.battleCtx="field";
@@ -2729,6 +2746,19 @@ function clearCharaImg(){
 }
 
 const SCENES={
+
+  isekai_intro:{
+    title:"見知らぬ朝",
+    steps:[
+      {t:"n",tx:"気づくと、見知らぬ天井を見上げていた。",btn:"…"},
+      {t:"n",tx:"昨日まで自分は、定時退社が当たり前で、パワハラなど存在しない、誰もが羨む「ホワイト企業」で働いていたはずだった。",btn:"…"},
+      {t:"n",tx:"なのに今、手元の名刺には見覚えのない会社のロゴ。肩書きは——気づけば、これから配属される役職のものになっていた。",btn:"…"},
+      {t:"d",sp:"???",tx:"「ようこそ、SES業界へ。」",btn:"……誰だ？"},
+      {t:"d",sp:"???",tx:"「詳しい説明は省く。お前はこれから、この魔界のようなオフィスで、12ヶ月間を生き抜くことになる。」",btn:"…"},
+      {t:"d",sp:"???",tx:"「全てをやり遂げた先に、道は開ける。……元の世界に、な。」",btn:"元の世界に、帰る"},
+      {t:"n",tx:"声は、それきり聞こえなくなった。\n\n目の前には、見知らぬオフィスの入口。\n\nとにかく今は、この一日を乗り切るしかない。",btn:"出勤する"}
+    ]
+  },
 
   chikan:{
     title:"通勤電車にて",
@@ -3128,19 +3158,7 @@ const SCENES={
       {t:"c",choices:[
         {label:"扉を開ける",steps:[
           {t:"n",tx:"扉に手をかけた。ゆっくりと引いた。",btn:"引く"},
-          {t:"r",stat:"lck",
-           ok:[
-             {t:"n",tx:"中は、高級会員制レストランだった。",btn:"目を疑う"},
-             {t:"d",sp:"支配人",tx:"「あ、本日のご予約の方ですね。どうぞ。」",btn:"違うとは言えない"},
-             {t:"n",tx:"フルコースをごちそうになった。正しい扉だったのかもしれない。",btn:"EXPLORE"},
-             {t:"e",item:"steak"}
-           ],
-           ng:[
-             {t:"n",tx:"暗闇の中に、人が立っていた。",btn:"…"},
-             {t:"d",sp:"???",tx:"「……待っていた。」",btn:"…"},
-             {t:"e",battle:"ura_boss",tx:"裏ボスとの戦闘！"}
-           ]
-          }
+          {t:"n",tx:"_DANGER_DOOR_",btn:"…"}
         ]},
         {label:"引き返す",steps:[
           {t:"n",tx:"やめた。",btn:"…"},
@@ -3977,6 +3995,20 @@ const SCENES={
   },
 
 };
+// 街の危険な扉の先：通常は「深夜の路上カウンセラー」との遭遇、
+// 1年サバイバル達成後（S.trueEndUnlocked）は「BAR」に変わり、真の裏ボス戦への入り口になる
+const DANGER_DOOR_NORMAL_STEPS=[
+  {t:"n",tx:"暗闇の中に、人が立っていた。",btn:"…"},
+  {t:"d",sp:"???",tx:"「……待っていた。」",btn:"…"},
+  {t:"e",battle:"ura_boss",tx:"裏ボスとの戦闘！"}
+];
+const DANGER_DOOR_TRUE_STEPS=[
+  {t:"n",tx:"扉の先は、いつもの暗闇ではなかった。\n\n煙草の匂いと、低く流れる音楽。カウンターだけの小さなBARが、そこにあった。",btn:"…"},
+  {t:"n",tx:"カウンターの奥、見覚えのある男が静かにグラスを磨いていた。",btn:"…"},
+  {t:"d",sp:"深夜の路上カウンセラー",tx:"「元の世界？　本当に戻りたいのか？」",btn:"…"},
+  {t:"d",sp:"深夜の路上カウンセラー",tx:"「本当は――この世界が、気に入っているんじゃないか？」",btn:"黙って睨みつける"},
+  {t:"e",battle:"ura_boss",tx:"裏ボスとの戦闘！",isTrueEnding:true}
+];
 // sceneState: {flatSteps:[...], idx:int, after:fn}
 // flatStepsは実行時に確定済みのステップ配列（choice/rollは展開後）
 
@@ -4032,6 +4064,13 @@ function runSceneStep(){
       sceneState=null;
       startScene("appoint_call", after, ctx);
       return;
+    }
+    // _DANGER_DOOR_ は街の危険な扉の先を動的に切り替える
+    // （S.trueEndUnlockedがtrueなら「BAR」＝真の裏ボス戦へ、falseなら従来の裏ボス戦へ）
+    if(st.t==="n"&&st.tx==="_DANGER_DOOR_"){
+      const nextSteps=S.trueEndUnlocked?DANGER_DOOR_TRUE_STEPS:DANGER_DOOR_NORMAL_STEPS;
+      sceneState.steps.splice(sceneState.idx,1,...JSON.parse(JSON.stringify(nextSteps)));
+      continue;
     }
 
     if(st.t==="n"||st.t==="d"){
@@ -4252,6 +4291,7 @@ function applySceneEffect(eff){
     const enemy=getEnemy(eff.battle,curM());
     P.enemy=enemy;P.battleLog=[];
     P.battleCtx=sceneState?sceneState.ctx:"field";
+    P.isTrueEndingBattle=!!eff.isTrueEnding;
     renderBattle(eff.tx||"戦闘開始！");
   }
 }
@@ -4417,7 +4457,15 @@ function doBattle(type){
     P.enemy=null;P.nextAtkBonus=0;
     const cardMsg=cardGain>0?"\n評価カード+"+cardGain+"枚！":"";
     const uraBonusMsg=isUraBoss&&isFirstClear?"\n【裏ボス】撃破！":"";
+    const wasTrueEndingBattle=!!P.isTrueEndingBattle;
+    P.isTrueEndingBattle=false;
     toast("論破！EXP+"+(e.expReward||0)+lvMsg+payMsg+cardMsg+uraBonusMsg,3500);
+    if(wasTrueEndingBattle&&!S.trueEndCleared){
+      S.trueEndCleared=true;saveS();
+      P.battleCtx="field";
+      triggerTrueEnding();
+      return;
+    }
     if(isTrauma) goHome();
     else if(P.battleCtx==="street") navigateAfterScene("street");
     else if(isBoss||isUraBoss) showMonthClear(e);
@@ -4515,7 +4563,7 @@ function finishReviveAd(){
   // その場で復活するのではなく、次の周回（ジョブ選択→ダイス）に所持品と所持金だけを引き継ぐ
   _pendingRevive=_deathBackup?{inventory:_deathBackup.inventory,payWallet:_deathBackup.payWallet}:null;
   _deathBackup=null;
-  toast("SESの神の加護を受けた……");
+  toast("🙏 SESの神の加護を受けた……");
   backToTitle();
 }
 function backToTitle(){
@@ -4539,14 +4587,75 @@ function backToTitle(){
   startTitleBGM();
 }
 function oneYearClear(){
-  showScreen("go-screen");S.evalCards+=10;saveS();
+  showScreen("go-screen");S.evalCards+=10;
+  S.trueEndUnlocked=true; // 街の危険な扉の先が「BAR」に変わる
+  saveS();
   P.yearCleared=true; // 1年クリアフラグ
   document.getElementById("go-title").innerText="1年間のサバイバル完遂！";
   document.getElementById("go-title").style.color="var(--green)";
-  document.getElementById("go-panel").innerText="魔界オフィスでの12ヶ月を生き抜いた！\n\n社内評価カード +10枚 獲得！";
+  document.getElementById("go-panel").innerText="魔界オフィスでの12ヶ月を生き抜いた！\n\n社内評価カード +10枚 獲得！\n\n最後に、声が聞こえた気がした。\n\n「……街の外れにあるBARに行け。そこに、お前が望むものがあるだろう。」";
   document.getElementById("go-closet").innerHTML=`<div style="color:var(--green);font-weight:700;text-align:center;padding:12px;">1年サバイバル達成</div>`;
   // ボタンを「自宅に帰る」に変更
   document.querySelector("#go-screen .cmds").innerHTML=`<button class="btn btn-success" onclick="goHome()">自宅に帰る</button>`;
+}
+
+// ============================================================
+// TRUE ENDING（BARの裏ボス撃破後）
+// 現世（元の世界）に戻り、コメントボックス内でナレーションが自動で流れる演出
+// ============================================================
+// 🖼️ ENDING_BG_IMAGE — 「現世」の背景画像URLをここに入れる（未設定なら暗背景のまま）
+const ENDING_BG_IMAGE="";
+const ENDING_LINES=[
+  "目が覚めると、見慣れた天井があった。",
+  "元の世界に、帰ってきていた。",
+  "スマホを確認すると、会社のメールにはいつも通りの業務連絡が並んでいた。定時退社、有給消化率100%の、あの「ホワイト企業」。",
+  "……あの12ヶ月は、夢だったのだろうか。",
+  "そう思おうとしたのに、手のひらにはまだ、拭えない疲労の感触が残っている気がした。",
+  "ふと、机の隅に見覚えのない一枚の名刺が置いてあることに気づいた。",
+  "……気のせいだ。\n\nそう自分に言い聞かせて、目を閉じた。"
+];
+
+function triggerTrueEnding(){
+  stopAmbientBGM();stopSceneSE();
+  playSE("stage_clear");
+  showScreen("ending-screen");
+  updateHeader("title");
+  const bg=document.getElementById("ending-bg");
+  if(bg){
+    if(ENDING_BG_IMAGE){bg.style.backgroundImage="url('"+ENDING_BG_IMAGE+"')";}
+    else{bg.style.backgroundImage="none";}
+  }
+  document.getElementById("ending-box").innerHTML="";
+  document.getElementById("ending-cmds").innerHTML="";
+  playEndingLines(0);
+}
+function playEndingLines(i){
+  const box=document.getElementById("ending-box");
+  if(!box) return;
+  if(i>=ENDING_LINES.length){
+    setTimeout(showEndingRestartBtn,1200);
+    return;
+  }
+  const p=document.createElement("div");
+  p.className="scene-narr-cur";
+  p.style.marginBottom="14px";
+  p.innerText=ENDING_LINES[i];
+  box.appendChild(p);
+  box.scrollTop=box.scrollHeight;
+  const dur=Math.max(2200,Math.min(5200,ENDING_LINES[i].length*110));
+  setTimeout(()=>playEndingLines(i+1),dur);
+}
+let _endingRestartShown=false;
+function showEndingRestartBtn(){
+  if(_endingRestartShown) return;
+  _endingRestartShown=true;
+  document.getElementById("ending-cmds").innerHTML=`<button class="btn btn-primary" onclick="restartAfterEnding()">もう一度、目を閉じる</button>`;
+}
+function restartAfterEnding(){
+  _endingRestartShown=false;
+  _pendingRevive={inventory:JSON.parse(JSON.stringify(P.inventory||[])),payWallet:P.payWallet||0};
+  toast("🍸 ……そして、物語はまた始まる。");
+  backToTitle();
 }
 </script>
 </body>
