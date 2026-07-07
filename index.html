@@ -1766,6 +1766,7 @@ function finishAd(){
 }
 
 function goHome(){
+  stopAmbientBGM(); // 街BGM・電車BGMを停止
   // enemy-name-label などバトルUIをリセット
   var _enl=document.getElementById("enemy-name-label");
   if(_enl) _enl.style.display="none";
@@ -1804,6 +1805,7 @@ function takeNap(){
 // ============================================================
 function goToStreet(){
   _streetVisitCount++;
+  playAmbientBGM("bgm_street");
   showOffice("street");
   const lbl=document.getElementById("novel-floor-label");
   if(lbl) lbl.innerText="街";
@@ -1990,6 +1992,7 @@ showOffice("office");
   const floors=getMonthFloors(curM());
   const f=floors[curPhase-1];
   if(!f){return;}
+  if(curPhase===1){playAmbientBGM("bgm_train");}else{stopAmbientBGM();}
   const alreadyCleared=curPhase<maxPhase; // nextを引いて次フェーズに進んだ時のみtrue
   const scroll=document.getElementById("office-scroll");
   const cmds=document.getElementById("office-cmds");
@@ -2330,6 +2333,7 @@ function nextMonth(){
   showFieldExploreMenu();
 }
 function enterEnemyFloor(){
+  stopAmbientBGM();
   const key=window._pendingEnemyKey||"multi";
   const enemy=getEnemy(key,curM());
   P.enemy=enemy;P.battleCtx="field";
@@ -2338,6 +2342,7 @@ function enterEnemyFloor(){
   renderBattle(""+enemy.name+"が現れた！");
 }
 function enterBossFloor(){
+  stopAmbientBGM();
   const boss=getBoss(curM());
   boss.payReward=curJob().pay;
   P.enemy=boss;P.battleCtx="field";
@@ -2432,21 +2437,48 @@ const SE_SOUNDS={
   "bgm_title":    "https://takumaharuta.github.io/SESgame/sounds/bgm_title.mp3",    // タイトルBGM
   "slap":         "https://takumaharuta.github.io/SESgame/sounds/slap.mp3",         // シナリオダメージ（自分が受ける）
   "punch":        "https://takumaharuta.github.io/SESgame/sounds/punch.mp3",        // 戦闘で敵にダメージを与える
-  "kyuto_room_start": "https://takumaharuta.github.io/SESgame/sounds/kyuto_room_start.mp3", // 田所さん（給湯室）シーン専用の開始SE
+  "bgm_street":   "https://takumaharuta.github.io/SESgame/sounds/bgm_street_rain.mp3", // 街探索中のループBGM（雨音）
+  "bgm_train":    "https://takumaharuta.github.io/SESgame/sounds/bgm_train.mp3",       // 通勤電車フロアのループBGM
 };
-// シーンキーごとに開始SEを上書きしたい場合はここに追加（未指定は共通の"scene_start"）
+// シーンキーごとに開始SEを上書きしたい場合はここに追加
+// 値がnullの場合は「SEなし」（共通のscene_startも鳴らさない）
 const SCENE_START_SE={
-  "kyuto_room": "kyuto_room_start",
+  "kyuto_room": null, // 田所さん（給湯室）シーンはSEなし
 };
 let _currentSceneSE=null; // シナリオ中の再生中SE管理
 let _titleBGM=null;       // タイトルBGM管理
+let _ambientBGM=null;     // 街・電車などのループBGM管理
+let _ambientBGMKey=null;  // 現在再生中のループBGMキー
+function playAmbientBGM(key){
+  if(_ambientBGMKey===key&&_ambientBGM) return; // 同じBGMが再生中なら何もしない
+  stopAmbientBGM();
+  const url=SE_SOUNDS[key];
+  if(!url) return;
+  try{
+    const audio=new Audio(url);
+    audio.loop=true;
+    audio.volume=0.4;
+    audio.play().catch(()=>{});
+    _ambientBGM=audio;
+    _ambientBGMKey=key;
+  }catch(e){}
+}
+function stopAmbientBGM(){
+  if(_ambientBGM){
+    _ambientBGM.pause();
+    _ambientBGM.currentTime=0;
+  }
+  _ambientBGM=null;
+  _ambientBGMKey=null;
+}
 
+const SE_VOLUME_OVERRIDE={"click":0.35}; // 通常0.7の50%
 function playSE(key){
   const url=SE_SOUNDS[key];
   if(!url) return;
   try{
     const audio=new Audio(url);
-    audio.volume=0.7;
+    audio.volume=SE_VOLUME_OVERRIDE.hasOwnProperty(key)?SE_VOLUME_OVERRIDE[key]:0.7;
     audio.play().catch(()=>{});
     return audio;
   }catch(e){}
@@ -3971,7 +4003,9 @@ function getSceneEmoji(title){
 function startScene(key, afterFn, ctx){
   const def=SCENES[key];
   if(!def){if(afterFn)afterFn();return;}
-  playSceneSE(SCENE_START_SE[key]||"scene_start"); // シナリオ開始SE（シーン別の上書きがあればそれを優先）
+  // シーン別の開始SE上書き：キー未登録なら共通scene_start、値がnullなら「SEなし」
+  const seKey=SCENE_START_SE.hasOwnProperty(key)?SCENE_START_SE[key]:"scene_start";
+  if(seKey) playSceneSE(seKey); else stopSceneSE();
   sceneState={
     steps: JSON.parse(JSON.stringify(def.steps)),
     idx:0,
@@ -4481,7 +4515,7 @@ function finishReviveAd(){
   // その場で復活するのではなく、次の周回（ジョブ選択→ダイス）に所持品と所持金だけを引き継ぐ
   _pendingRevive=_deathBackup?{inventory:_deathBackup.inventory,payWallet:_deathBackup.payWallet}:null;
   _deathBackup=null;
-  toast("🙏 SESの神の加護を受けた……");
+  toast("SESの神の加護を受けた……");
   backToTitle();
 }
 function backToTitle(){
