@@ -2712,7 +2712,7 @@ const SCENE_IMAGES={
   "street_stalker_suit": { chara:"https://takumaharuta.github.io/SESgame/images/chara_street_suspicious.webp" }, // 振り返り成功：謎のスーツ男
   "street_stalker_ng":   { chara:"https://takumaharuta.github.io/SESgame/images/chara_street_stranger.webp" },   // 振り返り失敗：別の人物
   "street_stalker_dog":  { chara:"https://takumaharuta.github.io/SESgame/images/chara_street_dog.webp" },        // 全力で走る失敗：犬だった
-  "isekai_intro":        { chara:"https://takumaharuta.github.io/SESgame/images/chara_street_danger_door.webp" }, // オープニング：古びた扉
+  "isekai_intro":        { bg:"https://takumaharuta.github.io/SESgame/images/chara_street_danger_door.webp" }, // オープニング背景：古びた扉
   "naitei_voice":      { chara:"https://takumaharuta.github.io/SESgame/images/chara_wakamono.webp" },           // 内定式帰りの若者
 };
 
@@ -4121,8 +4121,20 @@ function renderSceneUI(){
   const st=sceneState.steps[sceneState.idx];
 
   // フロアラベル: 背景はフロア画像を維持（シーンが発生しても変えない）
+  // ただし、シーン自体に専用の背景(bg)が設定されている場合はそちらを優先する
   const lbl=document.getElementById("novel-floor-label");
-  if(sceneState.ctx==="street"){
+  const sceneBg=(SCENE_IMAGES[sceneState.sceneKey||""]||{}).bg||null;
+  if(sceneBg){
+    const area=document.getElementById("novel-img-area");
+    const ph=document.getElementById("novel-img-placeholder");
+    if(area){
+      area.style.backgroundImage="url('"+sceneBg+"')";
+      area.style.backgroundSize="cover";
+      area.style.backgroundPosition="center";
+    }
+    if(ph) ph.style.display="none";
+    if(lbl) lbl.innerText="";
+  } else if(sceneState.ctx==="street"){
     if(lbl) lbl.innerText="街";
     updateImgArea("street","🏙️");
   } else {
