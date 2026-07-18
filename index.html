@@ -276,6 +276,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
 .scene-choice-header{font-size:11px;color:var(--sub);text-align:center;margin-bottom:4px;padding-top:4px;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
 @keyframes tapBlink{0%,100%{opacity:0.3;}50%{opacity:1;}}
+@keyframes btnGlow{0%,100%{box-shadow:0 0 4px rgba(255,200,60,0.3);}50%{box-shadow:0 0 14px rgba(255,200,60,0.75);}}
 
 </style>
 </head>
@@ -371,6 +372,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
   <div style="flex-shrink:0;background:#0d1120;border-top:1px solid #1e2d45;">
     <div id="office-scroll" style="height:160px;padding:12px 14px;overflow-y:hidden;font-size:15px;line-height:1.8;color:#e8eaf0;white-space:pre-wrap;"></div>
   </div>
+  <!-- 初回帰宅チュートリアル用：画面タップで次のテキストへ進む透明オーバーレイ -->
+  <div id="home-tutorial-overlay" style="display:none;position:absolute;inset:0;z-index:60;background:transparent;cursor:pointer;" onclick="advanceHomeTutorial()"></div>
 </div>
 <!-- GAMEOVER -->
 <div id="go-screen" class="screen">
@@ -1361,7 +1364,7 @@ function getBoss(month){
 // ============================================================
 // STATE
 // ============================================================
-let S={evalCards:0,unlockedJobs:["intern"],selectedJobId:"intern",closet:[],equippedId:null,hasSeenIntro:false,trueEndUnlocked:false,trueEndCleared:false};
+let S={evalCards:0,unlockedJobs:["intern"],selectedJobId:"intern",closet:[],equippedId:null,hasSeenIntro:false,hasSeenHomeIntro:false,trueEndUnlocked:false,trueEndCleared:false};
 let _battleLock=false;
 const curM=()=>P.month||4; // P.month||4のヘルパー
 let P={};
@@ -1795,18 +1798,70 @@ function goHome(){
   if(lbl) lbl.innerText="🏡 自宅";
   updateImgArea("home","🏡");
   clearCharaImg();
+  if(!S.hasSeenHomeIntro){
+    S.hasSeenHomeIntro=true;
+    saveS();
+    _homeTutorialIdx=0;
+    renderHomeTutorialStep();
+    return;
+  }
+  renderHomeButtons(null);
   const scroll=document.getElementById("office-scroll");
-  const cmds=document.getElementById("office-cmds");
   const msgs=["ドアの外は魔界。この部屋の中だけが唯一の安全地帯……のはずだ。","ベッドに倒れ込む。天井のシミが今日も変わらずある。","静かだ。会社の怒号が耳鳴りのように残っている。","冷蔵庫を開けた。昨日の残りのご飯があった。","窓の外は夜だった。自分がいなくても街は動いている。"];
   scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;">${msgs[(curM())%msgs.length]}</span>`;
-  cmds.innerHTML=renderSideBtns([
+}
+
+// 自宅の実際のボタン一覧を描画する（highlightFnが指定されていればそのボタンだけ強調）
+function renderHomeButtons(highlightFn){
+  const cmds=document.getElementById("office-cmds");
+  const base=[
     {label:"オフィスへ向かう",fn:"goToOffice()"},
     {label:"街に繰り出す",fn:"goToStreet()"},
     {label:"仮眠を取る",fn:"takeNap()"},
     {label:"上司の誘いで出かける",fn:"showAdOffer()"},
     {label:"クローゼット",fn:"showCloset()"},
     {label:"物思いにふける",fn:"showIntrospection()"}
-  ]);
+  ];
+  cmds.innerHTML=renderSideBtns(base.map(b=>({...b,highlight:highlightFn&&b.fn===highlightFn})));
+}
+
+// ============================================================
+// 初回帰宅チュートリアル：コメントボックスのテキストが画面タップで進み、
+// 途中からボタンが1つずつ光って説明される（説明が終わるまで実際のボタン操作は不可）
+// ============================================================
+let _homeTutorialIdx=0;
+const HOME_TUTORIAL_STEPS=[
+  {text:"見知らぬ部屋にいた。",highlight:null},
+  {text:"ただ、なぜかここが自室で、これから仕事に行かなければいけないことだけは、なぜかわかった。",highlight:null},
+  {text:"まずは働きに行かなければ、何も始まらないらしい。\n\n「オフィスへ向かう」——ここが全ての基本になる。",highlight:"goToOffice()"},
+  {text:"退勤後は「街に繰り出す」こともできるようだ。買い物や、思わぬ出来事が待っているかもしれない。",highlight:"goToStreet()"},
+  {text:"疲れた時は「仮眠を取る」でメンタルを回復できる。無理はしない方がいい。",highlight:"takeNap()"},
+  {text:"……さあ、そろそろ動き出さないと。",highlight:null}
+];
+function renderHomeTutorialStep(){
+  const scroll=document.getElementById("office-scroll");
+  const overlay=document.getElementById("home-tutorial-overlay");
+  const step=HOME_TUTORIAL_STEPS[_homeTutorialIdx];
+  if(!step){
+    // チュートリアル終了：オーバーレイを外し、通常のボタン操作を許可
+    if(overlay) overlay.style.display="none";
+    renderHomeButtons(null);
+    return;
+  }
+  scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;animation:fadeIn 0.25s ease-out;">${step.text}</span>`;
+  if(_homeTutorialIdx<2){
+    // フェーズA：まだボタンは見せず「…」だけで先へ進める
+    const cmds=document.getElementById("office-cmds");
+    cmds.innerHTML=renderSideBtns([{label:"…",fn:"advanceHomeTutorial()"}]);
+  } else {
+    // フェーズB：実際のボタン一覧を見せつつ、該当ボタンだけ光らせる（操作はオーバーレイでブロック中）
+    renderHomeButtons(step.highlight);
+  }
+  if(overlay) overlay.style.display="block";
+}
+function advanceHomeTutorial(){
+  _homeTutorialIdx++;
+  renderHomeTutorialStep();
 }
 
 function takeNap(){
@@ -4018,9 +4073,10 @@ let sceneState=null;
 
 // 右カラム用ボタン群を生成（全て同じスタイル）
 function renderSideBtns(items){
-  return items.map(it=>
-    `<button onclick="${it.fn}" style="background:#1a2540;border:1px solid #2a3a58;border-radius:7px;padding:11px 9px;font-size:14px;font-weight:700;color:#c8d0e0;cursor:pointer;width:100%;text-align:left;line-height:1.4;word-break:break-all;">${it.label}</button>`
-  ).join("");
+  return items.map(it=>{
+    const highlightStyle=it.highlight?"border:1px solid var(--yellow);animation:btnGlow 2s ease-in-out infinite;":"border:1px solid #2a3a58;";
+    return `<button onclick="${it.fn}" style="background:#1a2540;${highlightStyle}border-radius:7px;padding:11px 9px;font-size:14px;font-weight:700;color:#c8d0e0;cursor:pointer;width:100%;text-align:left;line-height:1.4;word-break:break-all;">${it.label}</button>`;
+  }).join("");
 }
 
 function getSceneEmoji(title){
