@@ -373,8 +373,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
   <!-- メッセージボックス（固定・スタイル統一） -->
   <div style="flex-shrink:0;background:#0d1120;border-top:1px solid #1e2d45;position:relative;">
     <div id="office-scroll" style="height:160px;padding:12px 14px;overflow-y:hidden;font-size:15px;line-height:1.8;color:#e8eaf0;white-space:pre-wrap;"></div>
-    <!-- 初回帰宅チュートリアル用：ボタン以外を暗くするスポットライト演出（メッセージボックス側） -->
-    <div id="home-dim-msg" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.55);z-index:5;pointer-events:none;"></div>
   </div>
   <!-- 初回帰宅チュートリアル用：画面タップで次のテキストへ進む透明オーバーレイ -->
   <div id="home-tutorial-overlay" style="display:none;position:absolute;inset:0;z-index:60;background:transparent;cursor:pointer;" onclick="advanceHomeTutorial()"></div>
@@ -1849,30 +1847,33 @@ function renderHomeTutorialStep(){
   const scroll=document.getElementById("office-scroll");
   const overlay=document.getElementById("home-tutorial-overlay");
   const dimImg=document.getElementById("home-dim-img");
-  const dimMsg=document.getElementById("home-dim-msg");
   const step=HOME_TUTORIAL_STEPS[_homeTutorialIdx];
   if(!step){
     // チュートリアル終了：オーバーレイ・暗転を外し、通常のボタン操作を許可
     if(overlay) overlay.style.display="none";
     if(dimImg) dimImg.style.display="none";
-    if(dimMsg) dimMsg.style.display="none";
     renderHomeButtons(null);
     return;
   }
   scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;animation:fadeIn 0.25s ease-out;">${step.text}</span>`;
+  const isLastStep=_homeTutorialIdx>=HOME_TUTORIAL_STEPS.length-1;
   if(_homeTutorialIdx<2){
     // フェーズA：まだボタンは見せず「…」だけで先へ進める（暗転なし）
     const cmds=document.getElementById("office-cmds");
     cmds.innerHTML=renderSideBtns([{label:"…",fn:"advanceHomeTutorial()"}]);
     if(dimImg) dimImg.style.display="none";
-    if(dimMsg) dimMsg.style.display="none";
+    if(overlay) overlay.style.display="block";
+  } else if(isLastStep){
+    // 締めの一文：ここでオーバーレイを外し、即座にボタン操作できるようにする
+    renderHomeButtons(null);
+    if(dimImg) dimImg.style.display="none";
+    if(overlay) overlay.style.display="none";
   } else {
     // フェーズB：実際のボタン一覧を見せつつ、該当ボタンだけ光らせる（他は暗転／操作はオーバーレイでブロック中）
     renderHomeButtons(step.highlight);
     if(dimImg) dimImg.style.display=step.highlight?"block":"none";
-    if(dimMsg) dimMsg.style.display=step.highlight?"block":"none";
+    if(overlay) overlay.style.display="block";
   }
-  if(overlay) overlay.style.display="block";
 }
 function advanceHomeTutorial(){
   _homeTutorialIdx++;
