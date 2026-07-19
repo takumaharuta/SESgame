@@ -367,10 +367,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI"
     <div id="enemy-name-label" style="display:none;position:absolute;top:36px;left:10px;right:10px;text-align:center;font-size:15px;font-weight:900;color:#f0f0f0;padding:5px 10px;border-radius:8px;background:rgba(0,0,0,0.72);z-index:8;transition:color 0.4s;"></div>
     <!-- ボタンオーバーレイ（画像右側） -->
     <div id="office-cmds" style="position:absolute;top:0;right:0;bottom:0;width:140px;display:flex;flex-direction:column;gap:7px;z-index:7;justify-content:center;overflow-y:auto;padding:10px 8px;background:rgba(7,9,18,0.7);"></div>
+    <!-- 初回帰宅チュートリアル用：ボタン以外を暗くするスポットライト演出（画像側） -->
+    <div id="home-dim-img" style="display:none;position:absolute;top:0;left:0;bottom:0;width:calc(100% - 140px);background:rgba(0,0,0,0.72);z-index:5;pointer-events:none;"></div>
   </div>
   <!-- メッセージボックス（固定・スタイル統一） -->
-  <div style="flex-shrink:0;background:#0d1120;border-top:1px solid #1e2d45;">
+  <div style="flex-shrink:0;background:#0d1120;border-top:1px solid #1e2d45;position:relative;">
     <div id="office-scroll" style="height:160px;padding:12px 14px;overflow-y:hidden;font-size:15px;line-height:1.8;color:#e8eaf0;white-space:pre-wrap;"></div>
+    <!-- 初回帰宅チュートリアル用：ボタン以外を暗くするスポットライト演出（メッセージボックス側） -->
+    <div id="home-dim-msg" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.55);z-index:5;pointer-events:none;"></div>
   </div>
   <!-- 初回帰宅チュートリアル用：画面タップで次のテキストへ進む透明オーバーレイ -->
   <div id="home-tutorial-overlay" style="display:none;position:absolute;inset:0;z-index:60;background:transparent;cursor:pointer;" onclick="advanceHomeTutorial()"></div>
@@ -1836,26 +1840,37 @@ const HOME_TUTORIAL_STEPS=[
   {text:"まずは働きに行かなければ、何も始まらないらしい。\n\n「オフィスへ向かう」——ここが全ての基本になる。",highlight:"goToOffice()"},
   {text:"退勤後は「街に繰り出す」こともできるようだ。買い物や、思わぬ出来事が待っているかもしれない。",highlight:"goToStreet()"},
   {text:"疲れた時は「仮眠を取る」でメンタルを回復できる。無理はしない方がいい。",highlight:"takeNap()"},
+  {text:"「上司の誘いで出かける」……気は進まないが、断れば断ったで、後が怖い気がする。",highlight:"showAdOffer()"},
+  {text:"「クローゼット」には、これまで手に入れたアイテムや装備がしまってあるようだ。",highlight:"showCloset()"},
+  {text:"「物思いにふける」……少しだけ、これまでのことを振り返る時間も必要かもしれない。",highlight:"showIntrospection()"},
   {text:"……さあ、そろそろ動き出さないと。",highlight:null}
 ];
 function renderHomeTutorialStep(){
   const scroll=document.getElementById("office-scroll");
   const overlay=document.getElementById("home-tutorial-overlay");
+  const dimImg=document.getElementById("home-dim-img");
+  const dimMsg=document.getElementById("home-dim-msg");
   const step=HOME_TUTORIAL_STEPS[_homeTutorialIdx];
   if(!step){
-    // チュートリアル終了：オーバーレイを外し、通常のボタン操作を許可
+    // チュートリアル終了：オーバーレイ・暗転を外し、通常のボタン操作を許可
     if(overlay) overlay.style.display="none";
+    if(dimImg) dimImg.style.display="none";
+    if(dimMsg) dimMsg.style.display="none";
     renderHomeButtons(null);
     return;
   }
   scroll.innerHTML=`<span style="font-size:15px;line-height:1.8;animation:fadeIn 0.25s ease-out;">${step.text}</span>`;
   if(_homeTutorialIdx<2){
-    // フェーズA：まだボタンは見せず「…」だけで先へ進める
+    // フェーズA：まだボタンは見せず「…」だけで先へ進める（暗転なし）
     const cmds=document.getElementById("office-cmds");
     cmds.innerHTML=renderSideBtns([{label:"…",fn:"advanceHomeTutorial()"}]);
+    if(dimImg) dimImg.style.display="none";
+    if(dimMsg) dimMsg.style.display="none";
   } else {
-    // フェーズB：実際のボタン一覧を見せつつ、該当ボタンだけ光らせる（操作はオーバーレイでブロック中）
+    // フェーズB：実際のボタン一覧を見せつつ、該当ボタンだけ光らせる（他は暗転／操作はオーバーレイでブロック中）
     renderHomeButtons(step.highlight);
+    if(dimImg) dimImg.style.display=step.highlight?"block":"none";
+    if(dimMsg) dimMsg.style.display=step.highlight?"block":"none";
   }
   if(overlay) overlay.style.display="block";
 }
@@ -4073,9 +4088,15 @@ let sceneState=null;
 
 // 右カラム用ボタン群を生成（全て同じスタイル）
 function renderSideBtns(items){
+  const hasHighlight=items.some(it=>it.highlight);
   return items.map(it=>{
-    const highlightStyle=it.highlight?"border:1px solid var(--yellow);animation:btnGlow 2s ease-in-out infinite;":"border:1px solid #2a3a58;";
-    return `<button onclick="${it.fn}" style="background:#1a2540;${highlightStyle}border-radius:7px;padding:11px 9px;font-size:14px;font-weight:700;color:#c8d0e0;cursor:pointer;width:100%;text-align:left;line-height:1.4;word-break:break-all;">${it.label}</button>`;
+    let extraStyle="border:1px solid #2a3a58;";
+    if(it.highlight){
+      extraStyle="border:1px solid var(--yellow);animation:btnGlow 2s ease-in-out infinite;";
+    } else if(hasHighlight){
+      extraStyle="border:1px solid #2a3a58;opacity:0.25;filter:brightness(0.5);pointer-events:none;";
+    }
+    return `<button onclick="${it.fn}" style="background:#1a2540;${extraStyle}border-radius:7px;padding:11px 9px;font-size:14px;font-weight:700;color:#c8d0e0;cursor:pointer;width:100%;text-align:left;line-height:1.4;word-break:break-all;">${it.label}</button>`;
   }).join("");
 }
 
